@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Field Boss: Top-Down Farm Manager</title>
+<style>
+  :root {
+    --panel: rgba(20, 30, 24, 0.88);
+    --panel2: rgba(246, 238, 213, 0.94);
+    --ink: #203025;
+    --cream: #f9f0d0;
+    --gold: #f1c45b;
+    --green: #4f8f3a;
+    --red: #b84f42;
+    --blue: #5fa9d8;
+    --shadow: 0 10px 28px rgba(0,0,0,.25);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; margin: 0; overflow: hidden;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--cream); background: #253321; touch-action: none;
+  }
+
+  #gameCanvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #33492d; }
+
+  .hud {
+    position: fixed; left: 10px; right: 10px; top: 10px; display: flex; gap: 8px; align-items: center; justify-content: space-between;
+    pointer-events: none; z-index: 4;
+  }
+  .statusBar { display:flex; flex-wrap:wrap; gap: 7px; align-items:center; pointer-events: auto; }
+  .pill {
+    background: rgba(18, 29, 20, .82); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; padding: 7px 10px;
+    font-size: 12px; line-height: 1; box-shadow: var(--shadow); white-space: nowrap; backdrop-filter: blur(8px);
+  }
+  .pill b { color: #fff3b0; }
+  .topControls { display:flex; gap:7px; pointer-events:auto; }
+
+  button, select {
+    font: inherit; border: 0; border-radius: 12px; padding: 9px 10px; cursor: pointer; color: #173018;
+    background: #f7e7a5; box-shadow: inset 0 -2px 0 rgba(0,0,0,.12), 0 3px 8px rgba(0,0,0,.18);
+    touch-action: manipulation;
+  }
+  button:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(0,0,0,.12); }
+  button.small { padding: 7px 9px; font-size: 12px; border-radius: 10px; }
+  button.dark { background: #263d29; color: #f7edca; border: 1px solid rgba(255,255,255,.13); }
+  button.green { background: #b7e08d; }
+  button.blue { background: #b7ddf4; }
+  button.red { background: #ffb4a8; }
+  button.gold { background: #ffd774; }
+  button:disabled { opacity: .45; filter: grayscale(.3); cursor: not-allowed; }
+
+  #sidePanel {
+    position: fixed; top: 62px; right: 10px; width: min(365px, calc(100vw - 20px)); max-height: calc(100vh - 178px); overflow: auto;
+    background: var(--panel2); color: var(--ink); border: 2px solid rgba(75, 54, 28, .25); border-radius: 19px; padding: 13px;
+    box-shadow: var(--shadow); z-index: 3; pointer-events: auto;
+  }
+  #sidePanel.hidden { transform: translateX(calc(100% + 20px)); opacity: .2; pointer-events:none; }
+  .panelTitle { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+  .panelTitle h2 { margin:0; font-size: 17px; line-height:1.05; }
+  .panelTitle small { color: #5e6b54; }
+  .section { border-top: 1px solid rgba(55, 66, 38, .18); padding-top: 9px; margin-top: 9px; }
+  .statGrid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:7px; }
+  .stat { background: rgba(255,255,255,.55); border:1px solid rgba(41,54,33,.1); border-radius: 12px; padding: 8px; font-size:12px; min-height:42px; }
+  .stat b { display:block; font-size:14px; color:#172817; margin-top: 2px; }
+  .actions { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:7px; margin-top: 8px; }
+  .actions button { font-size: 12px; min-height: 41px; padding: 8px; }
+  .cropRow { display:flex; flex-wrap:wrap; gap: 7px; margin-top:8px; }
+  .cropButton { font-size:12px; padding:8px 9px; background:#fff4bf; }
+  .cropButton.active { outline: 3px solid #6aa34c; background: #c9ee9b; }
+  .fieldList { display:flex; gap: 6px; overflow:auto; padding-bottom: 4px; }
+  .fieldChip { white-space: nowrap; font-size:12px; padding:8px 9px; border-radius: 999px; background: #e3d6a5; color:#2b2b1f; }
+  .fieldChip.active { background:#5f8f48; color:#fff7d5; }
+  .progressOuter { width:100%; height:9px; border-radius:99px; overflow:hidden; background: rgba(23,36,22,.14); margin-top:5px; }
+  .progressInner { height:100%; background:#6aa34c; width:0%; border-radius:99px; }
+  .hint { font-size: 12px; color:#53624f; line-height: 1.35; }
+
+  #bottomDock {
+    position: fixed; left: 10px; right: 10px; bottom: 10px; z-index: 4; display:flex; gap: 9px; align-items: stretch; pointer-events:none;
+  }
+  .dockPanel {
+    pointer-events:auto; background: rgba(17, 27, 18, .88); border: 1px solid rgba(255,255,255,.15); border-radius: 18px; box-shadow: var(--shadow); padding: 9px;
+    backdrop-filter: blur(10px); display:flex; flex-wrap:wrap; gap:7px; align-items:center;
+  }
+  .dockPanel.grow { flex: 1 1 auto; }
+  .dockTitle { font-size:12px; opacity:.8; margin-right:2px; }
+  #log {
+    pointer-events:auto; flex: 1 1 320px; min-width: 250px; max-width: 480px; background: rgba(17,27,18,.82); border:1px solid rgba(255,255,255,.14); border-radius:18px;
+    padding: 10px 12px; box-shadow: var(--shadow); font-size: 12px; line-height:1.3; overflow: hidden; max-height: 54px;
+  }
+  #log b { color:#ffe28b; }
+
+  #marketPanel, #helpPanel {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100vw - 20px)); max-height: min(760px, calc(100vh - 28px)); overflow:auto;
+    z-index: 8; background: #fbf1d1; color: var(--ink); border-radius: 22px; border: 2px solid rgba(86,62,30,.24); box-shadow: 0 22px 70px rgba(0,0,0,.45); padding: 16px;
+  }
+  #marketPanel.hidden, #helpPanel.hidden { display:none; }
+  .modalHeader { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .modalHeader h2 { margin:0; }
+  .marketGrid { display:grid; grid-template-columns: repeat(5, minmax(105px, 1fr)); gap:9px; }
+  .card { background: rgba(255,255,255,.62); border: 1px solid rgba(42,54,33,.12); border-radius: 14px; padding: 10px; font-size: 12px; }
+  .card h3 { margin:0 0 5px; font-size: 15px; }
+  .card button { margin-top:8px; width:100%; }
+  .contractGrid { display:grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap:9px; }
+  .toast { color:#ffe8a3; }
+
+  .mobileOnly { display:none; }
+
+  @media (max-width: 740px) {
+    .hud { top: 7px; left:7px; right:7px; }
+    .pill { font-size: 11px; padding: 6px 8px; }
+    .topControls button { padding: 7px 8px; font-size: 12px; }
+    #sidePanel { top: auto; right: 7px; left: 7px; bottom: 90px; width: auto; max-height: 48vh; border-radius: 18px; padding: 11px; }
+    #sidePanel.hidden { transform: translateY(calc(100% + 100px)); opacity:.15; }
+    #bottomDock { left:7px; right:7px; bottom:7px; gap:7px; }
+    .dockPanel { padding: 7px; gap:6px; overflow-x:auto; flex-wrap: nowrap; }
+    .dockTitle { display:none; }
+    #log { display:none; }
+    .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .marketGrid, .contractGrid { grid-template-columns: 1fr; }
+    button { padding: 8px 9px; }
+    .mobileOnly { display:inline-flex; }
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<div class="hud">
+  <div class="statusBar" id="statusBar"></div>
+  <div class="topControls">
+    <button class="small dark" id="togglePanelBtn">Panel</button>
+    <button class="small dark" id="helpBtn">?</button>
+  </div>
+</div>
+
+<aside id="sidePanel"></aside>
+
+<div id="bottomDock">
+  <div class="dockPanel grow">
+    <span class="dockTitle">Farm Office</span>
+    <button class="small gold" id="marketBtn">Market</button>
+    <button class="small green" id="autoBtn">Auto: Off</button>
+    <button class="small blue" id="speedBtn">Speed 1x</button>
+    <button class="small dark" id="zoomInBtn">+</button>
+    <button class="small dark" id="zoomOutBtn">−</button>
+    <button class="small dark" id="centerBtn">Centre</button>
+    <button class="small dark" id="saveBtn">Save</button>
+  </div>
+  <div id="log">Welcome to <b>Field Boss</b>. Tap a field, pick a crop, queue tractor work, and build a bigger farm.</div>
+</div>
+
+<div id="marketPanel" class="hidden"></div>
+<div id="helpPanel" class="hidden"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const statusBar = document.getElementById('statusBar');
+  const sidePanel = document.getElementById('sidePanel');
+  const logEl = document.getElementById('log');
+  const marketPanel = document.getElementById('marketPanel');
+  const helpPanel = document.getElementById('helpPanel');
+
+  const WORLD = { w: 2500, h: 1680 };
+  const SAVE_KEY = 'fieldBossFarmSaveV1';
+
+  const crops = {
+    wheat:   { name:'Wheat',   seed:42, grow:4, yield:18, base:12, color:'#d6bd5c', rows:'#b09338', season:['Spring','Summer','Autumn'], note:'reliable starter crop' },
+    barley:  { name:'Barley',  seed:38, grow:3, yield:15, base:10, color:'#c8ae67', rows:'#9c8240', season:['Spring','Autumn'], note:'quick turnaround' },
+    canola:  { name:'Canola',  seed:58, grow:5, yield:16, base:18, color:'#e6d846', rows:'#b7aa27', season:['Spring','Summer'], note:'higher value, slower' },
+    potato:  { name:'Potato',  seed:75, grow:5, yield:25, base:14, color:'#83a44e', rows:'#557333', season:['Spring','Summer','Autumn'], note:'big yields, thirsty' },
+    corn:    { name:'Corn',    seed:92, grow:6, yield:26, base:17, color:'#5f9e3f', rows:'#346b25', season:['Summer'], note:'summer cash crop' }
+  };
+  const cropKeys = Object.keys(crops);
+  const seasons = ['Spring','Summer','Autumn','Winter'];
+  const weatherTypes = [
+    {name:'Sunny', icon:'☀️', moisture:-8, growth:1.05, price:0.99},
+    {name:'Cloudy', icon:'☁️', moisture:-4, growth:1.0, price:1.0},
+    {name:'Rain', icon:'🌧️', moisture:18, growth:1.08, price:1.02},
+    {name:'Dry Wind', icon:'🌬️', moisture:-14, growth:.9, price:1.04},
+    {name:'Storm', icon:'⛈️', moisture:25, growth:.72, price:1.08}
+  ];
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function money(n) { return '£' + Math.round(n).toLocaleString('en-GB'); }
+  function rand(seed) {
+    const x = Math.sin(seed * 999.91) * 43758.5453;
+    return x - Math.floor(x);
+  }
+  function choice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  const defaultState = () => ({
+    money: 4200,
+    day: 1,
+    dayProgress: 0,
+    seasonIndex: 0,
+    weatherIndex: 0,
+    speed: 1,
+    paused: false,
+    selectedField: 1,
+    selectedCrop: 'wheat',
+    autoMode: false,
+    tractorLevel: 1,
+    drivers: 1,
+    rep: 0,
+    xp: 0,
+    contracts: [],
+    acceptedContracts: [],
+    market: {},
+    stock: { wheat:0, barley:0, canola:0, potato:0, corn:0 },
+    taskQueue: [],
+    fields: createFields(),
+    tractors: [createTractor(1, 940, 850)],
+    effects: [],
+    loans: 0,
+    stats: { harvested:0, sold:0, boughtFields:0 }
+  });
+
+  function createFields() {
+    const data = [
+      [1,  150, 140, 330, 230, true, 0], [2, 520, 140, 330, 230, true, 0], [3, 890, 140, 330, 230, true, 0],
+      [4,  150, 420, 330, 230, true, 0], [5, 520, 420, 330, 230, false, 1850], [6, 890, 420, 330, 230, false, 2200],
+      [7,  150, 1000, 330, 230, false, 2600], [8, 520, 1000, 330, 230, false, 2900], [9, 890, 1000, 330, 230, false, 3300],
+      [10, 1440, 140, 360, 260, false, 4200], [11, 1850, 140, 360, 260, false, 4700],
+      [12, 1440, 1000, 360, 260, false, 5200], [13, 1850, 1000, 360, 260, false, 6000]
+    ];
+    return data.map(d => ({
+      id:d[0], x:d[1], y:d[2], w:d[3], h:d[4], owned:d[5], price:d[6],
+      state:'empty', crop:null, lastCrop:null, growth:0, plantedDay:null,
+      fertility: 62 + Math.floor(rand(d[0]) * 31), moisture: 42 + Math.floor(rand(d[0] + 10) * 31), weeds: 8 + Math.floor(rand(d[0] + 30) * 17),
+      queued:false, activeAction:null, workProgress:0, note:''
+    }));
+  }
+
+  function createTractor(id, x, y) {
+    return { id, x, y, homeX:x, homeY:y, angle:0, task:null, target:null, state:'idle', work:0, workNeed:1, fuel:100, trail:[], wobble: Math.random()*10 };
+  }
+
+  let game = defaultState();
+  let last = performance.now();
+  let camera = { x: WORLD.w/2, y: WORLD.h/2, zoom: 0.58 };
+  let pointer = { down:false, moved:false, sx:0, sy:0, lastX:0, lastY:0, id:null };
+  let panelVisible = true;
+  let lastAutoPlanDay = -999;
+
+  function initMarket() {
+    cropKeys.forEach(k => game.market[k] = crops[k].base + Math.round((Math.random() - .5) * 4));
+  }
+
+  function generateContracts() {
+    while (game.contracts.length < 3) {
+      const k = choice(cropKeys);
+      const amount = Math.round((50 + Math.random() * 90 + game.rep * 3) / 5) * 5;
+      const reward = amount * (crops[k].base + 6 + Math.random() * 8) + 180 + game.rep * 20;
+      const deadline = game.day + 8 + Math.floor(Math.random() * 8);
+      game.contracts.push({ id: Date.now() + Math.random(), crop:k, amount, reward:Math.round(reward), deadline, accepted:false });
+    }
+  }
+
+  function resetFresh() {
+    game = defaultState();
+    initMarket();
+    generateContracts();
+    centerCamera();
+    toast('New farm started. Three fields are yours. Queue work and watch the tractors move.');
+    updateUI();
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) { resetFresh(); return; }
+      const saved = JSON.parse(raw);
+      game = Object.assign(defaultState(), saved);
+      game.fields = saved.fields || createFields();
+      game.tractors = (saved.tractors || [createTractor(1, 940, 850)]).map((t, i) => Object.assign(createTractor(i+1, 940 + i*25, 850), t, {task:null, target:null, state:'idle', work:0, trail:[]}));
+      game.taskQueue = saved.taskQueue || [];
+      game.effects = [];
+      if (!game.market || Object.keys(game.market).length === 0) initMarket();
+      if (!game.contracts) game.contracts = [];
+      if (!game.acceptedContracts) game.acceptedContracts = [];
+      generateContracts();
+      centerCamera();
+      toast('Save loaded. Tractors returned to the yard.');
+      updateUI();
+    } catch (err) {
+      console.warn(err);
+      resetFresh();
+    }
+  }
+
+  function save() {
+    const copy = JSON.parse(JSON.stringify(game));
+    copy.tractors.forEach(t => { t.task = null; t.target = null; t.state = 'idle'; t.work = 0; t.trail = []; });
+    copy.effects = [];
+    localStorage.setItem(SAVE_KEY, JSON.stringify(copy));
+    toast('Game saved locally on this device.');
+  }
+
+  function toast(msg) {
+    logEl.innerHTML = '<span class="toast">' + msg + '</span>';
+    game.effects.push({ type:'text', text:msg, x: camera.x, y: camera.y - 180, life:2.2 });
+  }
+
+  function canvasResize() {
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.floor(innerWidth * dpr);
+    canvas.height = Math.floor(innerHeight * dpr);
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    clampCamera();
+  }
+
+  function centerCamera() {
+    camera.x = WORLD.w/2;
+    camera.y = WORLD.h/2;
+    const scale = Math.min(innerWidth / WORLD.w, innerHeight / WORLD.h) * 1.2;
+    camera.zoom = clamp(scale, .34, .78);
+    if (innerWidth < 720) camera.zoom = clamp(scale * 1.35, .42, .86);
+    clampCamera();
+  }
+
+  function clampCamera() {
+    camera.zoom = clamp(camera.zoom, .28, 1.55);
+    const halfW = innerWidth / (2 * camera.zoom);
+    const halfH = innerHeight / (2 * camera.zoom);
+    camera.x = clamp(camera.x, halfW - 120, WORLD.w - halfW + 120);
+    camera.y = clamp(camera.y, halfH - 120, WORLD.h - halfH + 120);
+  }
+
+  function screenToWorld(clientX, clientY) {
+    return {
+      x: (clientX - innerWidth/2) / camera.zoom + camera.x,
+      y: (clientY - innerHeight/2) / camera.zoom + camera.y
+    };
+  }
+
+  function worldToScreen(x,y) {
+    return { x:(x-camera.x)*camera.zoom + innerWidth/2, y:(y-camera.y)*camera.zoom + innerHeight/2 };
+  }
+
+  function getSeason() { return seasons[game.seasonIndex % seasons.length]; }
+  function getWeather() { return weatherTypes[game.weatherIndex % weatherTypes.length]; }
+  function selectedField() { return game.fields.find(f => f.id === game.selectedField) || game.fields[0]; }
+  function fieldAreaScale(f) { return Math.max(.8, (f.w * f.h) / (330 * 230)); }
+  function taskCost(action, f, cropKey) {
+    const area = fieldAreaScale(f);
+    if (action === 'prep') return Math.round(38 * area);
+    if (action === 'plant') return Math.round(crops[cropKey].seed * area);
+    if (action === 'fertilise') return Math.round(70 * area);
+    if (action === 'irrigate') return Math.round(48 * area);
+    if (action === 'weed') return Math.round(42 * area);
+    if (action === 'harvest') return Math.round(32 * area);
+    return 0;
+  }
+  function workNeed(action, f) {
+    const base = {prep:5.5, plant:5, fertilise:3.5, irrigate:3.2, weed:3.8, harvest:6.2}[action] || 4;
+    const levelBonus = 1 + (game.tractorLevel - 1) * .22;
+    return base * fieldAreaScale(f) / levelBonus;
+  }
+  function fieldHasPending(f) {
+    return f.queued || f.activeAction || game.taskQueue.some(t => t.fieldId === f.id);
+  }
+
+  function canQueue(action, f, cropKey = game.selectedCrop, quiet=false) {
+    if (!f.owned) return [false, 'Buy the field first.'];
+    if (fieldHasPending(f)) return [false, 'That field already has tractor work queued.'];
+    if (action === 'prep' && !['empty','harvested'].includes(f.state)) return [false, 'Prepare only empty or harvested ground.'];
+    if (action === 'plant') {
+      if (f.state !== 'prepped') return [false, 'Prepare the field before planting.'];
+      if (!crops[cropKey].season.includes(getSeason())) return [false, crops[cropKey].name + ' is a poor choice in ' + getSeason() + '. Wait for the right season or choose another crop.'];
+    }
+    if (action === 'fertilise' && !['prepped','growing'].includes(f.state)) return [false, 'Fertilise a prepped or growing field.'];
+    if (action === 'irrigate' && !['prepped','growing'].includes(f.state)) return [false, 'Irrigate a prepped or growing field.'];
+    if (action === 'weed' && !['growing'].includes(f.state)) return [false, 'Weed only growing crops.'];
+    if (action === 'harvest' && f.state !== 'harvestable') return [false, 'This crop is not ready yet.'];
+    const cost = taskCost(action, f, cropKey);
+    if (game.money < cost) return [false, 'Not enough cash. Need ' + money(cost) + '.'];
+    return [true, ''];
+  }
+
+  function queueTask(action, f, cropKey = game.selectedCrop) {
+    const [ok, why] = canQueue(action, f, cropKey);
+    if (!ok) { toast(why); updateUI(); return; }
+    const cost = taskCost(action, f, cropKey);
+    game.money -= cost;
+    f.queued = true;
+    game.taskQueue.push({ id: Date.now() + Math.random(), action, fieldId:f.id, crop: cropKey, cost });
+    toast('Queued ' + labelAction(action) + ' on Field ' + f.id + ' for ' + money(cost) + '.');
+    updateUI();
+  }
+
+  function labelAction(action) {
+    return ({prep:'soil prep', plant:'planting', fertilise:'fertilising', irrigate:'irrigation', weed:'weeding', harvest:'harvest'})[action] || action;
+  }
+
+  function assignTractors() {
+    for (const tractor of game.tractors) {
+      if (tractor.state !== 'idle' || tractor.task) continue;
+      const task = game.taskQueue.shift();
+      if (!task) break;
+      const f = game.fields.find(ff => ff.id === task.fieldId);
+      if (!f || !f.owned) continue;
+      tractor.task = task;
+      tractor.target = { x: f.x + f.w/2, y: f.y + f.h/2 };
+      tractor.state = 'driving';
+      tractor.work = 0;
+      tractor.workNeed = workNeed(task.action, f);
+      f.queued = false;
+      f.activeAction = task.action;
+      f.workProgress = 0;
+      toast('Tractor ' + tractor.id + ' heading to Field ' + f.id + ' for ' + labelAction(task.action) + '.');
+    }
+  }
+
+  function updateTractors(dt) {
+    assignTractors();
+    for (const tractor of game.tractors) {
+      tractor.wobble += dt * 6;
+      if (tractor.state === 'idle') {
+        const dx = tractor.homeX - tractor.x;
+        const dy = tractor.homeY - tractor.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 3) {
+          const sp = 80 * dt;
+          tractor.x += dx/d * Math.min(sp, d);
+          tractor.y += dy/d * Math.min(sp, d);
+          tractor.angle = Math.atan2(dy, dx);
+        }
+        continue;
+      }
+      const f = game.fields.find(ff => ff.id === tractor.task.fieldId);
+      if (!f) { tractor.state = 'idle'; tractor.task = null; continue; }
+      if (tractor.state === 'driving') {
+        const dx = tractor.target.x - tractor.x;
+        const dy = tractor.target.y - tractor.y;
+        const dist = Math.hypot(dx, dy);
+        const speed = (105 + game.tractorLevel * 18) * dt;
+        tractor.angle = Math.atan2(dy, dx);
+        if (dist <= speed) {
+          tractor.x = tractor.target.x; tractor.y = tractor.target.y; tractor.state = 'working';
+          toast('Tractor ' + tractor.id + ' started ' + labelAction(tractor.task.action) + ' on Field ' + f.id + '.');
+        } else {
+          tractor.x += dx / dist * speed;
+          tractor.y += dy / dist * speed;
+        }
+      } else if (tractor.state === 'working') {
+        tractor.work += dt * game.speed;
+        const p = clamp(tractor.work / tractor.workNeed, 0, 1);
+        f.workProgress = p;
+        const pad = 20;
+        const lane = Math.floor(p * 9);
+        const laneT = (p * 9) % 1;
+        const leftToRight = lane % 2 === 0;
+        const lx = leftToRight ? lerp(f.x + pad, f.x + f.w - pad, laneT) : lerp(f.x + f.w - pad, f.x + pad, laneT);
+        const ly = f.y + pad + ((lane + .5) / 9) * (f.h - pad*2);
+        const nx = clamp(lx, f.x + pad, f.x + f.w - pad);
+        const ny = clamp(ly, f.y + pad, f.y + f.h - pad);
+        tractor.angle = leftToRight ? 0 : Math.PI;
+        tractor.x = lerp(tractor.x, nx, .18);
+        tractor.y = lerp(tractor.y, ny, .18);
+        tractor.trail.push({x:tractor.x, y:tractor.y, life:1});
+        if (tractor.trail.length > 50) tractor.trail.shift();
+        if (p >= 1) completeTask(tractor, f);
+      }
+      tractor.trail.forEach(t => t.life -= dt);
+      tractor.trail = tractor.trail.filter(t => t.life > 0);
+    }
+  }
+
+  function completeTask(tractor, f) {
+    const t = tractor.task;
+    if (t.action === 'prep') {
+      f.state = 'prepped'; f.crop = null; f.growth = 0; f.weeds = Math.max(0, f.weeds - 12); f.moisture = Math.max(30, f.moisture - 4); f.note = 'Fresh seedbed ready.';
+    }
+    if (t.action === 'plant') {
+      f.state = 'growing'; f.crop = t.crop; f.lastCrop = t.crop; f.growth = 0; f.plantedDay = game.day; f.weeds = 4 + Math.floor(Math.random()*8); f.note = crops[t.crop].name + ' planted.';
+    }
+    if (t.action === 'fertilise') {
+      f.fertility = clamp(f.fertility + 28, 0, 100); f.note = 'Fertility boosted.';
+    }
+    if (t.action === 'irrigate') {
+      f.moisture = clamp(f.moisture + 42, 0, 100); f.note = 'Irrigated.';
+    }
+    if (t.action === 'weed') {
+      f.weeds = clamp(f.weeds - 35, 0, 100); f.note = 'Weeds controlled.';
+    }
+    if (t.action === 'harvest') {
+      const k = f.crop;
+      const c = crops[k];
+      const area = fieldAreaScale(f);
+      const fertilityMod = .74 + f.fertility / 180;
+      const moistureMod = f.moisture < 18 ? .72 : f.moisture > 85 ? .9 : 1;
+      const weedMod = clamp(1 - f.weeds / 165, .55, 1);
+      const qty = Math.max(1, Math.round(c.yield * area * fertilityMod * moistureMod * weedMod));
+      game.stock[k] += qty;
+      game.stats.harvested += qty;
+      game.xp += Math.round(qty * 1.5);
+      f.state = 'harvested'; f.growth = 0; f.crop = null; f.plantedDay = null; f.fertility = clamp(f.fertility - 10, 0, 100); f.moisture = clamp(f.moisture - 8, 0, 100); f.weeds = clamp(f.weeds + 8, 0, 100); f.note = 'Harvested ' + qty + 't of ' + c.name + '.';
+      game.effects.push({type:'coins', x:f.x+f.w/2, y:f.y+f.h/2, life:1.5, text:'+' + qty + 't'});
+      checkContracts();
+      toast('Field ' + f.id + ' harvested: +' + qty + 't ' + c.name + ' in storage.');
+    } else {
+      toast('Field ' + f.id + ' finished: ' + labelAction(t.action) + '.');
+    }
+    f.activeAction = null; f.workProgress = 0; f.queued = false;
+    tractor.task = null; tractor.target = {x: tractor.homeX, y: tractor.homeY}; tractor.state = 'idle'; tractor.work = 0;
+    updateUI();
+  }
+
+  function updateDay(dt) {
+    if (game.paused) return;
+    const secondsPerDay = 9;
+    game.dayProgress += dt * game.speed / secondsPerDay;
+    if (game.dayProgress >= 1) {
+      game.dayProgress -= 1;
+      advanceDay();
+    }
+  }
+
+  function advanceDay() {
+    game.day++;
+    if ((game.day - 1) % 15 === 0 && game.day > 1) {
+      game.seasonIndex = (game.seasonIndex + 1) % seasons.length;
+      toast('Season changed to ' + getSeason() + '. Crop choices matter now.');
+    }
+    rollWeather();
+    updateFieldsDaily();
+    updatePrices();
+    updateContractsDaily();
+    if (game.autoMode && game.day !== lastAutoPlanDay) autoPlan();
+    if (game.day % 7 === 0) {
+      const upkeep = game.tractors.length * 45 + game.drivers * 65 + Math.round(game.loans * .01);
+      game.money -= upkeep;
+      toast('Weekly upkeep paid: ' + money(upkeep) + '.');
+    }
+    generateContracts();
+    updateUI();
+  }
+
+  function rollWeather() {
+    const season = getSeason();
+    let pool = [0,0,1,1,2,3];
+    if (season === 'Spring') pool = [0,1,1,2,2,2,4];
+    if (season === 'Summer') pool = [0,0,0,1,2,3,3];
+    if (season === 'Autumn') pool = [1,1,2,2,4,4,0];
+    if (season === 'Winter') pool = [1,1,2,4,4,3];
+    game.weatherIndex = choice(pool);
+  }
+
+  function updateFieldsDaily() {
+    const w = getWeather();
+    for (const f of game.fields) {
+      if (!f.owned) continue;
+      f.moisture = clamp(f.moisture + w.moisture + (Math.random()*4 - 2), 0, 100);
+      f.fertility = clamp(f.fertility - .45, 0, 100);
+      if (f.state === 'growing' && f.crop) {
+        const c = crops[f.crop];
+        const seasonFit = c.season.includes(getSeason()) ? 1 : .45;
+        const moistureFit = f.moisture < 15 ? .35 : f.moisture < 30 ? .72 : f.moisture > 90 ? .76 : 1;
+        const fertFit = .72 + f.fertility / 250;
+        const weedDrag = clamp(1 - f.weeds / 140, .45, 1);
+        f.growth += w.growth * seasonFit * moistureFit * fertFit * weedDrag;
+        if (f.moisture < 25) f.weeds = clamp(f.weeds + 2, 0, 100);
+        else f.weeds = clamp(f.weeds + .8, 0, 100);
+        if (f.growth >= c.grow) { f.growth = c.grow; f.state = 'harvestable'; f.note = c.name + ' is ready to harvest.'; }
+      }
+      if (f.state === 'empty' || f.state === 'harvested') f.weeds = clamp(f.weeds + 1.1, 0, 100);
+      if (f.state === 'prepped') f.weeds = clamp(f.weeds + .7, 0, 100);
+    }
+  }
+
+  function updatePrices() {
+    const w = getWeather();
+    cropKeys.forEach(k => {
+      const c = crops[k];
+      const drift = (Math.random() - .48) * 2.2;
+      const scarcity = getSeason() === 'Winter' ? 1.04 : c.season.includes(getSeason()) ? .99 : 1.03;
+      game.market[k] = clamp(game.market[k] * .85 + (c.base * w.price * scarcity + drift) * .15, Math.max(4, c.base*.62), c.base*1.75);
+    });
+  }
+
+  function checkContracts() {
+    for (const con of game.acceptedContracts.slice()) {
+      if (game.stock[con.crop] >= con.amount) {
+        game.stock[con.crop] -= con.amount;
+        game.money += con.reward;
+        game.rep += 1;
+        game.xp += 80;
+        game.acceptedContracts = game.acceptedContracts.filter(c => c.id !== con.id);
+        toast('Contract fulfilled: ' + crops[con.crop].name + ' delivered for ' + money(con.reward) + '.');
+      }
+    }
+  }
+
+  function updateContractsDaily() {
+    const before = game.acceptedContracts.length;
+    for (const con of game.acceptedContracts.slice()) {
+      if (game.day > con.deadline) {
+        const penalty = Math.round(con.reward * .18);
+        game.money -= penalty;
+        game.rep = Math.max(0, game.rep - 1);
+        game.acceptedContracts = game.acceptedContracts.filter(c => c.id !== con.id);
+        toast('Missed contract deadline. Penalty: ' + money(penalty) + '.');
+      }
+    }
+    game.contracts = game.contracts.filter(c => game.day <= c.deadline);
+    if (before !== game.acceptedContracts.length) generateContracts();
+  }
+
+  function autoPlan() {
+    lastAutoPlanDay = game.day;
+    const maxQueue = game.tractors.length + game.drivers + 2;
+    if (game.taskQueue.length >= maxQueue) return;
+    for (const f of game.fields) {
+      if (game.taskQueue.length >= maxQueue) break;
+      if (!f.owned || fieldHasPending(f)) continue;
+      if (f.state === 'harvestable') { queueTask('harvest', f); continue; }
+      if (f.state === 'growing' && f.moisture < 22 && game.money > taskCost('irrigate', f)) { queueTask('irrigate', f); continue; }
+      if (f.state === 'growing' && f.weeds > 45 && game.money > taskCost('weed', f)) { queueTask('weed', f); continue; }
+      if ((f.state === 'empty' || f.state === 'harvested') && game.money > taskCost('prep', f)) { queueTask('prep', f); continue; }
+      if (f.state === 'prepped') {
+        const k = crops[game.selectedCrop].season.includes(getSeason()) ? game.selectedCrop : cropKeys.find(c => crops[c].season.includes(getSeason())) || 'wheat';
+        if (game.money > taskCost('plant', f, k)) { queueTask('plant', f, k); continue; }
+      }
+    }
+  }
+
+  function buyField(f) {
+    if (f.owned) return;
+    if (game.money < f.price) { toast('Need ' + money(f.price) + ' to buy Field ' + f.id + '.'); return; }
+    game.money -= f.price; f.owned = true; game.stats.boughtFields++; game.selectedField = f.id;
+    toast('Bought Field ' + f.id + '. More land means bigger harvests, but more work.');
+    updateUI();
+  }
+
+  function buyTractor() {
+    const cost = 1350 + game.tractors.length * 850;
+    if (game.money < cost) { toast('Need ' + money(cost) + ' for another tractor.'); return; }
+    if (game.tractors.length >= 6) { toast('The yard is full. Six tractors is the current limit.'); return; }
+    game.money -= cost;
+    const id = game.tractors.length + 1;
+    game.tractors.push(createTractor(id, 900 + id*42, 865 + (id%2)*32));
+    toast('Bought Tractor ' + id + '. More jobs can run at once.');
+    updateUI();
+  }
+
+  function upgradeTractors() {
+    const cost = 900 + game.tractorLevel * 850;
+    if (game.money < cost) { toast('Need ' + money(cost) + ' for the machinery upgrade.'); return; }
+    if (game.tractorLevel >= 5) { toast('Tractors are fully upgraded.'); return; }
+    game.money -= cost; game.tractorLevel++;
+    toast('Machinery upgraded to level ' + game.tractorLevel + '. Field jobs finish faster.');
+    updateUI();
+  }
+
+  function hireDriver() {
+    const cost = 700 + game.drivers * 450;
+    if (game.money < cost) { toast('Need ' + money(cost) + ' to hire a driver.'); return; }
+    if (game.drivers >= game.tractors.length) { toast('Buy another tractor first. Drivers cannot share one tractor.'); return; }
+    game.money -= cost; game.drivers++;
+    toast('Hired a driver. Auto mode can keep more work flowing.');
+    updateUI();
+  }
+
+  function sellCrop(k, qty='all') {
+    const owned = game.stock[k] || 0;
+    const amount = qty === 'all' ? owned : Math.min(owned, qty);
+    if (amount <= 0) { toast('No ' + crops[k].name + ' in storage.'); return; }
+    const value = Math.round(amount * game.market[k]);
+    game.stock[k] -= amount; game.money += value; game.stats.sold += value;
+    toast('Sold ' + amount + 't ' + crops[k].name + ' for ' + money(value) + '.');
+    checkContracts();
+    updateUI(); renderMarket();
+  }
+
+  function acceptContract(con) {
+    if (game.acceptedContracts.length >= 3) { toast('You can only run three contracts at once.'); return; }
+    game.acceptedContracts.push(con);
+    game.contracts = game.contracts.filter(c => c.id !== con.id);
+    toast('Accepted ' + crops[con.crop].name + ' contract: deliver ' + con.amount + 't by Day ' + con.deadline + '.');
+    generateContracts();
+    updateUI(); renderMarket();
+  }
+
+  function updateUI() {
+    const stockValue = cropKeys.reduce((sum,k) => sum + game.stock[k] * game.market[k], 0);
+    const busy = game.tractors.filter(t => t.state !== 'idle').length;
+    const w = getWeather();
+    statusBar.innerHTML = `
+      <span class="pill"><b>${money(game.money)}</b></span>
+      <span class="pill">Day <b>${game.day}</b> · ${getSeason()}</span>
+      <span class="pill">${w.icon} <b>${w.name}</b></span>
+      <span class="pill">Stock <b>${money(stockValue)}</b></span>
+      <span class="pill">Tractors <b>${busy}/${game.tractors.length}</b></span>
+      <span class="pill">Queue <b>${game.taskQueue.length}</b></span>
+    `;
+    document.getElementById('autoBtn').textContent = 'Auto: ' + (game.autoMode ? 'On' : 'Off');
+    document.getElementById('autoBtn').className = 'small ' + (game.autoMode ? 'green' : 'dark');
+    document.getElementById('speedBtn').textContent = game.paused ? 'Paused' : 'Speed ' + game.speed + 'x';
+    renderSidePanel();
+  }
+
+  function renderSidePanel() {
+    const f = selectedField();
+    if (!f) return;
+    const owned = f.owned;
+    const crop = f.crop ? crops[f.crop] : null;
+    const stateLabel = owned ? (f.state === 'growing' && crop ? crop.name + ' growing' : f.state) : 'For sale';
+    const growthPct = crop ? Math.round((f.growth / crop.grow) * 100) : 0;
+    const active = f.activeAction ? `<div class="progressOuter"><div class="progressInner" style="width:${Math.round(f.workProgress*100)}%"></div></div>` : '';
+    const area = fieldAreaScale(f).toFixed(1) + 'x';
+    sidePanel.innerHTML = `
+      <div class="panelTitle">
+        <div><h2>Field ${f.id}</h2><small>${owned ? 'Owned land' : 'Neighbouring land'} · ${area} size</small></div>
+        <button class="small dark" id="closePanelBtn">Hide</button>
+      </div>
+      <div class="fieldList">${game.fields.map(ff => `<button class="fieldChip ${ff.id===f.id?'active':''}" data-field-chip="${ff.id}">F${ff.id}${ff.owned?'':' £'}</button>`).join('')}</div>
+      <div class="section">
+        <div class="statGrid">
+          <div class="stat">State <b>${stateLabel}</b>${active}</div>
+          <div class="stat">Growth <b>${crop ? growthPct + '%' : '—'}</b></div>
+          <div class="stat">Moisture <b>${Math.round(f.moisture)}%</b></div>
+          <div class="stat">Fertility <b>${Math.round(f.fertility)}%</b></div>
+          <div class="stat">Weeds <b>${Math.round(f.weeds)}%</b></div>
+          <div class="stat">Last note <b>${f.note || 'No recent work'}</b></div>
+        </div>
+      </div>
+      ${owned ? cropSelectorHTML() + actionHTML(f) : `
+        <div class="section">
+          <p class="hint">This field is not yours yet. Buying land expands the farm and increases yield, but your tractors will have more to do.</p>
+          <button class="green" id="buyFieldBtn">Buy field for ${money(f.price)}</button>
+        </div>`}
+      <div class="section">
+        <b>Active contracts</b>
+        <div class="hint">${game.acceptedContracts.length ? game.acceptedContracts.map(c => `${crops[c.crop].name}: ${game.stock[c.crop]}/${c.amount}t by Day ${c.deadline}`).join('<br>') : 'No accepted contracts. Open Market to take one.'}</div>
+      </div>
+    `;
+    document.getElementById('closePanelBtn').onclick = () => { panelVisible = false; sidePanel.classList.add('hidden'); };
+    sidePanel.querySelectorAll('[data-field-chip]').forEach(btn => btn.onclick = () => { game.selectedField = Number(btn.dataset.fieldChip); renderSidePanel(); });
+    if (!owned) {
+      const b = document.getElementById('buyFieldBtn'); if (b) b.onclick = () => buyField(f);
+    } else {
+      sidePanel.querySelectorAll('[data-crop]').forEach(btn => btn.onclick = () => { game.selectedCrop = btn.dataset.crop; updateUI(); });
+      sidePanel.querySelectorAll('[data-action]').forEach(btn => btn.onclick = () => queueTask(btn.dataset.action, f, game.selectedCrop));
+    }
+  }
+
+  function cropSelectorHTML() {
+    return `<div class="section"><b>Crop plan</b><div class="cropRow">${cropKeys.map(k => {
+      const c = crops[k];
+      const okSeason = c.season.includes(getSeason());
+      return `<button class="cropButton ${game.selectedCrop===k?'active':''}" data-crop="${k}" title="${c.note}">${c.name}<br><small>${money(c.seed)} seed · ${okSeason?'good':'off-season'}</small></button>`;
+    }).join('')}</div></div>`;
+  }
+
+  function actionHTML(f) {
+    const buttons = [
+      ['prep','Prepare soil','gold'], ['plant','Plant crop','green'], ['irrigate','Irrigate','blue'], ['fertilise','Fertilise','green'], ['weed','Weed control','gold'], ['harvest','Harvest','red']
+    ];
+    return `<div class="section"><b>Tractor jobs</b><div class="actions">${buttons.map(([a,label,cls]) => {
+      const cost = taskCost(a, f, game.selectedCrop);
+      const [ok,why] = canQueue(a, f, game.selectedCrop, true);
+      return `<button class="${cls}" data-action="${a}" ${ok?'':'disabled'} title="${why}">${label}<br><small>${money(cost)}</small></button>`;
+    }).join('')}</div><p class="hint">Jobs go into the queue. Available tractors drive to the field, work row by row, then return to the yard.</p></div>`;
+  }
+
+  function renderMarket() {
+    const activeContracts = game.acceptedContracts.map(c => `<div class="card"><h3>${crops[c.crop].name}</h3><div>${game.stock[c.crop]}/${c.amount}t required</div><div>Reward: <b>${money(c.reward)}</b></div><div>Deadline: Day ${c.deadline}</div></div>`).join('') || '<div class="hint">No accepted contracts yet.</div>';
+    marketPanel.innerHTML = `
+      <div class="modalHeader"><h2>Market & Farm Office</h2><button id="closeMarketBtn" class="dark">Close</button></div>
+      <div class="section"><b>Stored crops</b><div class="marketGrid">${cropKeys.map(k => `<div class="card"><h3>${crops[k].name}</h3><div>Stock: <b>${Math.round(game.stock[k])}t</b></div><div>Price: <b>${money(game.market[k])}/t</b></div><div>Seed: ${money(crops[k].seed)}/field unit</div><button data-sell="${k}" ${game.stock[k] > 0 ? '' : 'disabled'}>Sell all</button></div>`).join('')}</div></div>
+      <div class="section"><b>Available contracts</b><div class="contractGrid">${game.contracts.map(c => `<div class="card"><h3>${crops[c.crop].name} contract</h3><div>Deliver: <b>${c.amount}t</b></div><div>Reward: <b>${money(c.reward)}</b></div><div>Deadline: Day ${c.deadline}</div><button class="green" data-contract="${c.id}">Accept</button></div>`).join('')}</div></div>
+      <div class="section"><b>Accepted contracts</b><div class="contractGrid">${activeContracts}</div></div>
+      <div class="section"><b>Farm upgrades</b><div class="actions">
+        <button class="green" id="buyTractorBtn">Buy tractor<br><small>${money(1350 + game.tractors.length * 850)}</small></button>
+        <button class="gold" id="upgradeBtn">Upgrade machinery<br><small>${game.tractorLevel >= 5 ? 'maxed' : money(900 + game.tractorLevel * 850)}</small></button>
+        <button class="blue" id="hireBtn">Hire driver<br><small>${money(700 + game.drivers * 450)}</small></button>
+        <button class="dark" id="loanBtn">Take £2,000 loan<br><small>weekly interest</small></button>
+      </div><p class="hint">Drivers improve automation capacity. New tractors increase simultaneous field work. Upgrades make every job faster.</p></div>
+    `;
+    document.getElementById('closeMarketBtn').onclick = () => marketPanel.classList.add('hidden');
+    marketPanel.querySelectorAll('[data-sell]').forEach(btn => btn.onclick = () => sellCrop(btn.dataset.sell));
+    marketPanel.querySelectorAll('[data-contract]').forEach(btn => {
+      btn.onclick = () => {
+        const con = game.contracts.find(c => String(c.id) === String(btn.dataset.contract));
+        if (con) acceptContract(con);
+      };
+    });
+    document.getElementById('buyTractorBtn').onclick = buyTractor;
+    document.getElementById('upgradeBtn').onclick = upgradeTractors;
+    document.getElementById('hireBtn').onclick = hireDriver;
+    document.getElementById('loanBtn').onclick = () => { game.money += 2000; game.loans += 2000; toast('Loan taken. You now owe ' + money(game.loans) + '.'); updateUI(); renderMarket(); };
+  }
+
+  function renderHelp() {
+    helpPanel.innerHTML = `
+      <div class="modalHeader"><h2>How to play Field Boss</h2><button id="closeHelpBtn" class="dark">Close</button></div>
+      <div class="card">
+        <p><b>Goal:</b> build a profitable farm by buying land, planting seasonal crops, managing moisture/fertility/weeds, selling harvests, and completing contracts.</p>
+        <p><b>Basic loop:</b> tap a field → prepare soil → select crop → plant → irrigate/fertilise/weed if needed → harvest → sell or deliver contracts.</p>
+        <p><b>Tractors:</b> every job is done visibly by tractors. They leave the yard, drive to a field, work row-by-row, then return.</p>
+        <p><b>Auto mode:</b> lets the farm office queue sensible jobs once per day. It is useful later, but you still choose crop strategy and expansion.</p>
+        <p><b>Mobile controls:</b> drag the map to pan, tap fields to select them, use +/− to zoom. The game saves to this browser/device only.</p>
+      </div>
+    `;
+    document.getElementById('closeHelpBtn').onclick = () => helpPanel.classList.add('hidden');
+  }
+
+  function draw() {
+    ctx.save();
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    drawWorldBackground();
+    ctx.translate(innerWidth/2, innerHeight/2);
+    ctx.scale(camera.zoom, camera.zoom);
+    ctx.translate(-camera.x, -camera.y);
+    drawGround();
+    drawRoads();
+    drawFarmBuildings();
+    drawFields();
+    drawTractors();
+    drawEffects();
+    ctx.restore();
+    drawDayClock();
+  }
+
+  function drawWorldBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, innerHeight);
+    const w = getWeather();
+    g.addColorStop(0, w.name === 'Storm' ? '#435257' : '#7aa665');
+    g.addColorStop(1, '#283b24');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+  }
+
+  function drawGround() {
+    ctx.fillStyle = '#4b743d';
+    ctx.fillRect(0, 0, WORLD.w, WORLD.h);
+    for (let i=0; i<420; i++) {
+      const x = rand(i+10) * WORLD.w;
+      const y = rand(i+99) * WORLD.h;
+      const r = 1 + rand(i+300)*3;
+      ctx.fillStyle = rand(i) > .5 ? 'rgba(80,128,55,.35)' : 'rgba(38,85,42,.25)';
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    }
+    drawPond(1540, 590, 210, 100);
+    drawPond(2130, 760, 175, 82);
+  }
+
+  function drawPond(x,y,w,h) {
+    ctx.fillStyle = '#3d86a6'; ctx.beginPath(); ctx.ellipse(x,y,w,h,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(214,238,219,.5)'; ctx.lineWidth = 8; ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 2;
+    for (let i=0;i<4;i++) { ctx.beginPath(); ctx.ellipse(x+Math.sin(i)*20,y+i*3,w*.55+i*7,h*.27+i*2,0,0,Math.PI*2); ctx.stroke(); }
+  }
+
+  function drawRoads() {
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#8e7653'; ctx.lineWidth = 58;
+    ctx.beginPath(); ctx.moveTo(0, 810); ctx.lineTo(2500, 810); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(1320, 0); ctx.lineTo(1320, 1680); ctx.stroke();
+    ctx.strokeStyle = '#b49b70'; ctx.lineWidth = 44;
+    ctx.beginPath(); ctx.moveTo(0, 810); ctx.lineTo(2500, 810); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(1320, 0); ctx.lineTo(1320, 1680); ctx.stroke();
+    ctx.setLineDash([28, 34]); ctx.strokeStyle = 'rgba(255,235,180,.55)'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 810); ctx.lineTo(2500, 810); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(1320, 0); ctx.lineTo(1320, 1680); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawFarmBuildings() {
+    drawBuilding(910, 760, 180, 140, '#9c3e2f', 'Barn');
+    drawBuilding(1110, 735, 120, 100, '#d9d2b8', 'Office');
+    drawSilo(870, 930, 46); drawSilo(930, 930, 46); drawSilo(990, 930, 46);
+    drawBuilding(1110, 905, 190, 95, '#5b6e74', 'Workshop');
+    drawWindmill(1650, 880);
+    drawTreeLine(30, 20, 15, true);
+    drawTreeLine(2350, 20, 12, false);
+  }
+
+  function drawBuilding(x,y,w,h,color,label) {
+    ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(8, 10, w, h);
+    ctx.fillStyle = color; ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0,0,w,h*.25);
+    ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 3; ctx.strokeRect(0,0,w,h);
+    ctx.fillStyle = '#38251b'; ctx.fillRect(w*.38, h*.52, w*.24, h*.48);
+    ctx.fillStyle = '#fff4c2'; ctx.font = '600 24px system-ui'; ctx.textAlign='center'; ctx.fillText(label, w/2, h/2-10);
+    ctx.restore();
+  }
+
+  function drawSilo(x,y,r) {
+    ctx.fillStyle='rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x+6,y+8,r,r*.8,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#d4d8c7'; ctx.beginPath(); ctx.ellipse(x,y,r,r*.8,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=3; ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.22)'; ctx.beginPath(); ctx.arc(x-12,y-10,r*.45,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawWindmill(x,y) {
+    ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle='rgba(0,0,0,.15)'; ctx.fillRect(-25,35,70,15);
+    ctx.fillStyle='#b7c3a5'; ctx.fillRect(-12,0,24,85);
+    ctx.strokeStyle='#6d634f'; ctx.lineWidth=4; ctx.strokeRect(-12,0,24,85);
+    const rot = performance.now()/900;
+    ctx.rotate(rot);
+    ctx.strokeStyle='#eee6cc'; ctx.lineWidth=8;
+    for(let i=0;i<4;i++){ ctx.rotate(Math.PI/2); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-62); ctx.stroke(); }
+    ctx.fillStyle='#8d6f3d'; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTreeLine(x,y,count,left) {
+    for (let i=0;i<count;i++) {
+      const tx = left ? x + rand(i)*80 : x + rand(i)*100;
+      const ty = y + i*115 + rand(i+8)*38;
+      drawTree(tx,ty, 24 + rand(i+2)*16);
+    }
+  }
+
+  function drawTree(x,y,r) {
+    ctx.fillStyle='#4d2e1d'; ctx.fillRect(x-5,y,r*.18,r*.65);
+    ctx.fillStyle='#2f6e37'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.12)'; ctx.beginPath(); ctx.arc(x-r*.28,y-r*.3,r*.34,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawFields() {
+    for (const f of game.fields) {
+      drawField(f);
+    }
+  }
+
+  function drawField(f) {
+    ctx.save();
+    const selected = game.selectedField === f.id;
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    roundRect(f.x+7, f.y+8, f.w, f.h, 18, true, false);
+    let fill = '#80623d';
+    if (!f.owned) fill = '#526448';
+    else if (f.state === 'empty') fill = '#85613a';
+    else if (f.state === 'prepped') fill = '#6e492d';
+    else if (f.state === 'harvested') fill = '#a07a43';
+    else if (f.state === 'growing' || f.state === 'harvestable') fill = crops[f.crop].color;
+    ctx.fillStyle = fill;
+    roundRect(f.x, f.y, f.w, f.h, 18, true, false);
+    ctx.strokeStyle = selected ? '#fff4a0' : f.owned ? 'rgba(255,232,160,.72)' : 'rgba(255,255,255,.18)';
+    ctx.lineWidth = selected ? 7 : 3;
+    roundRect(f.x, f.y, f.w, f.h, 18, false, true);
+
+    if (!f.owned) {
+      ctx.fillStyle = 'rgba(0,0,0,.3)'; roundRect(f.x+18, f.y+18, f.w-36, f.h-36, 15, true, false);
+      ctx.fillStyle = '#f7e7a5'; ctx.font = '700 28px system-ui'; ctx.textAlign='center'; ctx.fillText('Field ' + f.id, f.x+f.w/2, f.y+f.h/2-14);
+      ctx.font = '600 22px system-ui'; ctx.fillText('For sale ' + money(f.price), f.x+f.w/2, f.y+f.h/2+24);
+      ctx.restore(); return;
+    }
+
+    drawFieldTexture(f);
+    if (f.state === 'growing' || f.state === 'harvestable') drawCropPlants(f);
+    if (f.activeAction) drawWorkOverlay(f);
+
+    ctx.fillStyle = 'rgba(17,25,14,.64)';
+    roundRect(f.x+10, f.y+10, 96, 42, 12, true, false);
+    ctx.fillStyle = '#fff6c7'; ctx.font='700 17px system-ui'; ctx.textAlign='left'; ctx.fillText('Field ' + f.id, f.x+22, f.y+36);
+    if (f.state === 'harvestable') {
+      ctx.fillStyle = 'rgba(255,240,120,.88)';
+      roundRect(f.x+f.w-116, f.y+10, 100, 34, 12, true, false);
+      ctx.fillStyle = '#48351a'; ctx.font='700 16px system-ui'; ctx.textAlign='center'; ctx.fillText('READY', f.x+f.w-66, f.y+33);
+    }
+    ctx.restore();
+  }
+
+  function drawFieldTexture(f) {
+    ctx.save();
+    ctx.beginPath(); roundRect(f.x, f.y, f.w, f.h, 18, false, false); ctx.clip();
+    const rows = 10;
+    for (let i=0;i<rows;i++) {
+      const y = f.y + (i + .5) * f.h / rows;
+      if (f.state === 'prepped' || f.state === 'empty' || f.state === 'harvested') {
+        ctx.strokeStyle = f.state === 'prepped' ? 'rgba(40,23,15,.28)' : 'rgba(64,42,22,.22)';
+        ctx.lineWidth = 4;
+      } else {
+        ctx.strokeStyle = crops[f.crop].rows;
+        ctx.lineWidth = 3;
+      }
+      ctx.beginPath(); ctx.moveTo(f.x+18, y); ctx.lineTo(f.x+f.w-18, y + Math.sin(i)*4); ctx.stroke();
+    }
+    if (f.moisture < 24) {
+      ctx.fillStyle = 'rgba(98,59,34,.32)';
+      for(let i=0;i<10;i++){ ctx.fillRect(f.x+rand(f.id*20+i)*f.w, f.y+rand(f.id*30+i)*f.h, 28, 3); }
+    }
+    if (f.weeds > 35) {
+      ctx.fillStyle='rgba(20,80,27,.35)';
+      for(let i=0;i<f.weeds/3;i++){ ctx.beginPath(); ctx.arc(f.x+rand(f.id*40+i)*f.w, f.y+rand(f.id*50+i)*f.h, 3+rand(i)*4,0,Math.PI*2); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+
+  function drawCropPlants(f) {
+    const c = crops[f.crop];
+    const maturity = clamp(f.growth / c.grow, .08, 1);
+    ctx.save(); ctx.beginPath(); roundRect(f.x, f.y, f.w, f.h, 18, false, false); ctx.clip();
+    const cols = Math.floor(f.w / 32);
+    const rows = Math.floor(f.h / 34);
+    for (let r=0;r<rows;r++) {
+      for (let col=0; col<cols; col++) {
+        if ((r+col) % 2 && maturity < .65) continue;
+        const px = f.x + 24 + col * (f.w-48)/Math.max(1,cols-1) + Math.sin(r+col)*2;
+        const py = f.y + 22 + r * (f.h-44)/Math.max(1,rows-1);
+        ctx.strokeStyle = f.state === 'harvestable' ? '#efe08c' : '#2e7a32';
+        ctx.lineWidth = 2 + maturity*2;
+        ctx.beginPath(); ctx.moveTo(px, py+8*maturity); ctx.lineTo(px, py-12*maturity); ctx.stroke();
+        ctx.fillStyle = c.color;
+        ctx.beginPath(); ctx.ellipse(px+4, py-8*maturity, 4*maturity, 8*maturity, .65, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawWorkOverlay(f) {
+    ctx.save(); ctx.globalAlpha = .55;
+    ctx.fillStyle = f.activeAction === 'irrigate' ? '#6bbde7' : f.activeAction === 'fertilise' ? '#cff27e' : f.activeAction === 'harvest' ? '#f7db6b' : '#fff0b2';
+    const completedW = f.w * f.workProgress;
+    roundRect(f.x, f.y, completedW, f.h, 18, true, false);
+    ctx.restore();
+  }
+
+  function drawTractors() {
+    for (const t of game.tractors) {
+      for (const tr of t.trail) {
+        ctx.globalAlpha = tr.life * .22; ctx.fillStyle='#2c1e14'; ctx.beginPath(); ctx.arc(tr.x, tr.y, 8, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(t.angle);
+      ctx.fillStyle='rgba(0,0,0,.22)'; roundRect(-25, -16+6, 56, 32, 8, true, false);
+      ctx.fillStyle='#de2f25'; roundRect(-22,-15,44,30,7,true,false);
+      ctx.fillStyle='#283128'; roundRect(0,-18,24,36,6,true,false);
+      ctx.fillStyle='#202018'; ctx.fillRect(-20,-24,12,9); ctx.fillRect(-20,15,12,9); ctx.fillRect(10,-24,16,9); ctx.fillRect(10,15,16,9);
+      ctx.fillStyle='#a5d7f1'; roundRect(4,-10,12,20,4,true,false);
+      ctx.fillStyle='#fff5c5'; ctx.font='700 14px system-ui'; ctx.textAlign='center'; ctx.fillText(t.id, -3, 5);
+      if (t.task && t.state === 'working') {
+        ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-32,0); ctx.lineTo(-52,0); ctx.stroke();
+      }
+      ctx.restore();
+      if (t.task) {
+        const s = worldToScreen(t.x, t.y - 34);
+        if (s.x>-50 && s.x<innerWidth+50 && s.y>-50 && s.y<innerHeight+50) {
+          ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='rgba(20,30,20,.78)'; roundRect(s.x-44, s.y-15, 88, 23, 10, true, false); ctx.fillStyle='#fff0b8'; ctx.font='11px system-ui'; ctx.textAlign='center'; ctx.fillText(labelAction(t.task.action), s.x, s.y); ctx.restore();
+        }
+      }
+    }
+  }
+
+  function drawEffects() {
+    for (const e of game.effects) {
+      e.life -= 1/60;
+      if (e.type === 'coins') {
+        ctx.globalAlpha = clamp(e.life, 0, 1);
+        ctx.fillStyle='#fff3a3'; ctx.font='800 32px system-ui'; ctx.textAlign='center'; ctx.fillText(e.text, e.x, e.y - (1.5-e.life)*45);
+      }
+      if (e.type === 'text') {
+        ctx.globalAlpha = clamp(e.life/2.2, 0, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+    game.effects = game.effects.filter(e => e.life > 0);
+  }
+
+  function drawDayClock() {
+    const x = innerWidth - 88;
+    const y = innerWidth < 740 ? 77 : 96;
+    const r = 32;
+    ctx.save();
+    ctx.fillStyle = 'rgba(17,27,18,.75)'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth=3; ctx.stroke();
+    ctx.strokeStyle = '#f5d66b'; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(x,y,r-7,-Math.PI/2, -Math.PI/2 + Math.PI*2*game.dayProgress); ctx.stroke();
+    ctx.fillStyle='#fff1b5'; ctx.font='700 11px system-ui'; ctx.textAlign='center'; ctx.fillText(game.paused ? 'PAUSE' : 'DAY', x, y-2); ctx.fillText(game.day, x, y+12);
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r, fill, stroke) {
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
+    r = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
+  function fieldAt(x,y) {
+    return game.fields.find(f => x >= f.x && x <= f.x + f.w && y >= f.y && y <= f.y + f.h);
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    pointer.down = true; pointer.moved = false; pointer.sx = e.clientX; pointer.sy = e.clientY; pointer.lastX = e.clientX; pointer.lastY = e.clientY; pointer.id = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!pointer.down || e.pointerId !== pointer.id) return;
+    const dx = e.clientX - pointer.lastX;
+    const dy = e.clientY - pointer.lastY;
+    if (Math.hypot(e.clientX - pointer.sx, e.clientY - pointer.sy) > 8) pointer.moved = true;
+    camera.x -= dx / camera.zoom;
+    camera.y -= dy / camera.zoom;
+    pointer.lastX = e.clientX; pointer.lastY = e.clientY;
+    clampCamera();
+  });
+  canvas.addEventListener('pointerup', e => {
+    if (e.pointerId !== pointer.id) return;
+    if (!pointer.moved) {
+      const w = screenToWorld(e.clientX, e.clientY);
+      const f = fieldAt(w.x, w.y);
+      if (f) {
+        game.selectedField = f.id;
+        panelVisible = true; sidePanel.classList.remove('hidden');
+        updateUI();
+      }
+    }
+    pointer.down = false; pointer.id = null;
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const before = screenToWorld(e.clientX, e.clientY);
+    camera.zoom *= e.deltaY > 0 ? .9 : 1.1;
+    camera.zoom = clamp(camera.zoom, .28, 1.55);
+    const after = screenToWorld(e.clientX, e.clientY);
+    camera.x += before.x - after.x;
+    camera.y += before.y - after.y;
+    clampCamera();
+  }, {passive:false});
+
+  document.getElementById('marketBtn').onclick = () => { renderMarket(); marketPanel.classList.remove('hidden'); };
+  document.getElementById('helpBtn').onclick = () => { renderHelp(); helpPanel.classList.remove('hidden'); };
+  document.getElementById('togglePanelBtn').onclick = () => { panelVisible = !panelVisible; sidePanel.classList.toggle('hidden', !panelVisible); };
+  document.getElementById('autoBtn').onclick = () => { game.autoMode = !game.autoMode; toast('Auto mode ' + (game.autoMode ? 'enabled. The office will queue sensible jobs daily.' : 'disabled.')); updateUI(); };
+  document.getElementById('speedBtn').onclick = () => { if (game.paused) { game.paused = false; game.speed = 1; } else if (game.speed === 1) game.speed = 2; else if (game.speed === 2) game.speed = 4; else { game.paused = true; game.speed = 0; } updateUI(); };
+  document.getElementById('zoomInBtn').onclick = () => { camera.zoom *= 1.16; clampCamera(); };
+  document.getElementById('zoomOutBtn').onclick = () => { camera.zoom *= .86; clampCamera(); };
+  document.getElementById('centerBtn').onclick = centerCamera;
+  document.getElementById('saveBtn').onclick = save;
+
+  window.addEventListener('keydown', e => {
+    if (e.key === ' ') { game.paused = !game.paused; if (!game.paused && game.speed === 0) game.speed = 1; updateUI(); }
+    if (e.key.toLowerCase() === 'm') { renderMarket(); marketPanel.classList.toggle('hidden'); }
+    if (e.key.toLowerCase() === 'a') { game.autoMode = !game.autoMode; updateUI(); }
+  });
+  window.addEventListener('resize', canvasResize);
+
+  function update(dt) {
+    if (!game.paused) updateTractors(dt * Math.max(1, game.speed * .72));
+    updateDay(dt);
+    if (game.autoMode && game.day !== lastAutoPlanDay && game.taskQueue.length < game.tractors.length + 1) autoPlan();
+  }
+
+  function loop(now) {
+    const dt = Math.min(.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  canvasResize();
+  load();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
