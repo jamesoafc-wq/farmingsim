@@ -99,10 +99,10 @@
 const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
 let W=0,H=0,DPR=1,last=performance.now(),uiDirty=true,toastTimer=0;
 const WORLD={w:10400,h:7200};
-const SAVE_KEYS=['field-boss-v7-map-drag-lines','field-boss-v6-phone-tap-fix','field-boss-v5-ui-reset','field-boss-v4-manual-map','field-boss-github-pages-v2','field-boss-github-pages-v1'];
+const SAVE_KEYS=['field-boss-v8-startup-fix','field-boss-v7-map-drag-lines','field-boss-v6-phone-tap-fix','field-boss-v5-ui-reset','field-boss-v4-manual-map','field-boss-github-pages-v2','field-boss-github-pages-v1'];
 const CURRENT_SAVE=SAVE_KEYS[0];
-const FORCE_RESET_FLAG='field-boss-v7-reset-complete';
-const BUILD_ID='v7-large-map-drag-lines';
+const FORCE_RESET_FLAG='field-boss-v8-reset-complete';
+const BUILD_ID='v8-startup-input-fix';
 const fmtMoney=n=>'£'+Math.round(n).toLocaleString('en-GB');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -140,6 +140,8 @@ let game,selectedFieldId=null,activeTab='farm',panelOpen=true;
 const camera={x:420,y:620,zoom:.42,min:.12,max:3.4};
 const pointers=new Map();let drag={id:null,lastX:0,lastY:0,moved:false,holdVehicle:null};let pinch=null;
 let vehicleHoldTimer=null, vehicleDrag=null, suppressTapUntil=0;
+let lastUiTarget=null, lastUiTap=0;
+let fatalGameErrorShown=false;
 const decor={trees:[],meadow:[],rocks:[],flowers:[],hedges:[]};
 function rotPoint(x,y,a){const c=Math.cos(a),s=Math.sin(a);return{x:x*c-y*s,y:x*s+y*c}}
 function fToW(f,lx,ly){const p=rotPoint(lx,ly,f.rot);return{x:f.x+p.x,y:f.y+p.y}}
@@ -453,9 +455,36 @@ function bindGlobal(){setMobileViewportVars();addEventListener('resize',()=>{set
 canvas.addEventListener('pointerdown',pointerDown,{passive:false});canvas.addEventListener('pointermove',pointerMove,{passive:false});canvas.addEventListener('pointerup',pointerUp,{passive:false});canvas.addEventListener('pointercancel',pointerUp,{passive:false});
 ['panel','bottomNav','topbar'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('pointerdown',e=>{e.stopPropagation();}, {passive:false});el.addEventListener('touchstart',e=>{e.stopPropagation();}, {passive:true});el.addEventListener('touchmove',e=>{e.stopPropagation();}, {passive:true});}});
 document.addEventListener('pointerup',handleUiEvent,true);document.addEventListener('touchend',handleUiEvent,{capture:true,passive:false});document.addEventListener('click',handleUiEvent,true);document.addEventListener('change',e=>{if(e.target&&e.target.id==='cropSelect')setCropPlan();},true);syncPanelState();}
-function loop(t){const dt=Math.min(40,t-last);last=t;update(dt);draw();renderUI();requestAnimationFrame(loop)}
-window.addEventListener('error',e=>{try{document.getElementById('toast').textContent='Game error: refresh or press Reset';document.getElementById('toast').classList.add('show');}catch(_){} });
-function init(){try{document.body.dataset.build=BUILD_ID;}catch(e){} resize();loadGame();generateDecor();bindGlobal();renderLog();if(!game.tutorialSeen){toast('Tap fields, long-press machines, and drag them onto fields.');game.tutorialSeen=true;}requestAnimationFrame(loop)}
+function reportGameError(err,where='game'){
+  const msg=(err&&err.message)?err.message:String(err||'unknown error');
+  console.error('Field Boss '+where+' error:',err);
+  if(fatalGameErrorShown)return;
+  fatalGameErrorShown=true;
+  try{toast('Game warning: '+msg.slice(0,86));}catch(_){}
+}
+function loop(t){
+  const dt=Math.min(40,t-last);last=t;
+  try{update(dt);draw();renderUI();}
+  catch(err){reportGameError(err,'loop');}
+  requestAnimationFrame(loop);
+}
+window.addEventListener('error',e=>{
+  // Ignore non-game resource/extension noise. The old build showed a scary generic error for any browser warning.
+  if(e&&e.target&&e.target!==window)return;
+  reportGameError(e.error||e.message,'window');
+});
+window.addEventListener('unhandledrejection',e=>reportGameError(e.reason,'promise'));
+function init(){
+  try{
+    document.body.dataset.build=BUILD_ID;
+    resize();loadGame();generateDecor();bindGlobal();renderLog();
+    if(!game.tutorialSeen){toast('Tap fields, long-press machines, and drag them onto fields.');game.tutorialSeen=true;}
+    requestAnimationFrame(loop);
+  }catch(err){
+    try{game=game||newGame();bindGlobal();renderUI();}catch(_){}
+    reportGameError(err,'init');
+  }
+}
 init();
 })();
 </script>
