@@ -18,40 +18,47 @@
     --panel:rgba(255,248,224,.94);
     --glass:rgba(14,26,17,.72);
     --shadow:0 16px 44px rgba(0,0,0,.30);
+    --bottom-clearance:env(safe-area-inset-bottom);
+    --nav-bottom:calc(var(--bottom-clearance) + 18px);
+    --panel-bottom:calc(var(--bottom-clearance) + 94px);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink)}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none}
   body{position:fixed;inset:0}
-  canvas#game{position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#67984d;touch-action:none;user-select:none}
+  canvas#game{position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#67984d;touch-action:none;user-select:none;z-index:1}
   .topbar{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 7px) 8px 6px;z-index:8;pointer-events:none;background:linear-gradient(rgba(7,19,14,.66),rgba(7,19,14,.10),transparent)}
   .top-scroll{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;pointer-events:auto}.top-scroll::-webkit-scrollbar{display:none}
   .pill{flex:0 0 auto;border:1px solid rgba(255,255,255,.16);background:rgba(16,30,19,.78);color:#fff6d5;border-radius:999px;padding:8px 10px;font-size:12px;line-height:1;box-shadow:0 7px 18px rgba(0,0,0,.18);backdrop-filter:blur(10px);white-space:nowrap}
   .pill b{color:#ffe49a}
-  .sideControls{position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 54px);z-index:7;display:flex;flex-direction:column;gap:7px}
+  .sideControls{position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 62px);z-index:12;display:flex;flex-direction:column;gap:7px;pointer-events:auto}
   .floatBtn{width:42px;height:42px;border-radius:15px;border:1px solid rgba(255,255,255,.14);background:rgba(14,26,17,.76);color:#fff6d5;box-shadow:0 8px 24px rgba(0,0,0,.24);font-weight:900;font-size:17px;backdrop-filter:blur(9px);display:grid;place-items:center;padding:0}
-  .panel{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 76px);z-index:9;background:var(--panel);border:1px solid rgba(85,64,26,.20);border-radius:24px;box-shadow:var(--shadow);max-height:min(48vh,430px);overflow:hidden;display:flex;flex-direction:column;backdrop-filter:blur(12px);touch-action:manipulation}
+  .panel{position:fixed;left:8px;right:8px;bottom:var(--panel-bottom);z-index:20;background:var(--panel);border:1px solid rgba(85,64,26,.20);border-radius:24px;box-shadow:var(--shadow);max-height:min(56dvh,430px);overflow:hidden;display:flex;flex-direction:column;backdrop-filter:blur(12px);touch-action:auto;pointer-events:auto}
   .panel.minimised{display:none}
   .panelHead{padding:10px 11px 7px;border-bottom:1px solid rgba(82,66,30,.14);background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(243,218,145,.18));display:flex;align-items:center;justify-content:space-between;gap:8px}
   .panelTitle{font-weight:950;font-size:16px;display:flex;align-items:center;gap:7px}.panelSub{font-size:11.5px;color:#60704f;margin-top:2px;line-height:1.2}
-  .panelBody{overflow-y:auto;overflow-x:hidden;padding:10px 10px 18px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}.panelBody::-webkit-scrollbar{width:0;height:0}
+  .panelBody{overflow-y:auto;overflow-x:hidden;padding:10px 10px 42px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;pointer-events:auto}.panelBody::-webkit-scrollbar{width:0;height:0}
   .miniBtn{min-height:30px;border-radius:11px;padding:5px 9px;background:#21351f;color:#fff;border:0;font-weight:850;box-shadow:inset 0 -2px rgba(0,0,0,.22)}
-  .bottomNav{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 8px);z-index:10;background:rgba(13,25,16,.82);border:1px solid rgba(255,255,255,.12);border-radius:22px;box-shadow:0 12px 36px rgba(0,0,0,.35);backdrop-filter:blur(12px);display:grid;grid-template-columns:repeat(6,1fr);padding:5px;gap:4px;touch-action:manipulation}
-  .navBtn{border:0;border-radius:16px;min-height:48px;background:transparent;color:#e9f2d7;font-weight:800;font-size:10.8px;line-height:1.05;padding:5px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.navBtn span{font-size:18px}.navBtn.active{background:linear-gradient(180deg,#f2c24c,#dba038);color:#241b0b;box-shadow:inset 0 -2px rgba(0,0,0,.18)}
-  button,select{font:inherit;border:0;border-radius:14px;padding:10px 10px;font-weight:850;background:#e8d6a3;color:#23301f;box-shadow:inset 0 -2px rgba(0,0,0,.13);min-height:40px;touch-action:manipulation;cursor:pointer}button:active{transform:translateY(1px)}button.primary{background:#5d9a4c;color:white}button.gold{background:#f0bd43;color:#261b08}button.blue{background:#5da9d2;color:white}button.red{background:#c95c4b;color:white}button.dark{background:#21351f;color:#fff}button.ghost{background:rgba(255,255,255,.34);border:1px solid rgba(80,60,26,.16);box-shadow:none}button:disabled{opacity:.45;filter:grayscale(.4)}
+  .bottomNav{position:fixed;left:8px;right:8px;bottom:var(--nav-bottom);z-index:30;background:rgba(13,25,16,.82);border:1px solid rgba(255,255,255,.12);border-radius:22px;box-shadow:0 12px 36px rgba(0,0,0,.35);backdrop-filter:blur(12px);display:grid;grid-template-columns:repeat(6,1fr);padding:5px;gap:4px;touch-action:manipulation;pointer-events:auto}
+  .navBtn{border:0;border-radius:16px;min-height:52px;background:transparent;color:#e9f2d7;font-weight:800;font-size:10.8px;line-height:1.05;padding:5px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;z-index:2}.navBtn span{font-size:18px}.navBtn.active{background:linear-gradient(180deg,#f2c24c,#dba038);color:#241b0b;box-shadow:inset 0 -2px rgba(0,0,0,.18)}
+  button,select{font:inherit;border:0;border-radius:14px;padding:10px 10px;font-weight:850;background:#e8d6a3;color:#23301f;box-shadow:inset 0 -2px rgba(0,0,0,.13);min-height:44px;touch-action:manipulation;cursor:pointer;position:relative;z-index:2}button:active{transform:translateY(1px)}button.primary{background:#5d9a4c;color:white}button.gold{background:#f0bd43;color:#261b08}button.blue{background:#5da9d2;color:white}button.red{background:#c95c4b;color:white}button.dark{background:#21351f;color:#fff}button.ghost{background:rgba(255,255,255,.34);border:1px solid rgba(80,60,26,.16);box-shadow:none}button:disabled{opacity:.45;filter:grayscale(.4)}
   select{width:100%;background:#fff3cf;border:1px solid rgba(83,61,25,.18)}
   .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.full{grid-column:1/-1}.muted{font-size:11.5px;color:#627052;line-height:1.28}.tiny{font-size:10.8px;color:#68765d;line-height:1.22}.section{margin:0 0 11px}.sectionTitle{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6d6b4c;font-weight:950;margin:2px 0 7px}
   .statGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.stat{background:linear-gradient(180deg,#fff7df,#ecd69e);border:1px solid rgba(95,72,28,.15);border-radius:15px;padding:8px;font-size:11px;color:#675d3e}.stat b{display:block;font-size:15px;color:#22311f;margin-top:1px}.progress{height:8px;border-radius:999px;background:rgba(58,48,26,.18);overflow:hidden;margin-top:4px}.bar{height:100%;width:0;background:linear-gradient(90deg,#5d9a4c,#f0bd43)}
   .cards{display:grid;grid-template-columns:1fr;gap:8px}.card{background:linear-gradient(180deg,#fff8df,#efdda9);border:1px solid rgba(96,72,28,.16);border-radius:18px;padding:8px;display:grid;grid-template-columns:58px 1fr;gap:9px;align-items:center}.card h3{margin:0;font-size:13.5px}.card p{margin:2px 0 6px;font-size:11px;color:#667154;line-height:1.2}.card .price{font-weight:950;color:#21351f}.cardBtns{display:flex;gap:6px;flex-wrap:wrap}.cardBtns button{min-height:32px;padding:6px 9px;font-size:12px;border-radius:11px}.iconBox{width:58px;height:50px;border-radius:15px;background:rgba(32,53,31,.10);border:1px solid rgba(60,48,24,.12);display:grid;place-items:center;overflow:hidden}.miniCanvas{width:58px;height:50px;display:block}
   .vehicleRow,.storeRow,.fieldRow,.staffRow{background:rgba(255,255,255,.35);border:1px solid rgba(93,73,31,.14);border-radius:15px;padding:8px;margin-bottom:7px;display:flex;justify-content:space-between;gap:8px;align-items:center}.vehicleRow b,.storeRow b,.fieldRow b,.staffRow b{display:block;font-size:13px}.tag{display:inline-flex;align-items:center;gap:3px;border-radius:999px;background:rgba(31,53,30,.13);padding:4px 7px;font-size:10.5px;font-weight:850;margin:2px 3px 0 0}.tag.warn{background:rgba(201,92,75,.16);color:#8f3228}.tag.good{background:rgba(92,154,76,.17);color:#2b6a35}.tag.blue{background:rgba(93,169,210,.18);color:#2f6684}
-  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 126px);transform:translateX(-50%) translateY(8px);background:rgba(17,30,19,.88);color:#fff3c8;padding:8px 12px;border-radius:999px;font-size:12px;z-index:20;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;box-shadow:0 8px 22px rgba(0,0,0,.22);max-width:78vw;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast{position:fixed;left:50%;bottom:calc(var(--bottom-clearance) + 148px);transform:translateX(-50%) translateY(8px);background:rgba(17,30,19,.88);color:#fff3c8;padding:8px 12px;border-radius:999px;font-size:12px;z-index:20;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;box-shadow:0 8px 22px rgba(0,0,0,.22);max-width:78vw;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .log{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 52px);width:min(310px,calc(100vw - 68px));z-index:6;display:flex;flex-direction:column;gap:4px;pointer-events:none}.log div{background:rgba(255,249,224,.78);border-left:3px solid #e6b843;border-radius:10px;padding:5px 7px;font-size:10.8px;line-height:1.15;box-shadow:0 5px 14px rgba(0,0,0,.13);backdrop-filter:blur(8px)}.log div:nth-child(n+3){display:none}
+
+  .emergencyReset{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 58px);z-index:40;min-height:34px;border-radius:999px;padding:6px 10px;background:rgba(201,92,75,.92);color:white;font-size:11px;font-weight:950;box-shadow:0 8px 22px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(9px)}
+  .tapShield{position:fixed;inset:0;z-index:0;pointer-events:none}
   .hidden{display:none!important}
-  @media(max-width:430px){.panel{max-height:50vh}.topbar{padding-left:6px;padding-right:6px}.pill{font-size:11.4px;padding:7px 8px}.sideControls{top:calc(env(safe-area-inset-top) + 50px)}.statGrid{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:repeat(2,1fr)}.log{display:none}.panelTitle{font-size:15px}.bottomNav{gap:3px}.navBtn{font-size:10px}.navBtn span{font-size:17px}}
+  @media(max-width:430px){.panel{max-height:58dvh}.topbar{padding-left:6px;padding-right:6px}.pill{font-size:11.4px;padding:7px 8px}.sideControls{top:calc(env(safe-area-inset-top) + 50px)}.statGrid{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:repeat(2,1fr)}.log{display:none}.panelTitle{font-size:15px}.bottomNav{gap:3px}.navBtn{font-size:10px}.navBtn span{font-size:17px}}
   @media(min-width:800px){.panel{left:auto;right:14px;width:430px;bottom:14px;max-height:calc(100vh - 98px)}.bottomNav{left:14px;right:auto;width:430px;bottom:14px}.sideControls{right:458px;top:calc(env(safe-area-inset-top) + 64px)}.toast{bottom:34px}.topbar{right:460px}.log div:nth-child(n+3){display:block}.cards{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<button id="emergencyReset" class="emergencyReset" data-reset="1" type="button">Reset</button>
 <div class="topbar">
   <div class="top-scroll">
     <div class="pill">💷 <b id="money">£0</b></div>
@@ -92,9 +99,10 @@
 const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
 let W=0,H=0,DPR=1,last=performance.now(),uiDirty=true,toastTimer=0;
 const WORLD={w:5200,h:3600};
-const SAVE_KEYS=['field-boss-v5-ui-reset','field-boss-v4-manual-map','field-boss-github-pages-v2','field-boss-github-pages-v1'];
+const SAVE_KEYS=['field-boss-v6-phone-tap-fix','field-boss-v5-ui-reset','field-boss-v4-manual-map','field-boss-github-pages-v2','field-boss-github-pages-v1'];
 const CURRENT_SAVE=SAVE_KEYS[0];
-const FORCE_RESET_FLAG='field-boss-v5-reset-complete';
+const FORCE_RESET_FLAG='field-boss-v6-reset-complete';
+const BUILD_ID='v6-phone-input-safe';
 const fmtMoney=n=>'£'+Math.round(n).toLocaleString('en-GB');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -193,7 +201,7 @@ function generateDecor(){
   for(const h of hedgeLines){for(let t=0;t<1;t+=.025){decor.hedges.push({x:lerp(h[0],h[2],t)+(r()-.5)*16,y:lerp(h[1],h[3],t)+(r()-.5)*16,s:8+r()*8})}}
 }
 function resize(){DPR=Math.min(3,devicePixelRatio||1);W=innerWidth;H=innerHeight;canvas.width=Math.floor(W*DPR);canvas.height=Math.floor(H*DPR);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);boundCamera();}
-function saveGame(silent=false){try{const copy=structuredClone(game);copy.vehicles.forEach(v=>{if(v.job){v.job=null;v.status='Parked';v.x=v.homeX;v.y=v.homeY}});copy.fields.forEach(f=>f.rows.forEach(r=>{r.job=null;r.jobProgress=0}));localStorage.setItem(CURRENT_SAVE,JSON.stringify(copy));if(!silent)toast('Game saved safely. Active jobs are resumed from the yard.')}catch(e){toast('Save failed in this browser.')}}
+function saveGame(silent=false){try{const copy=(typeof structuredClone==='function')?structuredClone(game):JSON.parse(JSON.stringify(game));copy.vehicles.forEach(v=>{if(v.job){v.job=null;v.status='Parked';v.x=v.homeX;v.y=v.homeY}});copy.fields.forEach(f=>f.rows.forEach(r=>{r.job=null;r.jobProgress=0}));localStorage.setItem(CURRENT_SAVE,JSON.stringify(copy));if(!silent)toast('Game saved safely. Active jobs are resumed from the yard.')}catch(e){if(!silent)toast('Save failed in this browser.')}}
 function repairLoaded(g){
   const fresh=newGame();
   if(!g||!Array.isArray(g.fields))return fresh;
@@ -209,12 +217,14 @@ function repairLoaded(g){
   return g;
 }
 function loadGame(){
-  if(localStorage.getItem(FORCE_RESET_FLAG)!=='1'){clearAllSaves();game=newGame();saveGame(true);log('Old phone save was cleared for this UI fix. Fresh farm loaded.');return false;}
+  const params=new URLSearchParams(location.search);
+  if(params.has('reset')||params.has('fresh')){clearAllSaves();game=newGame();saveGame(true);log('Fresh farm loaded from URL reset.');return false;}
+  try{if(localStorage.getItem(FORCE_RESET_FLAG)!=='1'){clearAllSaves();game=newGame();saveGame(true);log('Old phone save was cleared for the v6 mobile input fix.');return false;}}catch(e){game=newGame();return false;}
   try{const raw=localStorage.getItem(CURRENT_SAVE); if(raw){game=repairLoaded(JSON.parse(raw));return true;}}catch(e){}
   game=newGame(); log('New farm created. Use Field tab to manage work manually.'); saveGame(true); return false;
 }
-function clearAllSaves(){for(const k of SAVE_KEYS)localStorage.removeItem(k);localStorage.setItem(FORCE_RESET_FLAG,'1')}
-function hardReset(){clearAllSaves();game=newGame();selectedFieldId=null;activeTab='farm';panelOpen=true;camera.x=420;camera.y=470;camera.zoom=.68;saveGame(true);uiDirty=true;toast('Fresh game started');}
+function clearAllSaves(){try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.startsWith('field-boss')||k.startsWith('farm-manager')||SAVE_KEYS.includes(k)||k===FORCE_RESET_FLAG))localStorage.removeItem(k);}localStorage.setItem(FORCE_RESET_FLAG,'1');}catch(e){}}
+function hardReset(){clearAllSaves();game=newGame();selectedFieldId=null;activeTab='farm';panelOpen=true;camera.x=420;camera.y=470;camera.zoom=.68;pointers.clear();drag={id:null,lastX:0,lastY:0,moved:false};pinch=null;saveGame(true);uiDirty=true;renderUI();toast('Fresh game started');}
 function repairSaveNow(){game=repairLoaded(game);saveGame(true);uiDirty=true;toast('Save repaired. Machines parked and tasks cleared.');}
 function screenToWorld(sx,sy){return{x:sx/camera.zoom+camera.x,y:sy/camera.zoom+camera.y}}
 function worldToScreen(wx,wy){return{x:(wx-camera.x)*camera.zoom,y:(wy-camera.y)*camera.zoom}}
@@ -353,7 +363,7 @@ function renderBuy(){const cats=[...new Set(buyItems.map(i=>i.cat))];return cats
 function renderInventory(){return `<div class="section"><div class="statGrid"><div class="stat">Parking capacity<b>${game.vehicles.length}/${game.capacity.parking}</b><div class="progress"><div class="bar" style="width:${clamp(game.vehicles.length/game.capacity.parking*100,0,100)}%"></div></div></div><div class="stat">Buildings<b>${game.upgrades.barns} barns, ${game.upgrades.parkingLevel} yard bays</b></div></div><p class="muted">Buy tarmac parking or barns before buying too many machines. Parked machines can be sold here.</p></div><div class="section"><div class="sectionTitle">Equipment</div>${game.vehicles.map(v=>`<div class="vehicleRow"><div><b>${v.type==='combine'?'🌽':v.type==='sprayer'?'💦':v.type==='truck'?'🚚':'🚜'} ${v.name}</b><span class="tiny">${v.status} • ${v.type} • resale about ${fmtMoney(v.value*(0.55-v.wear*.25))}</span></div><div>${v.job?'<span class="tag blue">Working</span>':`<button class="red" data-sellvehicle="${v.id}">Sell</button>`}</div></div>`).join('')}</div>`}
 function renderMarket(){const prices=currentPrices();return `<div class="section"><div class="statGrid"><div class="stat">Total stored<b>${totalStored().toFixed(1)}t / ${game.capacity.storage}t</b><div class="progress"><div class="bar" style="width:${clamp(totalStored()/game.capacity.storage*100,0,100)}%"></div></div></div><div class="stat">Where to sell<b>Co-op / Mill buyers</b></div></div><p class="muted">Grain and canola sell at the co-op near the village. Potatoes and corn sell through the wholesale yard. Straw is kept for future animal systems.</p></div><div class="section"><div class="sectionTitle">Stores and prices</div>${Object.keys(crops).map(k=>`<div class="storeRow"><div><b>${crops[k].name}</b><span class="tiny">Stored ${game.storage[k].toFixed(1)}t • price ${fmtMoney(prices[k])}/t • buyer: ${k==='potato'||k==='corn'?'Wholesale yard':'Co-op grain buyer'}</span></div><div class="cardBtns"><button class="ghost" data-sellcrop="${k}" data-amount="half">Half</button><button class="primary" data-sellcrop="${k}" data-amount="all">All</button></div></div>`).join('')}<div class="storeRow"><div><b>Straw</b><span class="tiny">Stored ${game.storage.straw.toFixed(1)}t • kept for later livestock/bedding system</span></div></div></div><div class="section"><div class="sectionTitle">Storage upgrades</div><div class="grid2"><button class="gold" data-buy="silo">Buy steel silo</button><button class="gold" data-buy="silo_up">Upgrade dryer</button></div></div>`}
 function renderStaff(){const hireCost={drivers:6000,mechanics:8500,agronomists:9500};return `<div class="section"><div class="statGrid"><div class="stat">Available drivers<b>${availableDrivers()} / ${game.staff.drivers}</b></div><div class="stat">Mechanics<b>${game.staff.mechanics}</b></div><div class="stat">Agronomists<b>${game.staff.agronomists}</b></div><div class="stat">Running jobs<b>${game.vehicles.filter(v=>v.job).length}</b></div></div><p class="muted">Drivers limit how many machines can work at once. Mechanics slightly speed work and reduce wear. Agronomists slow weed growth.</p></div><div class="section"><div class="sectionTitle">Hire staff</div>${Object.entries(hireCost).map(([k,c])=>`<div class="staffRow"><div><b>${k==='drivers'?'Driver':k==='mechanics'?'Mechanic':'Agronomist'}</b><span class="tiny">Current: ${game.staff[k]} • cost ${fmtMoney(c)}</span></div><button class="primary" data-hire="${k}">Hire</button></div>`).join('')}</div>`}
-function bindPanelButtons(){document.querySelectorAll('#panel button,#panel select').forEach(el=>{el.onpointerdown=e=>e.stopPropagation();el.onclick=e=>e.stopPropagation();});document.querySelectorAll('[data-tabgo]').forEach(b=>b.onclick=e=>{e.stopPropagation();showTab(b.dataset.tabgo)});document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();buyItem(b.dataset.buy)});document.querySelectorAll('[data-buyfield]').forEach(b=>b.onclick=e=>{e.stopPropagation();buyField(+b.dataset.buyfield)});document.querySelectorAll('[data-selectfield]').forEach(b=>b.onclick=e=>{e.stopPropagation();selectedFieldId=+b.dataset.selectfield;showTab('field');centerOnField(selectedField())});document.querySelectorAll('[data-job]').forEach(b=>b.onclick=e=>{e.stopPropagation();queueJob(b.dataset.job,document.getElementById('cropSelect')?.value)});document.querySelectorAll('[data-sellvehicle]').forEach(b=>b.onclick=e=>{e.stopPropagation();sellVehicle(+b.dataset.sellvehicle)});document.querySelectorAll('[data-sellcrop]').forEach(b=>b.onclick=e=>{e.stopPropagation();sellCrop(b.dataset.sellcrop,b.dataset.amount)});document.querySelectorAll('[data-hire]').forEach(b=>b.onclick=e=>{e.stopPropagation();hire(b.dataset.hire)});document.querySelectorAll('[data-reset]').forEach(b=>b.onclick=e=>{e.stopPropagation();hardReset()});document.querySelectorAll('[data-save]').forEach(b=>b.onclick=e=>{e.stopPropagation();saveGame(false)});document.querySelectorAll('[data-repair]').forEach(b=>b.onclick=e=>{e.stopPropagation();repairSaveNow()});document.querySelectorAll('[data-hide]').forEach(b=>b.onclick=e=>{e.stopPropagation();hidePanel()});}
+function bindPanelButtons(){document.querySelectorAll('#panel button,.bottomNav button,.sideControls button,#emergencyReset').forEach(b=>{if(!b.type)b.type='button';});}
 function hire(k){const cost={drivers:6000,mechanics:8500,agronomists:9500}[k];if(game.money<cost){toast('Not enough money.');return;}game.money-=cost;game.staff[k]++;log(`Hired a ${k.slice(0,-1)}.`);saveGame(true);uiDirty=true;}
 function drawMiniIcons(){document.querySelectorAll('.miniCanvas').forEach(c=>{const type=c.dataset.icon,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.save();x.translate(c.width/2,c.height/2);x.scale(1.25,1.25);if(type==='tractor'||type==='tractor2')miniTractor(x,type==='tractor2');if(type==='combine')miniCombine(x);if(type==='sprayer')miniSprayer(x);if(type==='truck')miniTruck(x);if(type==='parking')miniParking(x);if(type==='barn')miniBarn(x);if(type==='silo'||type==='silo2')miniSilo(x,type==='silo2');if(type==='field')miniField(x);x.restore();});}
 function miniTractor(x,big){x.fillStyle='#1f1f1f';[-18,18].forEach(xx=>[-14,14].forEach(yy=>{x.beginPath();x.ellipse(xx,yy,big?8:7,big?12:10,0,0,Math.PI*2);x.fill()}));x.fillStyle=big?'#d85a3d':'#c54d38';roundMini(x,-24,-16,48,32,7);x.fillStyle='#9dd9e7';roundMini(x,-3,-12,19,24,5);}
@@ -368,12 +378,46 @@ function roundMini(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,
 function centerOnField(f){if(!f)return;camera.x=f.x-W/(2*camera.zoom);camera.y=f.y-H/(2*camera.zoom);boundCamera();}
 function hitField(wx,wy){for(let i=game.fields.length-1;i>=0;i--){const f=game.fields[i],p=wToF(f,wx,wy);if(p.x>-f.w/2&&p.x<f.w/2&&p.y>-f.h/2&&p.y<f.h/2)return f;}return null;}
 function handleTap(x,y){const w=screenToWorld(x,y);const f=hitField(w.x,w.y);if(f){selectedFieldId=f.id;showTab('field');toast(`${f.name} selected`);return;} }
-function pointerDown(e){if(e.target!==canvas)return;canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1){drag={id:e.pointerId,lastX:e.clientX,lastY:e.clientY,moved:false};pinch=null;}else if(pointers.size===2){const arr=[...pointers.values()];pinch={dist:dist(arr[0].x,arr[0].y,arr[1].x,arr[1].y),zoom:camera.zoom,cx:(arr[0].x+arr[1].x)/2,cy:(arr[0].y+arr[1].y)/2};}}
-function pointerMove(e){if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const arr=[...pointers.values()],d=dist(arr[0].x,arr[0].y,arr[1].x,arr[1].y),cx=(arr[0].x+arr[1].x)/2,cy=(arr[0].y+arr[1].y)/2;if(pinch){setZoom(pinch.zoom*(d/pinch.dist),cx,cy);camera.x-= (cx-pinch.cx)/camera.zoom;camera.y-= (cy-pinch.cy)/camera.zoom;pinch.cx=cx;pinch.cy=cy;boundCamera();}return;}if(drag.id===e.pointerId){const dx=e.clientX-drag.lastX,dy=e.clientY-drag.lastY;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;camera.x-=dx/camera.zoom;camera.y-=dy/camera.zoom;drag.lastX=e.clientX;drag.lastY=e.clientY;boundCamera();}}
-function pointerUp(e){if(drag.id===e.pointerId&&!drag.moved)handleTap(e.clientX,e.clientY);pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(pointers.size===0)drag.id=null;}
-function bindGlobal(){addEventListener('resize',resize);canvas.addEventListener('pointerdown',pointerDown);canvas.addEventListener('pointermove',pointerMove);canvas.addEventListener('pointerup',pointerUp);canvas.addEventListener('pointercancel',pointerUp);['panel','bottomNav','topbar'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('pointerdown',e=>e.stopPropagation(),{passive:false});el.addEventListener('touchmove',e=>{}, {passive:true});}});document.getElementById('zoomIn').onclick=()=>setZoom(camera.zoom*1.18);document.getElementById('zoomOut').onclick=()=>setZoom(camera.zoom/1.18);document.getElementById('homeBtn').onclick=()=>{camera.x=420;camera.y=470;camera.zoom=.68;};document.getElementById('speedBtn').onclick=()=>{game.speed=game.speed%4+1;uiDirty=true};document.getElementById('hideBtn').onclick=e=>{e.stopPropagation();hidePanel()};document.querySelectorAll('.navBtn').forEach(b=>{b.onclick=e=>{e.stopPropagation();setTab(b.dataset.tab)}});syncPanelState();}
+function pointerDown(e){if(e.target!==canvas)return;if(e.cancelable)e.preventDefault();canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1){drag={id:e.pointerId,lastX:e.clientX,lastY:e.clientY,moved:false};pinch=null;}else if(pointers.size===2){const arr=[...pointers.values()];pinch={dist:dist(arr[0].x,arr[0].y,arr[1].x,arr[1].y),zoom:camera.zoom,cx:(arr[0].x+arr[1].x)/2,cy:(arr[0].y+arr[1].y)/2};}}
+function pointerMove(e){if(e.cancelable)e.preventDefault();if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const arr=[...pointers.values()],d=dist(arr[0].x,arr[0].y,arr[1].x,arr[1].y),cx=(arr[0].x+arr[1].x)/2,cy=(arr[0].y+arr[1].y)/2;if(pinch){setZoom(pinch.zoom*(d/pinch.dist),cx,cy);camera.x-= (cx-pinch.cx)/camera.zoom;camera.y-= (cy-pinch.cy)/camera.zoom;pinch.cx=cx;pinch.cy=cy;boundCamera();}return;}if(drag.id===e.pointerId){const dx=e.clientX-drag.lastX,dy=e.clientY-drag.lastY;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;camera.x-=dx/camera.zoom;camera.y-=dy/camera.zoom;drag.lastX=e.clientX;drag.lastY=e.clientY;boundCamera();}}
+function pointerUp(e){if(e.cancelable)e.preventDefault();if(drag.id===e.pointerId&&!drag.moved)handleTap(e.clientX,e.clientY);pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(pointers.size===0)drag.id=null;}
+let lastUiTap=0,lastUiTarget=null;
+function setMobileViewportVars(){try{const vv=visualViewport;let extra=0;if(vv){extra=Math.max(0,innerHeight-vv.height-vv.offsetTop);}
+  const bottom=Math.max(18,Math.min(92,extra+18));document.documentElement.style.setProperty('--bottom-clearance',bottom+'px');
+}catch(e){document.documentElement.style.setProperty('--bottom-clearance','24px');}}
+function runUiAction(el,e){if(!el)return false;const now=performance.now();if(el===lastUiTarget&&now-lastUiTap<260)return true;lastUiTap=now;lastUiTarget=el;
+  if(el.dataset.tab){setTab(el.dataset.tab);return true;}
+  if(el.dataset.tabgo){showTab(el.dataset.tabgo);return true;}
+  if(el.dataset.buy){buyItem(el.dataset.buy);return true;}
+  if(el.dataset.buyfield){buyField(+el.dataset.buyfield);return true;}
+  if(el.dataset.selectfield){selectedFieldId=+el.dataset.selectfield;showTab('field');centerOnField(selectedField());return true;}
+  if(el.dataset.job){queueJob(el.dataset.job,document.getElementById('cropSelect')?.value);return true;}
+  if(el.dataset.sellvehicle){sellVehicle(+el.dataset.sellvehicle);return true;}
+  if(el.dataset.sellcrop){sellCrop(el.dataset.sellcrop,el.dataset.amount);return true;}
+  if(el.dataset.hire){hire(el.dataset.hire);return true;}
+  if(el.dataset.reset){hardReset();return true;}
+  if(el.dataset.save){saveGame(false);return true;}
+  if(el.dataset.repair){repairSaveNow();return true;}
+  if(el.dataset.hide){hidePanel();return true;}
+  if(el.id==='zoomIn'){setZoom(camera.zoom*1.18);return true;}
+  if(el.id==='zoomOut'){setZoom(camera.zoom/1.18);return true;}
+  if(el.id==='homeBtn'){camera.x=420;camera.y=470;camera.zoom=.68;boundCamera();return true;}
+  if(el.id==='speedBtn'){game.speed=game.speed%4+1;uiDirty=true;return true;}
+  if(el.id==='hideBtn'){hidePanel();return true;}
+  return false;}
+function handleUiEvent(e){const el=e.target.closest('button,[data-tab],select');if(!el)return;
+  if(el.tagName==='SELECT')return;
+  const inUi=el.closest('#panel,#bottomNav,.sideControls,#emergencyReset,.topbar');if(!inUi)return;
+  e.stopPropagation();
+  if(e.type==='touchend'||e.type==='pointerup'||e.type==='click'){if(e.cancelable)e.preventDefault();runUiAction(el,e);}
+}
+function bindGlobal(){setMobileViewportVars();addEventListener('resize',()=>{setMobileViewportVars();resize();});if(window.visualViewport){visualViewport.addEventListener('resize',setMobileViewportVars);visualViewport.addEventListener('scroll',setMobileViewportVars);}
+canvas.addEventListener('pointerdown',pointerDown,{passive:false});canvas.addEventListener('pointermove',pointerMove,{passive:false});canvas.addEventListener('pointerup',pointerUp,{passive:false});canvas.addEventListener('pointercancel',pointerUp,{passive:false});
+['panel','bottomNav','topbar'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('pointerdown',e=>{e.stopPropagation();}, {passive:false});el.addEventListener('touchstart',e=>{e.stopPropagation();}, {passive:true});el.addEventListener('touchmove',e=>{e.stopPropagation();}, {passive:true});}});
+document.addEventListener('pointerup',handleUiEvent,true);document.addEventListener('touchend',handleUiEvent,{capture:true,passive:false});document.addEventListener('click',handleUiEvent,true);syncPanelState();}
 function loop(t){const dt=Math.min(40,t-last);last=t;update(dt);draw();renderUI();requestAnimationFrame(loop)}
-function init(){resize();generateDecor();loadGame();bindGlobal();renderLog();if(!game.tutorialSeen){toast('Tap fields, then use Field tab to dispatch machines manually.');game.tutorialSeen=true;}requestAnimationFrame(loop)}
+window.addEventListener('error',e=>{try{document.getElementById('toast').textContent='Game error: refresh or press Reset';document.getElementById('toast').classList.add('show');}catch(_){} });
+function init(){try{document.body.dataset.build=BUILD_ID;}catch(e){} resize();generateDecor();loadGame();bindGlobal();renderLog();if(!game.tutorialSeen){toast('Tap fields, then use Field tab to dispatch machines manually.');game.tutorialSeen=true;}requestAnimationFrame(loop)}
 init();
 })();
 </script>
