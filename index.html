@@ -13,43 +13,47 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#263622;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink)}
   canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#6e9d55;touch-action:none;user-select:none}
-  .hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;display:flex;gap:8px;align-items:center;justify-content:space-between;pointer-events:none;z-index:5}
-  .pill{pointer-events:auto;border:1px solid rgba(255,255,255,.18);background:var(--panel);color:#fff8de;border-radius:999px;padding:8px 10px;box-shadow:var(--shadow);font-size:13px;line-height:1.15;white-space:nowrap;backdrop-filter:blur(8px)}
+  .hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 6px) 8px 4px;display:flex;gap:6px;align-items:flex-start;justify-content:space-between;pointer-events:none;z-index:5}
+  .hud.compact .topGroup .pill:nth-child(n+3){display:none}
+  .hud.compact #hint{max-width:92px;overflow:hidden;text-overflow:ellipsis}
+  .pill{pointer-events:auto;border:1px solid rgba(255,255,255,.18);background:rgba(24,34,22,.76);color:#fff8de;border-radius:999px;padding:7px 9px;box-shadow:0 8px 22px rgba(0,0,0,.18);font-size:12px;line-height:1.1;white-space:nowrap;backdrop-filter:blur(8px)}
   .pill strong{color:#ffe39b}
-  .topGroup{display:flex;gap:7px;overflow-x:auto;min-width:0;scrollbar-width:none}.topGroup::-webkit-scrollbar{display:none}
-  .panel{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 10px);background:var(--panel2);border:2px solid rgba(76,60,27,.2);box-shadow:var(--shadow);border-radius:22px;padding:10px;z-index:6;max-height:42vh;overflow:auto}
-  .handle{width:42px;height:4px;border-radius:20px;background:#b79b63;margin:0 auto 8px;opacity:.8}
-  .panel h2{font-size:17px;margin:0 0 2px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .panel .small{font-size:12px;color:#596149;margin:2px 0 7px;line-height:1.3}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
-  .stat{background:#f6e6b7;border:1px solid rgba(93,75,33,.18);border-radius:12px;padding:7px 6px;text-align:center;font-size:11px;color:#5a5135}.stat b{display:block;color:#26341f;font-size:13px;margin-top:2px}
-  .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-  button,select{font:inherit;border:0;border-radius:13px;padding:10px 8px;font-weight:800;background:#e8d6a2;color:#26341f;box-shadow:inset 0 -2px rgba(0,0,0,.12);min-height:40px}
+  .topGroup{display:flex;gap:6px;overflow-x:auto;min-width:0;max-width:calc(100vw - 96px);scrollbar-width:none}.topGroup::-webkit-scrollbar{display:none}
+  .panel{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 8px);background:var(--panel2);border:1px solid rgba(76,60,27,.22);box-shadow:0 12px 28px rgba(0,0,0,.24);border-radius:20px;padding:8px;z-index:6;max-height:36vh;overflow:auto;overscroll-behavior:contain}
+  .handle{width:46px;height:4px;border-radius:20px;background:#b79b63;margin:0 auto 6px;opacity:.8}
+  .panel h2{font-size:16px;margin:0 0 2px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;background:linear-gradient(var(--panel2),rgba(255,247,218,.86));padding-bottom:3px;z-index:2}
+  .panel .small{font-size:11.5px;color:#596149;margin:1px 0 6px;line-height:1.25}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0}
+  .stat{background:#f6e6b7;border:1px solid rgba(93,75,33,.18);border-radius:11px;padding:6px 5px;text-align:center;font-size:10.5px;color:#5a5135}.stat b{display:block;color:#26341f;font-size:12.5px;margin-top:1px}
+  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .actions select{grid-column:1/-1}
+  button,select{font:inherit;border:0;border-radius:12px;padding:9px 8px;font-weight:800;background:#e8d6a2;color:#26341f;box-shadow:inset 0 -2px rgba(0,0,0,.12);min-height:38px}
   button:active{transform:translateY(1px)}
   button.primary{background:#6f9e3f;color:#fff} button.warn{background:#c25f49;color:#fff} button.gold{background:#efbd4e;color:#332511} button.blue{background:#6aaed3;color:#fff} button.dark{background:#394a2e;color:#fff}
   button:disabled{opacity:.45;filter:grayscale(.4)}
   select{background:#fff4d2;border:1px solid rgba(80,65,34,.18);font-weight:700;width:100%}
-  .side{position:fixed;right:10px;top:calc(env(safe-area-inset-top) + 66px);display:flex;flex-direction:column;gap:8px;z-index:5}
-  .side button{width:48px;height:48px;border-radius:16px;background:rgba(27,38,25,.86);color:#fff;border:1px solid rgba(255,255,255,.17);box-shadow:var(--shadow);font-size:20px;padding:0}
-  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 46vh);transform:translateX(-50%);background:rgba(24,34,22,.92);color:#fff3c8;padding:9px 13px;border-radius:999px;font-size:13px;z-index:9;opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;box-shadow:var(--shadow);max-width:86vw;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
-  .log{position:fixed;left:10px;top:calc(env(safe-area-inset-top) + 66px);width:min(330px,calc(100vw - 78px));pointer-events:none;z-index:4;display:flex;flex-direction:column;gap:6px}.log div{background:rgba(255,248,219,.86);border-left:4px solid #d6a743;border-radius:10px;padding:7px 9px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .side{position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 50px);display:flex;flex-direction:column;gap:6px;z-index:5}
+  .side button{width:40px;height:40px;border-radius:14px;background:rgba(27,38,25,.72);color:#fff;border:1px solid rgba(255,255,255,.16);box-shadow:0 8px 22px rgba(0,0,0,.18);font-size:18px;padding:0;backdrop-filter:blur(8px)}
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translateX(-50%);background:rgba(24,34,22,.88);color:#fff3c8;padding:7px 11px;border-radius:999px;font-size:12px;z-index:9;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;box-shadow:0 8px 20px rgba(0,0,0,.22);max-width:74vw;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  .log{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 50px);width:min(250px,calc(100vw - 62px));pointer-events:none;z-index:4;display:flex;flex-direction:column;gap:4px}.log div{background:rgba(255,248,219,.72);border-left:3px solid #d6a743;border-radius:9px;padding:5px 7px;font-size:10.8px;line-height:1.15;box-shadow:0 4px 12px rgba(0,0,0,.10);backdrop-filter:blur(6px)}.log div:nth-child(n+2){display:none}
   .hidden{display:none!important}
-  .panel.minimized{max-height:76px;overflow:hidden}
+  .panel.minimized{max-height:58px;overflow:hidden;opacity:.92}
   .panel.minimized .stats,.panel.minimized .actions,.panel.minimized .vehicleList,.panel.minimized .small{display:none}
-  .vehicleList{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}.vehicleList::-webkit-scrollbar{display:none}.chip{border-radius:999px;padding:6px 9px;background:#efe0b5;font-size:12px;white-space:nowrap;border:1px solid rgba(74,56,20,.12)}
-  @media(min-width:800px){.panel{left:auto;width:410px;max-height:calc(100vh - 105px);right:14px;bottom:14px}.side{right:438px}.actions{grid-template-columns:repeat(3,1fr)}.toast{bottom:34px}.hud{right:440px}.log{width:360px}}
+  .vehicleList{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}.vehicleList::-webkit-scrollbar{display:none}.chip{border-radius:999px;padding:5px 8px;background:#efe0b5;font-size:11.2px;white-space:nowrap;border:1px solid rgba(74,56,20,.12)}
+  @media(max-width:420px){.stats{grid-template-columns:repeat(2,1fr)}.panel{max-height:34vh}.panel h2{font-size:15px}.side{top:calc(env(safe-area-inset-top) + 48px)}.hud:not(.compact) .topGroup{max-width:calc(100vw - 76px);flex-wrap:wrap}.hud:not(.compact){align-items:flex-start}.pill{font-size:11.5px}.log{display:none}}
+  @media(min-width:800px){.panel{left:auto;width:410px;max-height:calc(100vh - 105px);right:14px;bottom:14px}.side{right:438px;top:calc(env(safe-area-inset-top) + 66px)}.actions{grid-template-columns:repeat(3,1fr)}.toast{bottom:34px;max-width:520px}.hud{right:440px}.hud.compact .topGroup .pill:nth-child(n+3){display:block}.log{width:330px}.log div:nth-child(n+4){display:none}.log div:nth-child(n+2){display:block}}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div class="hud">
+<div class="hud compact" id="hud">
   <div class="topGroup">
     <div class="pill">💷 <strong id="money">£0</strong></div>
     <div class="pill">📅 <strong id="date">Day 1</strong></div>
     <div class="pill">🌦️ <strong id="weather">Clear</strong></div>
     <div class="pill">🏚️ Stores <strong id="stores">0t</strong></div>
   </div>
-  <div class="pill" id="hint">Tap a field</div>
+  <button class="pill" id="hint" aria-label="Toggle HUD">HUD</button>
 </div>
 <div class="log" id="log"></div>
 <div class="side">
@@ -61,7 +65,7 @@
 </div>
 <div class="panel" id="panel">
   <div class="handle"></div>
-  <h2><span id="panelTitle">Field Boss</span><button class="dark" id="collapseBtn" style="min-height:32px;padding:6px 10px">Hide</button></h2>
+  <h2><span id="panelTitle">Field Boss</span><button class="dark" id="collapseBtn" style="min-height:30px;padding:5px 9px">Hide</button></h2>
   <div class="small" id="panelSub">Top-down farming sim. Tap a field, queue a job, then watch the machine work line by line.</div>
   <div class="stats" id="stats"></div>
   <div class="vehicleList" id="fleet"></div>
@@ -177,9 +181,9 @@ function setZoom(z,cx=W/2,cy=H/2){
   const before=screenToWorld(cx,cy); camera.zoom=clamp(z,camera.min,camera.max); camera.x=before.x - cx/camera.zoom; camera.y=before.y - cy/camera.zoom; boundCamera();
 }
 function boundCamera(){camera.x=clamp(camera.x,-150,WORLD.w-W/camera.zoom+150);camera.y=clamp(camera.y,-150,WORLD.h-H/camera.zoom+150);}
-function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2200); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1500); }
 function log(msg){ game.log.unshift({msg,day:game.day}); game.log=game.log.slice(0,5); renderLog(); }
-function renderLog(){ const el=document.getElementById('log'); el.innerHTML=game.log.map(l=>`<div>Day ${l.day}: ${l.msg}</div>`).join(''); }
+function renderLog(){ const el=document.getElementById('log'); el.innerHTML=game.log.slice(0,4).map(l=>`<div>Day ${l.day}: ${l.msg}</div>`).join(''); }
 function fieldPath(f){
   ctx.beginPath(); f.edge.forEach((p,i)=>{ if(i===0)ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }); ctx.closePath();
 }
@@ -430,13 +434,13 @@ function autoManager(){
 function fieldAt(wx,wy){
   for(let i=game.fields.length-1;i>=0;i--){const f=game.fields[i]; const p=worldToField(f,wx,wy); if(p.x>-f.w/2&&p.x<f.w/2&&p.y>-f.h/2&&p.y<f.h/2) return f;} return null;
 }
-function selectField(f){selectedId=f?f.id:null; uiDirty=true; if(f) toast(f.name);}
+function selectField(f){selectedId=f?f.id:null; if(f){const panel=document.getElementById('panel'); panel.classList.remove('minimized'); document.getElementById('collapseBtn').textContent='Hide'; toast(f.name);} uiDirty=true;}
 function selectedField(){return game.fields.find(f=>f.id===selectedId)||null;}
 function renderUI(){
-  document.getElementById('money').textContent=fmtMoney(game.money); document.getElementById('date').textContent=`${seasonName()} Day ${game.day} ${String(Math.floor(game.hour)).padStart(2,'0')}:00`; document.getElementById('weather').textContent=game.weather; document.getElementById('stores').textContent=canSellTotal().toFixed(1)+'t'; document.getElementById('speedBtn').textContent=game.speed+'×'; document.getElementById('autoBtn').style.background=game.auto?'#6f9e3f':'rgba(27,38,25,.86)';
+  document.getElementById('money').textContent=fmtMoney(game.money); document.getElementById('date').textContent=`${seasonName()} Day ${game.day} ${String(Math.floor(game.hour)).padStart(2,'0')}:00`; document.getElementById('weather').textContent=game.weather; document.getElementById('stores').textContent=canSellTotal().toFixed(1)+'t'; document.getElementById('speedBtn').textContent=game.speed+'×'; document.getElementById('autoBtn').style.background=game.auto?'#6f9e3f':'rgba(27,38,25,.86)'; const hintEl=document.getElementById('hint'); hintEl.textContent=selectedId?'Field':'HUD';
   const f=selectedField(); const stats=document.getElementById('stats'), actions=document.getElementById('actions'), title=document.getElementById('panelTitle'), sub=document.getElementById('panelSub'), fleet=document.getElementById('fleet');
   fleet.innerHTML=game.vehicles.map(v=>`<span class="chip">${vehicleEmoji(v.type)} ${v.name}: ${v.job?jobInfo[v.job.type]?.label||v.status:'Idle'}</span>`).join('');
-  if(!f){ title.textContent='Field Boss'; sub.textContent='Tap a field. Pinch to zoom, drag to pan. Use GitHub Pages with this file named index.html.'; stats.innerHTML=`<div class="stat">Fields<b>${game.fields.filter(x=>x.owned).length}/${game.fields.length}</b></div><div class="stat">Fleet<b>${game.vehicles.length}</b></div><div class="stat">Stored<b>${canSellTotal().toFixed(1)}t</b></div><div class="stat">Auto<b>${game.auto?'On':'Off'}</b></div>`;
+  if(!f){ title.textContent='Field Boss'; sub.textContent='Tap a field to manage it. Pinch to zoom, drag to pan. Press HUD to show/hide the full top stats.'; stats.innerHTML=`<div class="stat">Fields<b>${game.fields.filter(x=>x.owned).length}/${game.fields.length}</b></div><div class="stat">Fleet<b>${game.vehicles.length}</b></div><div class="stat">Stored<b>${canSellTotal().toFixed(1)}t</b></div><div class="stat">Auto<b>${game.auto?'On':'Off'}</b></div>`;
     actions.innerHTML=`<button class="primary" data-act="centre">Centre Farm</button><button class="gold" data-act="sell">Sell Stores</button><button class="blue" data-act="save">Save</button><button data-act="buytractor">Buy Tractor</button><button data-act="buysprayer">Buy Sprayer</button><button data-act="buycombine">Buy Combine</button><button class="dark" data-act="auto">Toggle Auto</button><button class="warn" data-act="reset">Reset Farm</button><button data-act="help">Help</button>`; bindActions(); return; }
   title.textContent=f.name; sub.textContent=f.owned ? `${f.soil} soil · ${fieldMiniStatus(f)} · ${f.rows.some(r=>r.job)?'Machine working rows now':'Ready for orders'}` : `Unowned field. Buy it to expand the farm.`;
   stats.innerHTML=`<div class="stat">Crop<b>${f.crop?crops[f.crop].name:'None'}</b></div><div class="stat">Growth<b>${Math.round(f.growth*100)}%</b></div><div class="stat">Moisture<b>${Math.round(f.moisture)}%</b></div><div class="stat">Weeds<b>${Math.round(f.weeds)}%</b></div><div class="stat">Cultivated<b>${Math.round(fieldCompletion(f,'cultivated')*100)}%</b></div><div class="stat">Sown<b>${Math.round(fieldCompletion(f,'sown')*100)}%</b></div><div class="stat">Fertilised<b>${Math.round(fieldCompletion(f,'fertilized')*100)}%</b></div><div class="stat">Harvested<b>${Math.round(fieldCompletion(f,'harvested')*100)}%</b></div>`;
@@ -447,7 +451,7 @@ function vehicleEmoji(t){return t==='tractor'?'🚜':t==='combine'?'🌾':t==='s
 function bindActions(){ document.querySelectorAll('#actions button').forEach(btn=>btn.onclick=()=>handleAction(btn.dataset.act)); }
 function handleAction(act){
   const f=selectedField();
-  if(act==='back'){selectedId=null; uiDirty=true; return;} if(act==='centre'){centreFarm();return;} if(act==='centreSel'&&f){centreOn(f.x,f.y);return;} if(act==='save'){save();return;} if(act==='sell'){sellAll();return;} if(act==='reset'){ if(confirm('Reset the farm save?')) resetGame(); return;} if(act==='auto'){game.auto=!game.auto;toast('Auto manager '+(game.auto?'on':'off'));uiDirty=true;return;} if(act==='help'){toast('Pinch to zoom, drag to pan, tap fields, then queue jobs. Vehicles work row by row.');return;}
+  if(act==='back'){selectedId=null; uiDirty=true; return;} if(act==='centre'){centreFarm();return;} if(act==='centreSel'&&f){centreOn(f.x,f.y);return;} if(act==='save'){save();return;} if(act==='sell'){sellAll();return;} if(act==='reset'){ if(confirm('Reset the farm save?')) resetGame(); return;} if(act==='auto'){game.auto=!game.auto;toast('Auto manager '+(game.auto?'on':'off'));uiDirty=true;return;} if(act==='help'){toast('Tap fields for actions. Pinch zoom and drag pan the map. Hide the bottom panel to watch machines work row by row.');return;}
   if(act==='buytractor'){buyVehicle('tractor');return;} if(act==='buysprayer'){buyVehicle('sprayer');return;} if(act==='buycombine'){buyVehicle('combine');return;}
   if(!f)return; if(act==='buyfield'){startJob(f,'buy');return;} if(act==='cultivate')startJob(f,'cultivate'); if(act==='sow'){const k=document.getElementById('cropSelect')?.value||'wheat';startJob(f,'sow',k);} if(act==='fertilize')startJob(f,'fertilize'); if(act==='spray')startJob(f,'spray'); if(act==='harvest')startJob(f,'harvest'); if(act==='irrigate')startJob(f,'irrigate'); uiDirty=true;
 }
@@ -459,7 +463,7 @@ canvas.addEventListener('pointermove', e=>{ if(!pointers.has(e.pointerId))return
 canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel',endPointer);
 function endPointer(e){ const wasDrag=drag.active&&drag.id===e.pointerId; pointers.delete(e.pointerId); if(wasDrag&&!drag.moved){ const w=screenToWorld(e.clientX,e.clientY); selectField(fieldAt(w.x,w.y)); } if(pointers.size<2)pinch=null; if(pointers.size===1){const [id,p]=[...pointers.entries()][0];drag={active:true,id,lastX:p.x,lastY:p.y,moved:false};} else drag.active=false; }
 canvas.addEventListener('wheel', e=>{e.preventDefault();setZoom(camera.zoom*(e.deltaY<0?1.08:.92),e.clientX,e.clientY);},{passive:false});
-document.getElementById('zoomIn').onclick=()=>setZoom(camera.zoom*1.18);document.getElementById('zoomOut').onclick=()=>setZoom(camera.zoom/1.18);document.getElementById('homeBtn').onclick=centreFarm;document.getElementById('speedBtn').onclick=()=>{const arr=[1,2,4,8];game.speed=arr[(arr.indexOf(game.speed)+1)%arr.length];uiDirty=true;};document.getElementById('autoBtn').onclick=()=>{game.auto=!game.auto;uiDirty=true;toast('Auto manager '+(game.auto?'on':'off'));};document.getElementById('collapseBtn').onclick=togglePanel;
+document.getElementById('zoomIn').onclick=()=>setZoom(camera.zoom*1.18);document.getElementById('zoomOut').onclick=()=>setZoom(camera.zoom/1.18);document.getElementById('homeBtn').onclick=centreFarm;document.getElementById('speedBtn').onclick=()=>{const arr=[1,2,4,8];game.speed=arr[(arr.indexOf(game.speed)+1)%arr.length];uiDirty=true;};document.getElementById('autoBtn').onclick=()=>{game.auto=!game.auto;uiDirty=true;toast('Auto manager '+(game.auto?'on':'off'));};document.getElementById('collapseBtn').onclick=togglePanel;document.getElementById('hint').onclick=()=>{document.getElementById('hud').classList.toggle('compact');};
 function loop(now){ const dt=Math.min(.08,(now-lastTime)/1000); lastTime=now; update(dt); drawWorld(); if(uiDirty){renderUI();renderLog();uiDirty=false;} requestAnimationFrame(loop); }
 window.addEventListener('resize',resize);
 resize(); generateDecor(); if(!load()) game=newGame(); centreFarm(); maybeContract(); renderUI(); renderLog(); requestAnimationFrame(loop);
