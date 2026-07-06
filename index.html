@@ -98,11 +98,32 @@
 'use strict';
 const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
 let W=0,H=0,DPR=1,last=performance.now(),uiDirty=true,toastTimer=0;
-const WORLD={w:10400,h:7200};
-const SAVE_KEYS=['field-boss-v8-startup-fix','field-boss-v7-map-drag-lines','field-boss-v6-phone-tap-fix','field-boss-v5-ui-reset','field-boss-v4-manual-map','field-boss-github-pages-v2','field-boss-github-pages-v1'];
+const WORLD={w:16000,h:11000};
+const SAVE_KEYS=['field-boss-v10-terrain-tiles','field-boss-v9-natural-map-lines','field-boss-v8-startup-fix','field-boss-v7-map-drag-lines','field-boss-v6-phone-tap-fix','field-boss-v5-ui-reset','field-boss-v4-manual-map','field-boss-github-pages-v2','field-boss-github-pages-v1'];
 const CURRENT_SAVE=SAVE_KEYS[0];
-const FORCE_RESET_FLAG='field-boss-v8-reset-complete';
-const BUILD_ID='v8-startup-input-fix';
+const FORCE_RESET_FLAG='field-boss-v10-reset-complete';
+const BUILD_ID='v10-terrain-tiles';
+const textures={};
+function makePattern(size,painter){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');painter(x,size);return ctx.createPattern(c,'repeat')}
+function initTextures(){if(textures.ready)return;
+  const blade=(x,size,color,count,lenW,lenH)=>{for(let i=0;i<count;i++){x.fillStyle=color;x.fillRect(Math.random()*size,Math.random()*size,lenW[0]+Math.random()*(lenW[1]-lenW[0]),lenH[0]+Math.random()*(lenH[1]-lenH[0]));}};
+  textures.grass=makePattern(128,(x,s)=>{x.fillStyle='#6fa34c';x.fillRect(0,0,s,s);x.fillStyle='rgba(255,255,255,.05)';for(let i=0;i<18;i++)x.fillRect((i*29)%s,0,8,s);blade(x,s,'rgba(44,91,35,.34)',220,[2,5],[4,12]);blade(x,s,'rgba(121,171,82,.30)',150,[2,4],[4,10]);for(let i=0;i<8;i++){x.strokeStyle='rgba(255,231,170,.06)';x.beginPath();x.moveTo(Math.random()*s,Math.random()*s);x.lineTo(Math.random()*s,Math.random()*s);x.stroke();}});
+  textures.grassDry=makePattern(128,(x,s)=>{x.fillStyle='#79a354';x.fillRect(0,0,s,s);blade(x,s,'rgba(170,154,78,.18)',170,[2,5],[4,10]);blade(x,s,'rgba(61,97,46,.22)',160,[2,4],[4,10]);});
+  textures.scrub=makePattern(128,(x,s)=>{x.fillStyle='#73845b';x.fillRect(0,0,s,s);blade(x,s,'rgba(50,67,39,.22)',180,[3,6],[5,12]);for(let i=0;i<60;i++){x.fillStyle='rgba(92,108,73,.28)';x.beginPath();x.arc(Math.random()*s,Math.random()*s,2+Math.random()*4,0,Math.PI*2);x.fill();}});
+  textures.water=makePattern(96,(x,s)=>{x.fillStyle='#5aa5cc';x.fillRect(0,0,s,s);for(let y=0;y<s;y+=12){x.strokeStyle='rgba(255,255,255,.11)';x.beginPath();x.moveTo(0,y+Math.sin(y*.5)*2);x.bezierCurveTo(s*.25,y+4,s*.75,y-4,s,y+Math.sin(y)*2);x.stroke();}for(let i=0;i<14;i++){x.fillStyle='rgba(255,255,255,.08)';x.beginPath();x.ellipse(Math.random()*s,Math.random()*s,8+Math.random()*10,2+Math.random()*5,Math.random(),0,Math.PI*2);x.fill();}});
+  textures.gravel=makePattern(96,(x,s)=>{x.fillStyle='#b7aa8c';x.fillRect(0,0,s,s);for(let i=0;i<240;i++){const g=160+Math.random()*70;x.fillStyle=`rgba(${g},${g-8},${g-18},${.18+Math.random()*.25})`;x.fillRect(Math.random()*s,Math.random()*s,1+Math.random()*3,1+Math.random()*3);}});
+  textures.tarmac=makePattern(96,(x,s)=>{x.fillStyle='#9a9488';x.fillRect(0,0,s,s);for(let i=0;i<320;i++){const g=90+Math.random()*55;x.fillStyle=`rgba(${g},${g},${g},${.12+Math.random()*.22})`;x.fillRect(Math.random()*s,Math.random()*s,1+Math.random()*2,1+Math.random()*2);}x.strokeStyle='rgba(255,255,255,.05)';for(let i=0;i<4;i++){x.beginPath();x.moveTo(Math.random()*s,Math.random()*s);x.lineTo(Math.random()*s,Math.random()*s);x.stroke();}});
+  textures.road=makePattern(128,(x,s)=>{x.fillStyle='#bd9d66';x.fillRect(0,0,s,s);for(let i=0;i<240;i++){x.fillStyle='rgba(108,86,54,.12)';x.fillRect(Math.random()*s,Math.random()*s,2+Math.random()*4,2+Math.random()*4);}for(let i=0;i<12;i++){x.strokeStyle='rgba(255,255,255,.06)';x.beginPath();x.moveTo(Math.random()*s,Math.random()*s);x.lineTo(Math.random()*s,Math.random()*s);x.stroke();}});
+  textures.track=makePattern(128,(x,s)=>{x.fillStyle='#937243';x.fillRect(0,0,s,s);for(let i=0;i<160;i++){x.fillStyle='rgba(68,49,28,.16)';x.fillRect(Math.random()*s,Math.random()*s,2+Math.random()*5,2+Math.random()*4);}x.fillStyle='rgba(67,51,31,.12)';x.fillRect(18,0,16,s);x.fillRect(s-34,0,16,s);});
+  textures.fallow=makePattern(128,(x,s)=>{x.fillStyle='#85653e';x.fillRect(0,0,s,s);for(let i=0;i<180;i++){x.fillStyle='rgba(101,74,44,.25)';x.fillRect(Math.random()*s,Math.random()*s,4+Math.random()*10,1+Math.random()*3);}for(let i=0;i<70;i++){x.fillStyle='rgba(60,43,26,.16)';x.beginPath();x.arc(Math.random()*s,Math.random()*s,1+Math.random()*3,0,Math.PI*2);x.fill();}});
+  textures.plough=makePattern(128,(x,s)=>{x.fillStyle='#73472d';x.fillRect(0,0,s,s);for(let i=-12;i<s+20;i+=18){x.fillStyle='rgba(110,72,43,.54)';x.fillRect(i,0,8,s);x.fillStyle='rgba(52,31,19,.28)';x.fillRect(i+8,0,5,s);}for(let i=0;i<40;i++){x.fillStyle='rgba(0,0,0,.06)';x.fillRect(Math.random()*s,Math.random()*s,6+Math.random()*6,1+Math.random()*2);}});
+  textures.sown=makePattern(128,(x,s)=>{x.fillStyle='#75502f';x.fillRect(0,0,s,s);for(let i=-10;i<s+14;i+=14){x.fillStyle='rgba(95,66,38,.72)';x.fillRect(i,0,6,s);x.fillStyle='rgba(152,135,84,.26)';for(let y=2;y<s;y+=18)x.fillRect(i+2,y,2,4);}});
+  textures.crop=makePattern(128,(x,s)=>{x.fillStyle='#6b8c47';x.fillRect(0,0,s,s);for(let i=-8;i<s+14;i+=14){x.fillStyle='rgba(85,124,58,.52)';x.fillRect(i,0,8,s);x.fillStyle='rgba(135,185,86,.30)';for(let y=0;y<s;y+=14)x.fillRect(i+2,y,3,10);}});
+  textures.ripe=makePattern(128,(x,s)=>{x.fillStyle='#aa8a46';x.fillRect(0,0,s,s);for(let i=-8;i<s+14;i+=14){x.fillStyle='rgba(194,163,73,.62)';x.fillRect(i,0,7,s);x.fillStyle='rgba(235,214,122,.26)';for(let y=2;y<s;y+=12)x.fillRect(i+1,y,3,8);}});
+  textures.stubble=makePattern(128,(x,s)=>{x.fillStyle='#a98652';x.fillRect(0,0,s,s);for(let i=-4;i<s+10;i+=10){x.fillStyle='rgba(134,102,58,.34)';x.fillRect(i,0,2,s);x.fillStyle='rgba(229,209,137,.26)';for(let y=0;y<s;y+=16)x.fillRect(i+1,y,1,6);}});
+  textures.wet=makePattern(96,(x,s)=>{x.fillStyle='rgba(70,123,163,.16)';x.fillRect(0,0,s,s);for(let i=0;i<24;i++){x.fillStyle='rgba(255,255,255,.08)';x.beginPath();x.ellipse(Math.random()*s,Math.random()*s,6+Math.random()*12,2+Math.random()*4,Math.random(),0,Math.PI*2);x.fill();}});
+  textures.ready=true;
+}
 const fmtMoney=n=>'£'+Math.round(n).toLocaleString('en-GB');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -156,42 +177,64 @@ function makeField(id,name,x,y,w,h,rot,owned,price,rows,soil){
   return {id,name,x,y,w,h,rot,owned,price,soil,rows:baseRows(rows),edge:pts,crop:null,plannedCrop:'wheat',growth:0,moisture:45+Math.round(r()*35),weeds:8+Math.round(r()*15),nutrition:35+Math.round(r()*28),lastYield:0,quality:1};
 }
 function initialFields(){
-  const list=[];
-  const names=['Home Meadow','West Barley','Orchard Flats','Red Gate','Moor View','Dairy Corner','Long Acre','New Close','Fox Hollow','Lower Oats','Brookside West','North Wheat Flat','Mill Pasture','River Bend','Railway Field','Market Garden','Windmill Hill','Canal South','Hilltop Canola','Oak Boundary','Far Ridge West','Far Ridge East','Solar Farm Edge','Old Fen','Stone Wall','South Forty','Golden Hollow','Birch Strip','Mill Lane North','Mill Lane South','Green Bank','Co-op Bottom'];
-  const xs=[980,2320,3650,5000,6350,7750,9150];
-  const ys=[1820,3120,4520,5940];
-  let id=1;
-  for(let r=0;r<ys.length;r++){
-    for(let c=0;c<xs.length;c++){
-      const rr=rng(20000+id*91);
-      const w=840+rr()*270+(c%3)*35;
-      const h=560+rr()*170+(r%2)*40;
-      const rot=(rr()-.5)*.18;
-      const owned=id<=4;
-      const price=owned?0:Math.round((21000+id*2500+w*h/55)/500)*500;
-      const rows=Math.max(16,Math.round(h/32));
-      const soils=['loam','clay loam','sandy loam','silt','chalky','heavy clay','rich loam'];
-      const f=makeField(id,names[id-1]||`Field ${id}`,xs[c]+(rr()-.5)*85,ys[r]+(rr()-.5)*75,w,h,rot,owned,price,rows,soils[(id+c+r)%soils.length]);
-      f.plannedCrop=['wheat','barley','canola','potato','corn'][(id+r+c)%5];
-      list.push(f); id++;
-    }
-  }
-  // A few large remote fields beyond the main road grid.
-  const extras=[
-    ['North Moor Block',1780,6850,1350,620,.05,69000,26,'loam'],
-    ['East Fen Block',3920,6840,1400,620,-.04,73500,27,'silt'],
-    ['Contractor\'s Triangle',6200,6840,1220,590,.10,66000,24,'sandy loam'],
-    ['River Wash',8420,6800,1280,610,-.09,71000,25,'heavy clay']
+  const specs=[
+    ['Home Meadow',2350,760,860,420,-.10,true,0,'loam','wheat'],
+    ['Top Yard Field',3280,1230,1020,540,.06,true,0,'sandy loam','barley'],
+    ['Little Clover',1080,2320,720,430,.18,true,0,'rich loam','canola'],
+    ['Long Close',2660,2440,1350,430,-.04,true,0,'loam','wheat'],
+    ['Red Barn Strip',4060,2260,1000,390,.11,false,36000,'clay loam','barley'],
+    ['Brookside',4300,760,1080,500,-.14,false,42000,'silt','corn'],
+    ['Windmill Bank',5750,920,1180,540,.08,false,48500,'chalky','canola'],
+    ['Old Orchard Flats',7060,870,920,500,-.05,false,39000,'rich loam','potato'],
+    ['Upper Ash Field',8420,1020,1250,520,.13,false,52000,'loam','wheat'],
+    ['Dairy Corner',2600,3560,1120,630,-.18,false,51500,'heavy clay','barley'],
+    ['Lower Acres',4370,3420,1520,660,.09,false,69000,'loam','wheat'],
+    ['Blackthorn',6300,3230,1230,730,-.07,false,62000,'clay loam','corn'],
+    ['Hilltop Canola',7650,3120,1510,620,.15,false,74000,'chalky','canola'],
+    ['Stone Wall',3480,5010,1150,590,.11,false,54000,'sandy loam','potato'],
+    ['Chapel Field',5200,5110,1430,700,-.05,false,71000,'loam','wheat'],
+    ['Duck Pond Piece',6980,5060,1020,760,.20,false,65000,'silt','barley'],
+    ['Blue Gate',8650,4630,1340,670,-.12,false,70000,'loam','corn'],
+    ['Mill Lane North',10050,2630,1450,600,.05,false,76000,'sandy loam','wheat'],
+    ['Co-op Bottom',11780,2310,1360,560,-.10,false,73500,'rich loam','canola'],
+    ['Market Garden',13720,2110,930,460,.16,false,44000,'silt','potato'],
+    ['River Bend West',10360,4360,1160,730,-.18,false,72000,'heavy clay','corn'],
+    ['River Bend East',12480,4210,1080,850,.08,false,76500,'silt','wheat'],
+    ['Willow Holme',14320,4210,880,700,-.14,false,58000,'silt','barley'],
+    ['Fen Block',11320,6120,1730,760,.06,false,94000,'heavy clay','corn'],
+    ['East Fen Strip',13720,6230,1270,540,.15,false,69000,'sandy loam','canola'],
+    ['Railway Meadow',2820,6740,1740,700,-.08,false,88000,'loam','wheat'],
+    ['South Forty',4880,7040,1620,900,.12,false,98000,'rich loam','corn'],
+    ['Golden Hollow',7110,6960,1480,830,-.09,false,87500,'chalky','canola'],
+    ['Oak Boundary',9140,6700,1420,770,.18,false,82000,'loam','barley'],
+    ['Solar Edge',10580,8020,1370,640,-.11,false,79000,'sandy loam','wheat'],
+    ['Lower Moor',12620,7890,1740,730,.05,false,98000,'heavy clay','potato'],
+    ['Far Ridge',14640,7920,1010,830,-.18,false,72000,'loam','canola'],
+    ['Old Fen',3210,8940,1840,800,.06,false,102000,'silt','corn'],
+    ['Birch Strip',5650,9060,1330,630,-.15,false,72000,'sandy loam','barley'],
+    ['Deep Meadow',7710,9040,1680,770,.13,false,96000,'rich loam','wheat'],
+    ['Canal South',9920,9650,1520,660,-.04,false,86000,'silt','canola'],
+    ['Railway East',12200,9730,1520,610,.11,false,84000,'loam','corn'],
+    ['South Fen End',14420,9820,940,560,-.08,false,55000,'heavy clay','wheat'],
+    ['North Moor Block',11300,960,1430,540,.06,false,69000,'loam','barley'],
+    ['Windbreak Triangle',12880,930,1080,430,-.20,false,51000,'chalky','canola']
   ];
-  for(const e of extras){const f=makeField(id++,e[0],e[1],e[2],e[3],e[4],e[5],false,e[6],e[7],e[8]); f.plannedCrop=['wheat','barley','canola','corn'][id%4]; list.push(f);}
+  const list=specs.map((sp,i)=>{
+    const [name,x,y,w,h,rot,owned,price,soil,plan]=sp;
+    const rows=Math.max(11,Math.round(h/32));
+    const f=makeField(i+1,name,x,y,w,h,rot,owned,price,rows,soil);
+    f.plannedCrop=plan;
+    return f;
+  });
+  // Give the starter farm a believable mix of current jobs/states.
   list[0].rows.forEach(r=>r.stage=1); list[0].plannedCrop='wheat';
-  list[1].rows.forEach(r=>{r.stage=2});list[1].crop='wheat';list[1].plannedCrop='wheat';list[1].growth=.32;list[1].nutrition=50;
-  list[2].rows.forEach(r=>{r.stage=2});list[2].crop='barley';list[2].plannedCrop='barley';list[2].growth=.58;list[2].moisture=64;
+  list[1].rows.forEach(r=>{r.stage=2});list[1].crop='wheat';list[1].plannedCrop='wheat';list[1].growth=.34;list[1].nutrition=52;
+  list[2].rows.forEach(r=>{r.stage=2});list[2].crop='barley';list[2].plannedCrop='barley';list[2].growth=.61;list[2].moisture=64;
   list[3].rows.forEach(r=>r.stage=1); list[3].plannedCrop='canola';
   return list;
 }
 function newGame(){
-  return {version:7,money:78000,day:1,hour:7.25,season:0,weather:'Clear',weatherTimer:0,speed:1,marketBonus:0,
+  return {version:10,money:78000,day:1,hour:7.25,season:0,weather:'Clear',weatherTimer:0,speed:1,marketBonus:0,
     fields:initialFields(), storage:{wheat:0,barley:0,canola:0,potato:0,corn:0,straw:0},
     capacity:{storage:220,parking:7},upgrades:{silos:1,siloLevel:1,parkingLevel:1,barns:0,workshop:0},
     staff:{drivers:3,mechanics:0,agronomists:0},
@@ -206,19 +249,44 @@ function vehicle(id,type,name,x,y,speed,value,color){return {id,type,name,x,y,ho
 function generateDecor(){
   const r=rng(551991); decor.trees=[];decor.meadow=[];decor.rocks=[];decor.flowers=[];decor.hedges=[];
   const inField=(x,y)=>game&&game.fields&&game.fields.some(f=>{const p=wToF(f,x,y);return p.x>-f.w*.58&&p.x<f.w*.58&&p.y>-f.h*.58&&p.y<f.h*.58});
-  for(let i=0;i<980;i++){let x=r()*WORLD.w,y=r()*WORLD.h;if((x>420&&x<9750&&y>1420&&y<6350&&r()<.72)||inField(x,y))continue;decor.trees.push({x,y,s:12+r()*30,t:r()});}
-  for(let i=0;i<520;i++)decor.meadow.push({x:r()*WORLD.w,y:r()*WORLD.h,w:50+r()*260,h:20+r()*120,a:r()*Math.PI,c:r()});
-  for(let i=0;i<330;i++)decor.rocks.push({x:r()*WORLD.w,y:r()*WORLD.h,s:3+r()*9});
-  for(let i=0;i<900;i++)decor.flowers.push({x:r()*WORLD.w,y:r()*WORLD.h,s:1+r()*2.8,c:r()});
-  const hedgeLines=[[440,1380,9740,1380],[430,2450,9800,2450],[430,3820,9800,3820],[430,5220,9800,5220],[430,6660,9800,6660],[1660,1400,1660,6650],[3000,1400,3000,6650],[4320,1400,4320,6650],[5680,1400,5680,6650],[7040,1400,7040,6650],[8480,1400,8480,6650]];
-  for(const h of hedgeLines){for(let t=0;t<1;t+=.018){const x=lerp(h[0],h[2],t)+(r()-.5)*18,y=lerp(h[1],h[3],t)+(r()-.5)*18;if(!inField(x,y))decor.hedges.push({x,y,s:7+r()*8})}}
+  const inYard=(x,y)=>x>360&&x<1980&&y>440&&y<1460;
+  // Wooded corners, river banks and scattered shelterbelts. Avoid placing clutter inside fields and yard.
+  for(let i=0;i<1350;i++){
+    let x,y;
+    const cluster=r();
+    if(cluster<.28){x=250+r()*2100;y=7600+r()*3200;}
+    else if(cluster<.48){x=13700+r()*2100;y=300+r()*9800;}
+    else if(cluster<.67){x=8900+r()*1400;y=1200+r()*9000;}
+    else {x=r()*WORLD.w;y=r()*WORLD.h;}
+    if(inField(x,y)||inYard(x,y))continue;decor.trees.push({x,y,s:12+r()*32,t:r()});
+  }
+  for(let i=0;i<740;i++)decor.meadow.push({x:r()*WORLD.w,y:r()*WORLD.h,w:50+r()*290,h:20+r()*140,a:r()*Math.PI,c:r()});
+  for(let i=0;i<430;i++){const x=r()*WORLD.w,y=r()*WORLD.h;if(!inField(x,y)&&!inYard(x,y))decor.rocks.push({x,y,s:3+r()*10});}
+  for(let i=0;i<1200;i++){const x=r()*WORLD.w,y=r()*WORLD.h;if(!inYard(x,y))decor.flowers.push({x,y,s:1+r()*2.8,c:r()});}
+  // Natural hedges follow actual field boundaries instead of a grid.
+  if(game&&Array.isArray(game.fields)){
+    for(const f of game.fields){
+      for(let i=0;i<f.edge.length;i++){
+        const a=f.edge[i], b=f.edge[(i+1)%f.edge.length];
+        const steps=Math.max(2,Math.floor(dist(a.x,a.y,b.x,b.y)/78));
+        for(let k=0;k<=steps;k++){
+          if(r()<.42)continue;
+          const t=k/steps;const lx=lerp(a.x,b.x,t)+(r()-.5)*16,ly=lerp(a.y,b.y,t)+(r()-.5)*16;
+          const p=fToW(f,lx,ly);decor.hedges.push({x:p.x,y:p.y,s:5+r()*8});
+        }
+      }
+    }
+  }
+  // A few old lane hedges and shelterbelts.
+  const belts=[[210,1660,2300,1880],[3800,1880,5000,1480],[6040,1800,8200,1960],[9300,1860,11300,1980],[1130,1320,1180,5440],[5220,2200,5560,6500],[8020,1900,8580,7120],[12800,1500,15040,1120]];
+  for(const h of belts){for(let t=0;t<1;t+=.025){const x=lerp(h[0],h[2],t)+(r()-.5)*28,y=lerp(h[1],h[3],t)+(r()-.5)*28;if(!inField(x,y)&&!inYard(x,y))decor.hedges.push({x,y,s:7+r()*9})}}
 }
 function resize(){DPR=Math.min(3,devicePixelRatio||1);W=innerWidth;H=innerHeight;canvas.width=Math.floor(W*DPR);canvas.height=Math.floor(H*DPR);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);boundCamera();}
 function saveGame(silent=false){try{const copy=(typeof structuredClone==='function')?structuredClone(game):JSON.parse(JSON.stringify(game));copy.vehicles.forEach(v=>{if(v.job){v.job=null;v.status='Parked';v.x=v.homeX;v.y=v.homeY}});copy.fields.forEach(f=>f.rows.forEach(r=>{r.job=null;r.jobProgress=0}));localStorage.setItem(CURRENT_SAVE,JSON.stringify(copy));if(!silent)toast('Game saved safely. Active jobs are resumed from the yard.')}catch(e){if(!silent)toast('Save failed in this browser.')}}
 function repairLoaded(g){
   const fresh=newGame();
   if(!g||!Array.isArray(g.fields))return fresh;
-  g.version=7; g.capacity=g.capacity||fresh.capacity; g.upgrades=g.upgrades||fresh.upgrades; g.staff=g.staff||fresh.staff; g.storage={...fresh.storage,...(g.storage||{})}; g.prices=g.prices||{}; g.log=Array.isArray(g.log)?g.log.slice(0,8):[];
+  g.version=10; g.capacity=g.capacity||fresh.capacity; g.upgrades=g.upgrades||fresh.upgrades; g.staff=g.staff||fresh.staff; g.storage={...fresh.storage,...(g.storage||{})}; g.prices=g.prices||{}; g.log=Array.isArray(g.log)?g.log.slice(0,8):[];
   // Use new map layout but preserve owned crops/storage/money where possible by field id.
   const newFields=initialFields();
   for(const nf of newFields){const old=(g.fields||[]).find(f=>f.id===nf.id);if(old){nf.owned=!!old.owned;nf.crop=old.crop&&crops[old.crop]?old.crop:nf.crop;nf.plannedCrop=old.plannedCrop&&crops[old.plannedCrop]?old.plannedCrop:nf.plannedCrop;nf.growth=clamp(+old.growth||0,0,1);nf.moisture=clamp(+old.moisture||nf.moisture,0,100);nf.weeds=clamp(+old.weeds||nf.weeds,0,100);nf.nutrition=clamp(+old.nutrition||nf.nutrition,0,100);nf.lastYield=+old.lastYield||0; if(Array.isArray(old.rows)){nf.rows.forEach((r,i)=>{const or=old.rows[i]; if(or){r.stage=clamp(+or.stage||0,0,5); r.job=null; r.jobProgress=0;}})}}}
@@ -232,12 +300,12 @@ function repairLoaded(g){
 function loadGame(){
   const params=new URLSearchParams(location.search);
   if(params.has('reset')||params.has('fresh')){clearAllSaves();game=newGame();saveGame(true);log('Fresh farm loaded from URL reset.');return false;}
-  try{if(localStorage.getItem(FORCE_RESET_FLAG)!=='1'){clearAllSaves();game=newGame();saveGame(true);log('Old save cleared for the larger v7 map and drag controls.');return false;}}catch(e){game=newGame();return false;}
+  try{if(localStorage.getItem(FORCE_RESET_FLAG)!=='1'){clearAllSaves();game=newGame();saveGame(true);log('Old save cleared for the v10 terrain tile update.');return false;}}catch(e){game=newGame();return false;}
   try{const raw=localStorage.getItem(CURRENT_SAVE); if(raw){game=repairLoaded(JSON.parse(raw));return true;}}catch(e){}
   game=newGame(); log('New farm created. Use Field tab to manage work manually.'); saveGame(true); return false;
 }
 function clearAllSaves(){try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.startsWith('field-boss')||k.startsWith('farm-manager')||SAVE_KEYS.includes(k)||k===FORCE_RESET_FLAG))localStorage.removeItem(k);}localStorage.setItem(FORCE_RESET_FLAG,'1');}catch(e){}}
-function hardReset(){clearAllSaves();game=newGame();generateDecor();selectedFieldId=null;activeTab='farm';panelOpen=true;camera.x=420;camera.y=620;camera.zoom=.42;pointers.clear();drag={id:null,lastX:0,lastY:0,moved:false,holdVehicle:null};pinch=null;vehicleDrag=null;clearTimeout(vehicleHoldTimer);saveGame(true);uiDirty=true;renderUI();toast('Fresh game started');}
+function hardReset(){clearAllSaves();game=newGame();generateDecor();selectedFieldId=null;activeTab='farm';panelOpen=true;camera.x=520;camera.y=520;camera.zoom=.36;pointers.clear();drag={id:null,lastX:0,lastY:0,moved:false,holdVehicle:null};pinch=null;vehicleDrag=null;clearTimeout(vehicleHoldTimer);saveGame(true);uiDirty=true;renderUI();toast('Fresh game started');}
 function repairSaveNow(){game=repairLoaded(game);saveGame(true);uiDirty=true;toast('Save repaired. Machines parked and tasks cleared.');}
 function screenToWorld(sx,sy){return{x:sx/camera.zoom+camera.x,y:sy/camera.zoom+camera.y}}
 function worldToScreen(wx,wy){return{x:(wx-camera.x)*camera.zoom,y:(wy-camera.y)*camera.zoom}}
@@ -257,63 +325,78 @@ function draw(){
   ctx.clearRect(0,0,W,H);ctx.save();ctx.scale(camera.zoom,camera.zoom);ctx.translate(-camera.x,-camera.y);drawBackground();drawWorldDetails();drawFields();drawFarmYard();drawVehicles();drawWorldLabels();ctx.restore();
 }
 function drawBackground(){
-  const g=ctx.createLinearGradient(0,0,WORLD.w,WORLD.h);g.addColorStop(0,'#83b862');g.addColorStop(.46,'#6e9e51');g.addColorStop(1,'#557f3f');ctx.fillStyle=g;ctx.fillRect(0,0,WORLD.w,WORLD.h);
-  for(const m of decor.meadow){ctx.save();ctx.translate(m.x,m.y);ctx.rotate(m.a);ctx.fillStyle=m.c<.33?'rgba(102,143,73,.22)':m.c<.66?'rgba(218,196,95,.12)':'rgba(75,127,66,.17)';ctx.beginPath();ctx.ellipse(0,0,m.w,m.h,0,0,Math.PI*2);ctx.fill();ctx.restore();}
-  // Long river on the far east, safely away from the main field grid.
-  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#4b91bc';ctx.lineWidth=92;ctx.beginPath();ctx.moveTo(10150,-120);ctx.bezierCurveTo(9550,620,10250,1320,9700,2050);ctx.bezierCurveTo(9220,2700,10100,3420,9560,4300);ctx.bezierCurveTo(9110,5030,9780,5900,9200,7360);ctx.stroke();ctx.strokeStyle='rgba(255,255,255,.23)';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(10060,160);ctx.bezierCurveTo(9700,760,10040,1320,9700,2000);ctx.bezierCurveTo(9460,2600,9800,3420,9560,4240);ctx.stroke();ctx.restore();
-  // Village and buyers at top-right, outside the field grid.
-  ctx.fillStyle='rgba(130,120,93,.18)';roundRect(8240,430,1280,420,36,true,false);ctx.fillStyle='rgba(130,120,93,.12)';roundRect(8890,910,620,260,28,true,false);
+  initTextures();
+  ctx.fillStyle=textures.grass;ctx.fillRect(0,0,WORLD.w,WORLD.h);
+  ctx.save();ctx.globalAlpha=.18;ctx.fillStyle=textures.grassDry;for(let x=0;x<WORLD.w;x+=512){for(let y=0;y<WORLD.h;y+=512){if(((x/512)+(y/512))%3===0)ctx.fillRect(x,y,512,512)}}ctx.restore();
+  for(const m of decor.meadow){ctx.save();ctx.translate(m.x,m.y);ctx.rotate(m.a);ctx.beginPath();ctx.ellipse(0,0,m.w,m.h,0,0,Math.PI*2);ctx.clip();ctx.globalAlpha=m.c<.33?.45:m.c<.66?.26:.32;ctx.fillStyle=m.c<.33?textures.grassDry:textures.grass;ctx.fillRect(-m.w-20,-m.h-20,m.w*2+40,m.h*2+40);ctx.restore();}
+  // River, brook and ponds with a tiled water texture.
+  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle='rgba(54,94,120,.28)';ctx.lineWidth=126;ctx.beginPath();ctx.moveTo(15620,-120);ctx.bezierCurveTo(15000,720,15860,1740,15180,2630);ctx.bezierCurveTo(14680,3330,15320,4610,14840,5660);ctx.bezierCurveTo(14380,6650,15480,7900,14880,9300);ctx.bezierCurveTo(14560,10040,15250,10740,14900,11200);ctx.stroke();
+  ctx.strokeStyle=textures.water;ctx.lineWidth=118;ctx.beginPath();ctx.moveTo(15620,-120);ctx.bezierCurveTo(15000,720,15860,1740,15180,2630);ctx.bezierCurveTo(14680,3330,15320,4610,14840,5660);ctx.bezierCurveTo(14380,6650,15480,7900,14880,9300);ctx.bezierCurveTo(14560,10040,15250,10740,14900,11200);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.20)';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(15480,120);ctx.bezierCurveTo(15220,830,15450,1720,15180,2520);ctx.bezierCurveTo(14940,3330,15180,4480,14840,5560);ctx.stroke();
+  ctx.strokeStyle='rgba(44,86,112,.20)';ctx.lineWidth=40;ctx.beginPath();ctx.moveTo(120,5480);ctx.bezierCurveTo(1460,5260,2200,5700,3350,5420);ctx.bezierCurveTo(4700,5080,5750,5720,7040,5400);ctx.bezierCurveTo(8650,5030,9720,5520,10900,5180);ctx.stroke();
+  ctx.strokeStyle=textures.water;ctx.lineWidth=34;ctx.beginPath();ctx.moveTo(120,5480);ctx.bezierCurveTo(1460,5260,2200,5700,3350,5420);ctx.bezierCurveTo(4700,5080,5750,5720,7040,5400);ctx.bezierCurveTo(8650,5030,9720,5520,10900,5180);ctx.stroke();
+  ctx.restore();
+  for(const p of [[6350,5850,240,110,.2],[1030,6050,190,85,-.4],[13250,5160,260,130,.15]]){ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(p[4]);ctx.beginPath();ctx.ellipse(0,0,p[2],p[3],0,0,Math.PI*2);ctx.clip();ctx.fillStyle=textures.water;ctx.fillRect(-p[2]-10,-p[3]-10,p[2]*2+20,p[3]*2+20);ctx.restore();}
+  // Village and buyers near the north-east edge, away from fields.
+  ctx.save();ctx.globalAlpha=.55;ctx.fillStyle=textures.gravel;roundRect(13680,470,1500,520,42,true,false);ctx.globalAlpha=.42;roundRect(14320,1060,720,280,30,true,false);ctx.restore();
   for(const h of decor.hedges){ctx.fillStyle='#365f2b';ctx.beginPath();ctx.arc(h.x,h.y,h.s,0,Math.PI*2);ctx.fill();}
   for(const r of decor.rocks){ctx.fillStyle='rgba(78,75,62,.34)';ctx.beginPath();ctx.ellipse(r.x,r.y,r.s*1.4,r.s,.25,0,Math.PI*2);ctx.fill();}
-  for(const fl of decor.flowers){ctx.globalAlpha=.65;ctx.fillStyle=fl.c<.33?'#f0c0d6':fl.c<.66?'#f2df79':'#fff3a2';ctx.fillRect(fl.x,fl.y,fl.s,fl.s);ctx.globalAlpha=1;}
+  for(const fl of decor.flowers){ctx.globalAlpha=.62;ctx.fillStyle=fl.c<.33?'#f0c0d6':fl.c<.66?'#f2df79':'#fff3a2';ctx.fillRect(fl.x,fl.y,fl.s,fl.s);ctx.globalAlpha=1;}
   for(const t of decor.trees)drawTree(t.x,t.y,t.s,t.t);
 }
 function drawWorldDetails(){
   ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
-  // Main farm lanes deliberately sit between field blocks.
-  strokeRoad([[280,1120],[1600,1120],[3000,1120],[4320,1120],[5680,1120],[7040,1120],[8480,1120],[9820,1120]],74, '#76613f','#bd9d66');
-  for(const x of [1660,3000,4320,5680,7040,8480])strokeRoad([[x,1120],[x,2450],[x,3820],[x,5220],[x,6660]],48,'#76613f','#bd9d66');
-  for(const y of [2450,3820,5220,6660])strokeRoad([[460,y],[1660,y],[3000,y],[4320,y],[5680,y],[7040,y],[8480,y],[9820,y]],44,'#76613f','#bd9d66');
-  // Yard access road and market spur.
-  strokeRoad([[650,1120],[650,780],[910,635],[1390,635]],48,'#76613f','#bd9d66');
-  strokeRoad([[8480,1120],[8700,900],[9000,760]],44,'#76613f','#bd9d66');
-  // Railway at the lower edge, not cutting through fields.
-  ctx.strokeStyle='#4b4133';ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(-80,7040);ctx.lineTo(10480,7160);ctx.stroke();ctx.strokeStyle='#c3b084';ctx.lineWidth=4;for(let x=-40;x<10450;x+=95){ctx.beginPath();ctx.moveTo(x,7036+x*.011);ctx.lineTo(x+45,7075+x*.011);ctx.stroke();}
+  // Curved estate lanes rather than a rectangular grid.
+  strokeRoad([[230,1260],[1180,1250],[2250,1630],[3560,1640],[5200,1880],[6660,1640],[8060,1900],[9650,1660],[11250,1900],[13020,1420],[14740,920]],72,'#73603f','#bd9d66');
+  strokeRoad([[1260,1260],[560,2440],[820,3650],[1180,5200],[2140,7020],[1840,9500]],52,'#73603f','#bd9d66');
+  strokeRoad([[5200,1880],[5360,2940],[5650,4540],[5380,6170],[6120,7580],[5920,9440]],48,'#73603f','#bd9d66');
+  strokeRoad([[8060,1900],[8520,3200],[8030,5020],[8720,7040],[10020,8720],[12100,9700]],50,'#73603f','#bd9d66');
+  strokeRoad([[9650,1660],[10020,2520],[10350,4340],[11300,6120],[12620,7890]],42,'#73603f','#bd9d66');
+  strokeRoad([[2250,1630],[2620,2440],[2600,3560],[3480,5010]],38,'#73603f','#bd9d66');
+  strokeRoad([[6660,1640],[5750,920],[4300,760],[3280,1230]],36,'#73603f','#bd9d66');
+  // Yard access, market spur and small village streets.
+  strokeRoad([[650,1260],[650,820],[910,650],[1390,650],[1800,860]],50,'#73603f','#bd9d66');
+  strokeRoad([[13020,1360],[13680,930],[14520,820],[15140,730]],44,'#73603f','#bd9d66');
+  strokeRoad([[14020,540],[14080,1320]],24,'#6f6553','#aaa18e');strokeRoad([[14570,520],[14620,1340]],24,'#6f6553','#aaa18e');strokeRoad([[13660,890],[15180,880]],24,'#6f6553','#aaa18e');
+  // Railway curves along the bottom edge.
+  ctx.strokeStyle='#4b4133';ctx.lineWidth=19;ctx.beginPath();ctx.moveTo(-80,10480);ctx.bezierCurveTo(3600,10180,7200,10860,10400,10520);ctx.bezierCurveTo(12600,10280,14400,10880,16200,10570);ctx.stroke();ctx.strokeStyle='#c3b084';ctx.lineWidth=4;for(let x=-20;x<16150;x+=105){const y=10480+Math.sin(x/780)*60;ctx.beginPath();ctx.moveTo(x,y-24);ctx.lineTo(x+48,y+22);ctx.stroke();}
+  // A couple of dirt tracks through woodland, visually distinct from roads.
+  strokeRoad([[9000,8800],[8200,9400],[7350,10020],[6300,10230]],28,'rgba(95,75,44,.65)','rgba(151,122,76,.70)');
+  strokeRoad([[14200,4200],[14980,5050],[14650,6320],[15180,7900]],28,'rgba(95,75,44,.65)','rgba(151,122,76,.70)');
   ctx.restore();
 }
-function strokeRoad(points,w,outer,inner){ctx.strokeStyle=outer;ctx.lineWidth=w;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.strokeStyle=inner;ctx.lineWidth=w*.72;ctx.stroke();}
+function strokeRoad(points,w,outer,inner){initTextures();ctx.save();ctx.strokeStyle=outer;ctx.lineWidth=w;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();ctx.strokeStyle=w<34?textures.track:textures.road;ctx.lineWidth=w*.72;ctx.stroke();ctx.globalAlpha=.28;ctx.strokeStyle=inner;ctx.lineWidth=w*.52;ctx.stroke();ctx.globalAlpha=.10;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=Math.max(2,w*.04);ctx.setLineDash([26,40]);ctx.stroke();ctx.restore();}
 function drawTree(x,y,s,t){ctx.save();ctx.translate(x,y);ctx.fillStyle='rgba(42,33,18,.23)';ctx.beginPath();ctx.ellipse(3,s*.75,s*.55,s*.22,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#5e4327';ctx.fillRect(-s*.11,s*.1,s*.22,s*.72);ctx.fillStyle=t<.5?'#355e2e':t<.8?'#487232':'#2f5630';ctx.beginPath();ctx.arc(0,0,s*.68,0,Math.PI*2);ctx.arc(-s*.38,s*.14,s*.48,0,Math.PI*2);ctx.arc(s*.36,s*.2,s*.5,0,Math.PI*2);ctx.fill();ctx.restore();}
 function fieldPath(f){ctx.beginPath();for(let i=0;i<f.edge.length;i++){const p=f.edge[i];i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)}ctx.closePath();}
 function drawFields(){
-  for(const f of game.fields){ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);fieldPath(f);ctx.fillStyle=f.owned?'#8b6c42':'rgba(68,82,53,.55)';ctx.fill();ctx.lineWidth=f.id===selectedFieldId?8:3;ctx.strokeStyle=f.id===selectedFieldId?'#fff0a2':(f.owned?'#6b512d':'rgba(255,255,255,.35)');ctx.stroke();ctx.clip();
-    const rowH=f.h/f.rows.length;for(let i=0;i<f.rows.length;i++){const r=f.rows[i], y=-f.h/2+i*rowH;let color='#8a6a3e';if(r.stage===0)color='#775337';if(r.stage===1)color='#6a4128';if(r.stage===2)color=f.crop?crops[f.crop].color:'#6c8840';if(r.stage===3)color=f.crop?crops[f.crop].ripe:'#d9b753';if(r.stage===4)color='#b18a4b';ctx.fillStyle=color;ctx.globalAlpha=f.owned?1:.42;ctx.fillRect(-f.w/2-22,y+1,f.w+44,Math.max(2,rowH-2));
-      // permanent tramline / row texture
-      ctx.globalAlpha=.22;ctx.fillStyle=i%2?'#fff':'#000';ctx.fillRect(-f.w/2-20,y+rowH*.48,f.w+40,Math.max(1.6,rowH*.08));
-      if(r.job){
-        const progress=clamp(r.jobProgress||0,0,1), dir=r.jobDir||1, ww=(f.w+44)*progress;
-        const sx=dir>0?(-f.w/2-22):(f.w/2+22-ww);
-        ctx.globalAlpha=.88;ctx.fillStyle=jobDefs[r.job]?.rowColor||'#fff';ctx.fillRect(sx,y+Math.max(2,rowH*.16),ww,Math.max(6,rowH*.68));
-        ctx.globalAlpha=.95;ctx.strokeStyle='rgba(255,246,190,.95)';ctx.lineWidth=Math.max(3,rowH*.14);ctx.beginPath();ctx.moveTo(sx,y+rowH*.52);ctx.lineTo(sx+ww,y+rowH*.52);ctx.stroke();
-        ctx.globalAlpha=.38;ctx.fillStyle='rgba(28,21,12,.75)';for(let tx=sx+12;tx<sx+ww;tx+=36){ctx.fillRect(tx,y+rowH*.22,12,2);ctx.fillRect(tx,y+rowH*.72,12,2)}
-      }
-      if(f.crop&&r.stage>=2&&r.stage<=3){ctx.globalAlpha=.24+f.growth*.42;ctx.fillStyle=f.growth>.95?crops[f.crop].ripe:crops[f.crop].color;for(let x=-f.w/2+8+(i%2)*9;x<f.w/2;x+=34){ctx.fillRect(x,y+rowH*.28,8,Math.max(3,rowH*.38));}}
-      if(f.weeds>25&&r.stage>=2){ctx.globalAlpha=clamp(f.weeds/130,0,.35);ctx.fillStyle='#315f2e';for(let x=-f.w/2+12;x<f.w/2;x+=65){if((x+i*19)%3>1)ctx.fillRect(x,y+rowH*.55,5,5)}}
+  initTextures();
+  for(const f of game.fields){ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);fieldPath(f);ctx.fillStyle=f.owned?textures.fallow:textures.scrub;ctx.fill();ctx.lineWidth=f.id===selectedFieldId?8:3;ctx.strokeStyle=f.id===selectedFieldId?'#fff0a2':(f.owned?'#6b512d':'rgba(255,255,255,.35)');ctx.stroke();ctx.clip();
+    const rowH=f.h/f.rows.length;for(let i=0;i<f.rows.length;i++){const r=f.rows[i], y=-f.h/2+i*rowH;let pat=textures.fallow;if(!f.owned)pat=textures.scrub;else if(r.stage===0)pat=textures.fallow;else if(r.stage===1)pat=textures.plough;else if(r.stage===2)pat=textures.sown;else if(r.stage===3)pat=textures.ripe;else if(r.stage===4)pat=textures.stubble;ctx.globalAlpha=f.owned?1:.52;ctx.fillStyle=pat;ctx.fillRect(-f.w/2-22,y+1,f.w+44,Math.max(2,rowH-2));
+      ctx.globalAlpha=.12;ctx.fillStyle=i%3===0?'rgba(255,255,255,.8)':'rgba(0,0,0,.65)';ctx.fillRect(-f.w/2-20,y+rowH*.46,f.w+40,Math.max(1.4,rowH*.05));
+      if(f.crop&&r.stage>=2&&r.stage<=3){ctx.globalAlpha=.22+f.growth*.24;ctx.fillStyle=f.growth>.95?crops[f.crop].ripe:crops[f.crop].color;for(let x=-f.w/2+6+(i%2)*8;x<f.w/2;x+=24){ctx.fillRect(x,y+rowH*.18,5,Math.max(5,rowH*.58));}}
+      if(r.job){const progress=clamp(r.jobProgress||0,0,1), dir=r.jobDir||1, ww=(f.w+44)*progress;const sx=dir>0?(-f.w/2-22):(f.w/2+22-ww);ctx.globalAlpha=.92;ctx.fillStyle=jobDefs[r.job]?.rowColor||'#fff';ctx.fillRect(sx,y+Math.max(2,rowH*.14),ww,Math.max(6,rowH*.72));ctx.globalAlpha=.22;ctx.fillStyle='rgba(255,255,255,.8)';for(let tx=sx+8;tx<sx+ww;tx+=18){ctx.fillRect(tx,y+rowH*.24,3,Math.max(4,rowH*.34));}}
+      if(f.weeds>25&&r.stage>=2){ctx.globalAlpha=clamp(f.weeds/130,0,.30);ctx.fillStyle='#315f2e';for(let x=-f.w/2+12;x<f.w/2;x+=48){if((x+i*19)%3>1){ctx.fillRect(x,y+rowH*.50,4,6);ctx.fillRect(x+3,y+rowH*.42,3,5)}}}
     }
-    ctx.globalAlpha=.12;ctx.fillStyle=f.moisture>65?'#4fa7d1':f.moisture<25?'#e9d18a':'#fff';ctx.fillRect(-f.w/2,-f.h/2,f.w,f.h);ctx.globalAlpha=1;ctx.restore();}
+    ctx.globalAlpha=clamp((f.moisture-52)/78,0,.18);if(ctx.globalAlpha>0){ctx.fillStyle=textures.wet;ctx.fillRect(-f.w/2,-f.h/2,f.w,f.h)}
+    ctx.globalAlpha=clamp((28-f.moisture)/90,0,.16);if(ctx.globalAlpha>0){ctx.fillStyle='rgba(233,209,138,.55)';ctx.fillRect(-f.w/2,-f.h/2,f.w,f.h)}
+    ctx.globalAlpha=1;ctx.restore();}
 }
 function drawFarmYard(){
+  initTextures();
   ctx.save();
   // A logical separated farmyard: house left, barns top, machinery parking centre, silos right. No overlap with fields/roads.
-  ctx.fillStyle='rgba(86,71,48,.30)';roundRect(430,520,1450,900,36,true,false);
-  ctx.fillStyle='#9f9685';roundRect(620,960,910+game.upgrades.parkingLevel*100,360+game.upgrades.barns*42,28,true,false);
-  ctx.fillStyle='rgba(255,255,255,.16)';for(let x=670;x<1510+game.upgrades.parkingLevel*100;x+=115){ctx.fillRect(x,1015,3,255)}for(let y=1030;y<1270+game.upgrades.barns*42;y+=92){ctx.fillRect(650,y,870+game.upgrades.parkingLevel*100,3)}
+  ctx.fillStyle=textures.gravel;roundRect(430,520,1450,900,36,true,false);
+  ctx.fillStyle=textures.tarmac;roundRect(620,960,910+game.upgrades.parkingLevel*100,360+game.upgrades.barns*42,28,true,false);
+  ctx.fillStyle='rgba(255,255,255,.18)';for(let x=670;x<1510+game.upgrades.parkingLevel*100;x+=115){ctx.fillRect(x,1015,3,255)}for(let y=1030;y<1270+game.upgrades.barns*42;y+=92){ctx.fillRect(650,y,870+game.upgrades.parkingLevel*100,3)}
   drawHouse(555,700);
   drawBuilding(900,690,250,145,'#bf6b45','#7b382d','Machinery barn');
   drawBuilding(1240,705,210,125,'#d2be8e','#6b4d32','Workshop');
   drawBuilding(1580,720,220,130,'#c9b68a','#69513a','Parts store');
   for(let i=0;i<game.upgrades.silos;i++){drawSilo(1730+i*92,1040,game.upgrades.siloLevel)}
   // market / stores zone, away from yard and fields.
-  drawBuilding(8640,610,310,140,'#d6c59b','#7b5440','Co-op Market');drawBuilding(9110,645,240,110,'#c7d5c7','#4d6b5b','Mill buyer');drawBuilding(9450,680,230,105,'#d2b590','#694934','Wholesale');
+  ctx.fillStyle=textures.tarmac;roundRect(13920,600,1400,260,32,true,false);
+  drawBuilding(14120,690,330,150,'#d6c59b','#7b5440','Co-op Market');drawBuilding(14620,710,260,118,'#c7d5c7','#4d6b5b','Mill buyer');drawBuilding(15020,740,245,110,'#d2b590','#694934','Wholesale');
   ctx.restore();
 }
 function drawHouse(x,y){ctx.save();ctx.translate(x,y);ctx.rotate(-.06);ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(8,60,95,24,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e3cba2';roundRect(-75,-45,150,96,10,true,false);ctx.fillStyle='#934c3b';ctx.beginPath();ctx.moveTo(-88,-45);ctx.lineTo(0,-95);ctx.lineTo(88,-45);ctx.closePath();ctx.fill();ctx.fillStyle='#5d3a2c';ctx.fillRect(-13,7,26,44);ctx.fillStyle='#8ac0da';ctx.fillRect(-52,-18,28,23);ctx.fillRect(26,-18,28,23);ctx.restore();}
@@ -328,7 +411,7 @@ function drawVehicleDragOverlay(){if(!vehicleDrag)return;const w=screenToWorld(v
 function drawWorldLabels(){
   if(camera.zoom<.36)return;ctx.save();ctx.font=`${Math.max(16,22/camera.zoom)}px system-ui`;ctx.textAlign='center';ctx.fillStyle='rgba(255,250,220,.92)';ctx.strokeStyle='rgba(22,34,18,.55)';ctx.lineWidth=4/camera.zoom;
   for(const f of game.fields){const txt=f.owned?f.name:`${f.name} ${fmtMoney(f.price)}`;ctx.strokeText(txt,f.x,f.y-f.h*.58-12);ctx.fillText(txt,f.x,f.y-f.h*.58-12)}
-  ctx.font=`${Math.max(14,18/camera.zoom)}px system-ui`;ctx.strokeText('Machinery Yard / Parking',1120,1435);ctx.fillText('Machinery Yard / Parking',1120,1435);ctx.strokeText('Market + Mill Buyers',9050,1040);ctx.fillText('Market + Mill Buyers',9050,1040);ctx.restore();
+  ctx.font=`${Math.max(14,18/camera.zoom)}px system-ui`;ctx.strokeText('Machinery Yard / Parking',1120,1435);ctx.fillText('Machinery Yard / Parking',1120,1435);ctx.strokeText('Market + Mill Buyers',14620,1160);ctx.fillText('Market + Mill Buyers',14620,1160);ctx.restore();
 }
 function update(dt){
   const scale=[1,2,4,8][game.speed-1]||1;let hours=dt*0.00042*scale;game.hour+=hours;if(game.hour>=24){game.hour-=24;game.day++;newDay();}
@@ -340,7 +423,7 @@ function newDay(){for(const f of game.fields){if(!f.owned)continue;if(f.crop){co
 }
 function updateCrops(hours){for(const f of game.fields){if(f.crop&&game.weather==='Dry Spell')f.moisture=clamp(f.moisture-hours*.4,0,100)}}
 function updateVehicle(v,dt){if(!v.job)return;const j=v.job, f=game.fields.find(x=>x.id===j.fieldId);if(!f){finishJob(v,false);return;}let target=j.path[j.idx];if(!target){finishJob(v,true);return;}const speed=(target.travel?230:jobDefs[j.type].workSpeed*460)*v.speed*(1+game.staff.mechanics*.03);const step=speed*dt/1000;const d=dist(v.x,v.y,target.x,target.y);if(d<=step){v.x=target.x;v.y=target.y;v.angle=target.a??v.angle;onTarget(v,j,f,target);}
-  else{const t=step/d;const ox=v.x,oy=v.y;v.x=lerp(v.x,target.x,t);v.y=lerp(v.y,target.y,t);v.angle=Math.atan2(target.y-oy,target.x-ox);if(target.row!=null&&!target.travel){const row=f.rows[target.row];if(row&&row.job===j.type){const segProg=1-d/(target.segmentDist||d);row.jobProgress=clamp(Math.max(row.jobProgress,(target.progressStart||0)+((target.progressEnd||1)-(target.progressStart||0))*segProg),0,1);}}}
+  else{const t=step/d;const ox=v.x,oy=v.y;v.x=lerp(v.x,target.x,t);v.y=lerp(v.y,target.y,t);v.angle=Math.atan2(target.y-oy,target.x-ox);if(target.row!=null&&!target.travel){const row=f.rows[target.row];if(row&&row.job===j.type){const local=wToF(f,v.x,v.y);let along=(local.x-target.rowStart)/(target.rowEnd-target.rowStart);if(!Number.isFinite(along))along=(target.progressStart||0);row.jobProgress=clamp(Math.max(row.jobProgress||0,along+.018),0,1);row.jobDir=target.rowDir||1;}}}
 }
 function onTarget(v,j,f,target){if(target.row!=null&&!target.travel){const row=f.rows[target.row];if(row){row.job=j.type;row.jobDir=target.rowDir||1;row.jobProgress=target.progressEnd||1;if(target.endRow)completeRow(f,row,j);}}
   j.idx++;if(j.idx>=j.path.length)finishJob(v,true);else{const next=j.path[j.idx];if(next.row!=null&&!next.travel){const row=f.rows[next.row];if(row){row.job=j.type;row.jobDir=next.rowDir||1;row.jobProgress=Math.max(row.jobProgress||0,next.progressStart||0);}}}}
@@ -353,8 +436,8 @@ function applyJobFieldEffects(f,type,crop){if(type==='cultivate'){f.crop=null;f.
  if(type==='irrigate'){f.moisture=clamp(f.moisture+42,0,100)}
  if(type==='harvest'&&f.crop){const c=crops[f.crop];let tonnes=f.rows.length*c.yield*(.78+f.growth*.25)*(1+f.nutrition/260)*(1-f.weeds/260);tonnes=Math.max(0,tonnes);const free=Math.max(0,game.capacity.storage-totalStored());const stored=Math.min(free,tonnes);game.storage[f.crop]+=stored;game.storage.straw+=Math.min(game.capacity.storage-totalStored(),stored*.18);f.lastYield=stored;f.crop=null;f.growth=0;f.nutrition=clamp(f.nutrition-18,0,100);f.weeds=clamp(f.weeds+8,0,100);if(stored<tonnes)toast('Storage full — some crop was lost. Buy more silos.');}
 }
-function buildJobPath(f,type,v){const path=[];let prev={x:v?.x??v?.homeX??720,y:v?.y??v?.homeY??1165};const margin=Math.max(26,Math.min(54,f.w*.045));
-  for(let i=0;i<f.rows.length;i++){const dir=i%2===0?1:-1,rowIndex=i,rowH=f.h/f.rows.length;const y=-f.h/2+(i+.5)*rowH;const x0=dir>0?-f.w/2+margin:f.w/2-margin;const x1=dir>0?f.w/2-margin:-f.w/2+margin;const a=fToW(f,x0,y);path.push({...a,travel:true,row:null,a:Math.atan2(a.y-prev.y,a.x-prev.x)});const segments=Math.max(4,Math.ceil((f.w-margin*2)/150));let last=a;for(let k=1;k<=segments;k++){const t=k/segments, lx=lerp(x0,x1,t), wobble=Math.sin((k+i*1.7)*1.8)*Math.min(8,rowH*.22), p=fToW(f,lx,y+wobble);path.push({...p,travel:false,row:rowIndex,rowDir:dir,progressStart:(k-1)/segments,progressEnd:t,segmentDist:dist(last.x,last.y,p.x,p.y),endRow:k===segments,a:Math.atan2(p.y-last.y,p.x-last.x)});last=p;}prev=last;}
+function buildJobPath(f,type,v){const path=[];let prev={x:v?.x??v?.homeX??720,y:v?.y??v?.homeY??1165};const margin=Math.max(28,Math.min(62,f.w*.045));
+  for(let i=0;i<f.rows.length;i++){const dir=i%2===0?1:-1,rowIndex=i,rowH=f.h/f.rows.length;const y=-f.h/2+(i+.5)*rowH;const x0=dir>0?-f.w/2+margin:f.w/2-margin;const x1=dir>0?f.w/2-margin:-f.w/2+margin;const a=fToW(f,x0,y);path.push({...a,travel:true,row:null,a:Math.atan2(a.y-prev.y,a.x-prev.x)});const segments=Math.max(5,Math.ceil((f.w-margin*2)/120));let last=a;for(let k=1;k<=segments;k++){const t=k/segments, lx=lerp(x0,x1,t), wobble=Math.sin((k+i*1.9)*1.45)*Math.min(5,rowH*.16), p=fToW(f,lx,y+wobble);path.push({...p,travel:false,row:rowIndex,rowDir:dir,rowStart:x0,rowEnd:x1,progressStart:(k-1)/segments,progressEnd:t,segmentDist:dist(last.x,last.y,p.x,p.y),endRow:k===segments,a:Math.atan2(p.y-last.y,p.x-last.x)});last=p;}prev=last;}
   path.push({x:v?.homeX??720,y:v?.homeY??1165,travel:true,row:null,a:0});return path;
 }
 function requiredJobForField(f,v=null){if(!f)return{ok:false,msg:'No field selected.'};if(!f.owned)return{ok:false,msg:`${f.name} needs buying first.`};
@@ -441,7 +524,7 @@ function runUiAction(el,e){if(!el)return false;const now=performance.now();if(el
   if(el.dataset.hide){hidePanel();return true;}
   if(el.id==='zoomIn'){setZoom(camera.zoom*1.18);return true;}
   if(el.id==='zoomOut'){setZoom(camera.zoom/1.18);return true;}
-  if(el.id==='homeBtn'){camera.x=420;camera.y=620;camera.zoom=.42;boundCamera();return true;}
+  if(el.id==='homeBtn'){camera.x=520;camera.y=520;camera.zoom=.36;boundCamera();return true;}
   if(el.id==='speedBtn'){game.speed=game.speed%4+1;uiDirty=true;return true;}
   if(el.id==='hideBtn'){hidePanel();return true;}
   return false;}
