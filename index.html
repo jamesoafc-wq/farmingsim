@@ -2,7 +2,7 @@
 <html lang="en" data-visualize-standalone>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <title>Bramblewick Farm Manager</title>
 <style>:root {
@@ -705,6 +705,8 @@ svg {
       <div class="top-stat optional-stat"><span>Reputation</span><strong id="reputationValue">12</strong></div>
     </div>
 
+    <div class="mobile-balance" aria-label="Current farm balance"><span>Balance</span><strong id="mobileCashValue">£58,000</strong></div>
+
     <div class="clock-block">
       <div class="clock-copy"><span id="seasonLabel">Spring · Day 1</span><strong id="timeLabel">07:00</strong></div>
       <div class="weather-pill" id="weatherPill" aria-label="Current weather"><span id="weatherIcon">☀</span><span id="weatherLabel">Clear</span></div>
@@ -778,7 +780,7 @@ svg {
 
   <dialog class="game-dialog" id="gameDialog">
     <form method="dialog" class="dialog-card">
-      <button class="dialog-close" value="cancel" aria-label="Close dialog">×</button>
+      <button class="dialog-close" value="cancel" type="button" aria-label="Close dialog">×</button>
       <div class="dialog-icon" id="dialogIcon" aria-hidden="true">🌾</div>
       <span class="eyebrow" id="dialogEyebrow">Bramblewick Farm</span>
       <h2 id="dialogTitle">Welcome to the farm</h2>
@@ -807,28 +809,36 @@ svg {
     --red: #a34b3f;
     --blue: #477f90;
     --shadow: 0 16px 42px rgba(28, 38, 29, .16);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
   }
   html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   #bramblewick-game {
-    width: 100%; height: 100dvh; min-height: 520px; overflow: hidden;
+    position: fixed; inset: 0; width: 100%; height: 100dvh; min-height: 520px; overflow: hidden; overscroll-behavior: none;
     color: var(--ink); background: #dfe5d7; font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-text-size-adjust: 100%;
   }
   #bramblewick-game button, #bramblewick-game input, #bramblewick-game select { font: inherit; }
+  #bramblewick-game button, #bramblewick-game select, #bramblewick-game input { touch-action: manipulation; }
   button { color: inherit; }
   .topbar {
-    height: 66px; position: relative; z-index: 20; display: grid; grid-template-columns: minmax(220px, 1fr) auto minmax(390px, 1fr);
-    align-items: center; gap: 18px; padding: 0 18px; background: rgba(251,250,246,.96); border-bottom: 1px solid rgba(61,75,61,.13);
+    height: calc(66px + var(--safe-top)); position: relative; z-index: 20; display: grid; grid-template-columns: minmax(220px, 1fr) auto minmax(390px, 1fr);
+    align-items: center; gap: 18px; padding: var(--safe-top) max(18px, var(--safe-right)) 0 max(18px, var(--safe-left)); background: rgba(251,250,246,.96); border-bottom: 1px solid rgba(61,75,61,.13);
     box-shadow: 0 2px 14px rgba(25,40,27,.07); backdrop-filter: blur(14px);
   }
   .brand { display: inline-flex; align-items: center; gap: 10px; min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+  .brand > span:last-child { min-width: 0; overflow: hidden; }
   .brand-mark { width: 38px; height: 38px; flex: 0 0 auto; display: grid; place-items: center; color: #f7f2dc; background: var(--green); border-radius: 12px; box-shadow: 0 4px 12px rgba(66,107,69,.25); }
   .brand-mark svg { width: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .brand strong, .brand small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand strong { font-family: Georgia, serif; font-size: 17px; letter-spacing: -.15px; }
   .brand small { color: var(--ink-soft); font-size: 11px; margin-top: 1px; }
   .top-stats { display: flex; gap: 8px; }
+  .mobile-balance { display: none; }
   .top-stat { min-width: 112px; padding: 7px 12px; border-left: 1px solid var(--line); }
   .top-stat span, .top-stat strong { display: block; }
   .top-stat span { color: var(--ink-soft); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
@@ -843,7 +853,7 @@ svg {
   .speed-controls button { min-width: 30px; height: 27px; border: 0; border-radius: 7px; background: transparent; color: var(--ink-soft); font-size: 11px; cursor: pointer; }
   .speed-controls button.is-active { color: #fff; background: var(--green); box-shadow: 0 2px 6px rgba(66,107,69,.22); }
 
-  .game-main { height: calc(100dvh - 66px); display: grid; grid-template-columns: 70px minmax(0,1fr) 378px; position: relative; }
+  .game-main { height: calc(100dvh - 66px - var(--safe-top)); display: grid; grid-template-columns: 70px minmax(0,1fr) 378px; position: relative; }
   .game-nav { position: relative; z-index: 12; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 9px 7px; overflow-y: auto; background: rgba(245,244,238,.96); border-right: 1px solid rgba(61,75,61,.12); scrollbar-width: none; }
   .game-nav::-webkit-scrollbar { display: none; }
   .nav-button { min-height: 54px; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; background: transparent; color: #6b756c; cursor: pointer; transition: background .15s, color .15s, transform .15s; }
@@ -883,7 +893,7 @@ svg {
   .panel-heading h2, .dialog-card h2 { margin: 3px 0 0; font-family: Georgia, serif; font-size: 22px; line-height: 1.15; font-weight: 600; letter-spacing: -.3px; }
   .panel-close { display: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: #ecebe4; color: #667068; cursor: pointer; font-size: 22px; }
   .panel-grabber { display: none; }
-  .panel-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 40px; scrollbar-color: #c9c8bf transparent; scrollbar-width: thin; }
+  .panel-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 40px; scrollbar-color: #c9c8bf transparent; scrollbar-width: thin; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
   .panel-body::-webkit-scrollbar { width: 6px; }
   .panel-body::-webkit-scrollbar-thumb { background: #c9c8bf; border-radius: 8px; }
   .section { margin-bottom: 18px; }
@@ -980,7 +990,7 @@ svg {
   .game-dialog { width: min(450px, calc(100% - 28px)); padding: 0; border: 0; border-radius: 18px; color: var(--ink); background: transparent; box-shadow: var(--shadow); }
   .game-dialog::backdrop { background: rgba(24,33,26,.56); backdrop-filter: blur(4px); }
   .dialog-card { position: relative; padding: 26px; background: var(--panel); border-radius: 18px; }
-  .dialog-close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border: 0; border-radius: 50%; color: var(--ink-soft); background: #ebeae3; cursor: pointer; font-size: 20px; }
+  .dialog-close { position: absolute; top: 9px; right: 9px; width: 44px; height: 44px; border: 0; border-radius: 50%; color: var(--ink-soft); background: #ebeae3; cursor: pointer; font-size: 24px; line-height: 1; }
   .dialog-icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 12px; border-radius: 14px; background: var(--green-soft); font-size: 24px; }
   .dialog-body { margin-top: 12px; color: #59645b; font-size: 11px; }
   .dialog-body p { margin: 0 0 9px; }
@@ -996,35 +1006,39 @@ svg {
   }
   @media (max-width: 780px) {
     #bramblewick-game { min-height: 480px; }
-    .topbar { height: 57px; grid-template-columns: minmax(138px,1fr) auto; gap: 7px; padding: 0 9px; }
+    .topbar { height: calc(62px + var(--safe-top)); grid-template-columns: minmax(104px,1fr) auto auto; gap: 7px; padding: var(--safe-top) max(9px,var(--safe-right)) 0 max(9px,var(--safe-left)); }
     .brand-mark { width: 34px; height: 34px; border-radius: 10px; }
     .brand strong { font-size: 14px; }
     .brand small { font-size: 9px; }
-    .clock-block { gap: 5px; }
-    .clock-copy { min-width: 64px; }
-    .clock-copy span { font-size: 8px; }
+    .mobile-balance { display: grid; gap: 0; min-width: 60px; padding-left: 8px; border-left: 1px solid var(--line); }
+    .mobile-balance span { color: var(--ink-soft); font-size: 8px; text-transform: uppercase; letter-spacing: .05em; }
+    .mobile-balance strong { font-size: 12px; white-space: nowrap; }
+    .clock-block { gap: 4px; }
+    .clock-copy { min-width: 39px; }
+    .clock-copy span { display: none; }
     .clock-copy strong { font-size: 12px; }
     .weather-pill { display: none; }
     .speed-controls button { min-width: 27px; height: 25px; }
-    .game-main { height: calc(100dvh - 57px); display: block; }
+    .game-main { height: calc(100dvh - 62px - var(--safe-top)); display: block; }
     .map-shell { width: 100%; height: 100%; }
-    .game-nav { position: absolute; z-index: 18; left: 8px; right: 8px; bottom: 8px; height: 58px; flex-direction: row; gap: 2px; padding: 4px; overflow-x: auto; overflow-y: hidden; border: 1px solid rgba(255,255,255,.32); border-radius: 14px; background: rgba(246,246,240,.93); box-shadow: 0 8px 24px rgba(27,38,29,.22); backdrop-filter: blur(11px); }
+    .game-nav { position: fixed; z-index: 18; left: max(10px,var(--safe-left)); right: max(10px,var(--safe-right)); bottom: calc(var(--safe-bottom) + 12px); height: 58px; flex-direction: row; gap: 2px; padding: 4px; overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; touch-action: pan-x; border: 1px solid rgba(255,255,255,.32); border-radius: 14px; background: rgba(246,246,240,.96); box-shadow: 0 8px 24px rgba(27,38,29,.22); backdrop-filter: blur(11px); }
     .nav-button { min-width: 52px; min-height: 48px; flex: 1 0 52px; padding: 4px 3px; border-radius: 10px; }
     .nav-button svg { width: 19px; height: 19px; }
     .nav-button span { font-size: 8px; }
-    .side-panel { position: absolute; z-index: 17; left: 8px; right: 8px; bottom: 72px; height: min(64%, 560px); border: 1px solid rgba(70,78,69,.15); border-radius: 17px; box-shadow: 0 18px 50px rgba(23,33,25,.29); transform: translateY(calc(100% + 84px)); transition: transform .28s ease; }
+    .side-panel { position: fixed; z-index: 17; left: max(8px,var(--safe-left)); right: max(8px,var(--safe-right)); bottom: calc(var(--safe-bottom) + 80px); height: min(64%, 560px); border: 1px solid rgba(70,78,69,.15); border-radius: 17px; box-shadow: 0 18px 50px rgba(23,33,25,.29); transform: translateY(calc(100% + 120px)); transition: transform .28s ease; }
     .side-panel.is-open { transform: translateY(0); }
     .panel-heading { min-height: 65px; padding: 12px 15px 10px; }
     .panel-heading h2 { font-size: 19px; }
-    .panel-close { display: block; }
+    .panel-close { display: block; width: 44px; height: 44px; }
     .panel-grabber { display: block; width: 36px; height: 4px; margin: 7px auto -4px; border-radius: 99px; background: #d3d2ca; }
     .panel-body { padding: 12px 13px 30px; }
-    .forecast-strip { top: 10px; right: 10px; }
-    .map-status { top: 10px; left: 10px; }
+    .forecast-strip { top: 10px; right: max(10px,var(--safe-right)); }
+    .map-status { top: 10px; left: max(10px,var(--safe-left)); white-space: nowrap; }
     .map-hint { display: none; }
-    .map-controls { right: 10px; bottom: 78px; }
-    .mobile-panel-toggle { position: absolute; z-index: 5; left: 10px; bottom: 77px; display: block; padding: 8px 10px; color: #fff; background: rgba(32,44,34,.78); border: 1px solid rgba(255,255,255,.14); border-radius: 9px; font-size: 9px; backdrop-filter: blur(7px); }
-    .toast-stack { left: 10px; right: 10px; bottom: 77px; }
+    .map-controls { right: max(10px,var(--safe-right)); bottom: calc(var(--safe-bottom) + 84px); }
+    .mobile-panel-toggle { position: fixed; z-index: 5; left: max(10px,var(--safe-left)); bottom: calc(var(--safe-bottom) + 84px); display: block; min-height: 40px; padding: 8px 10px; color: #fff; background: rgba(32,44,34,.82); border: 1px solid rgba(255,255,255,.14); border-radius: 9px; font-size: 10px; backdrop-filter: blur(7px); }
+    .toast-stack { left: max(10px,var(--safe-left)); right: max(10px,var(--safe-right)); bottom: calc(var(--safe-bottom) + 84px); }
+    .button { min-height: 44px; }
     .toast { min-width: 0; max-width: none; }
   }
   @media (max-width: 440px) {
@@ -1032,7 +1046,7 @@ svg {
     .speed-controls button:nth-child(3) { display: none; }
     .forecast-day { min-width: 43px; padding: 3px 5px; }
     .forecast-day span { display: none; }
-    .forecast-strip { top: 48px; }
+    .forecast-strip { top: 10px; }
     .summary-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
     .summary-card { padding: 8px 7px; }
     .summary-card strong { font-size: 13px; }
@@ -1072,19 +1086,19 @@ svg {
 
   const FIELD_DEFS = [
     { id: 1, name: "Alder Bank", area: 13.7, price: 43800, poly: [[76,77],[332,72],[350,235],[93,241]], visual: ["canola","ready"] },
-    { id: 2, name: "Mill Close", area: 16.2, price: 51600, poly: [[67,277],[303,267],[315,484],[57,495]], visual: ["barley","ready"] },
-    { id: 3, name: "Heron Piece", area: 10.4, price: 34900, poly: [[356,116],[496,139],[503,309],[330,297]], visual: ["wheat","growing"] },
+    { id: 2, name: "Mill Close", area: 16.2, price: 51600, poly: [[82,277],[303,267],[315,484],[82,495]], visual: ["barley","ready"] },
+    { id: 3, name: "Heron Piece", area: 10.4, price: 34900, poly: [[375,116],[510,139],[517,309],[350,297]], visual: ["wheat","growing"] },
     { id: 4, name: "Church Leys", area: 11.6, price: 38200, poly: [[335,344],[500,337],[505,546],[312,533]], visual: ["maize","growing"] },
-    { id: 5, name: "Lower Mill", area: 15.9, price: 49700, poly: [[63,548],[288,548],[277,757],[67,741]], visual: ["oats","ready"] },
-    { id: 6, name: "Foxglove Bank", area: 12.8, price: 41800, poly: [[326,578],[504,568],[501,789],[302,775]], visual: ["canola","growing"] },
-    { id: 7, name: "South Acre", area: 18.5, price: 57900, poly: [[88,814],[386,804],[409,950],[76,943]], visual: ["wheat","ready"] },
+    { id: 5, name: "Lower Mill", area: 15.9, price: 49700, poly: [[82,548],[288,548],[277,757],[82,741]], visual: ["oats","ready"] },
+    { id: 6, name: "Foxglove Bank", area: 12.8, price: 41800, poly: [[326,578],[504,568],[501,776],[302,766]], visual: ["canola","growing"] },
+    { id: 7, name: "South Acre", area: 18.5, price: 57900, poly: [[88,835],[386,830],[409,950],[76,943]], visual: ["wheat","ready"] },
     { id: 8, name: "High Pasture", area: 20.1, price: 62500, poly: [[691,69],[1005,79],[1018,246],[684,244]], visual: ["barley","growing"] },
-    { id: 9, name: "Willow Field", area: 8.4, price: 0, poly: [[688,278],[901,269],[916,371],[679,367]], visual: ["wheat","ready"] },
+    { id: 9, name: "Willow Field", area: 8.4, price: 0, poly: [[688,286],[901,280],[916,382],[679,378]], visual: ["wheat","ready"] },
     { id: 10, name: "Long Furrow", area: 17.9, price: 56200, poly: [[953,282],[1151,290],[1177,524],[944,516]], visual: ["maize","growing"] },
-    { id: 11, name: "Bridge Meadow", area: 15.3, price: 48200, poly: [[673,626],[900,620],[914,789],[661,789]], visual: ["oats","ready"] },
-    { id: 12, name: "Rookery Field", area: 18.7, price: 58800, poly: [[940,562],[1168,565],[1192,780],[932,776]], visual: ["sunflower","ready"] },
-    { id: 13, name: "Station Ground", area: 17.2, price: 53800, poly: [[625,829],[914,821],[912,956],[617,952]], visual: ["canola","growing"] },
-    { id: 14, name: "East Ridge", area: 21.4, price: 67400, poly: [[978,817],[1264,821],[1292,957],[963,954]], visual: ["wheat","ready"] }
+    { id: 11, name: "Bridge Meadow", area: 15.3, price: 48200, poly: [[690,626],[900,620],[914,779],[690,779]], visual: ["oats","ready"] },
+    { id: 12, name: "Rookery Field", area: 18.7, price: 58800, poly: [[950,562],[1168,565],[1192,780],[950,776]], visual: ["sunflower","ready"] },
+    { id: 13, name: "Station Ground", area: 17.2, price: 53800, poly: [[670,835],[914,829],[912,956],[670,952]], visual: ["canola","growing"] },
+    { id: 14, name: "East Ridge", area: 21.4, price: 67400, poly: [[985,835],[1264,839],[1292,957],[975,954]], visual: ["wheat","ready"] }
   ];
 
   const EQUIPMENT_CATALOG = [
@@ -1151,6 +1165,13 @@ svg {
   const OP_LABEL = { cultivate: "Cultivating", plant: "Drilling", fertilize: "Fertilising", harvest: "Harvesting" };
   const OP_PAST = { cultivate: "Cultivated", plant: "Planted", fertilize: "Fertilised", harvest: "Harvested" };
   const NAMES = ["Maya Brooks","Sam Carter","Alex Reed","Ellis Ward","Theo Price","Nina Shaw","Jamie Ford","Robin Hale","Casey Moss","Lou Bell"];
+  const ROAD_NETWORK = [
+    { width: 20, points: [[18,255],[52,255],[54,520],[54,782],[590,800],[930,800],[1305,804]] },
+    { width: 18, points: [[510,315],[528,280],[565,260],[650,260],[690,260],[930,260],[930,800]] },
+    { width: 18, points: [[510,545],[570,545],[625,545],[690,545],[930,545],[1225,545]] },
+    { width: 16, points: [[675,545],[675,800],[625,830]] },
+    { width: 16, points: [[930,260],[1170,280],[1200,545]] }
+  ];
 
   function seeded(seed) {
     let a = seed >>> 0;
@@ -1178,6 +1199,11 @@ svg {
       if (hit) inside = !inside;
     }
     return inside;
+  }
+  function distanceToSegment(px,py,ax,ay,bx,by) {
+    const dx=bx-ax,dy=by-ay,length=dx*dx+dy*dy;
+    const t=length?clamp(((px-ax)*dx+(py-ay)*dy)/length,0,1):0;
+    return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
   }
   function lineIntersections(poly, y) {
     const xs = [];
@@ -1260,6 +1286,8 @@ svg {
   let hovered = null;
   let lastFrame = performance.now();
   let panelRefreshAt = 0;
+  let panelDirty = false;
+  let panelInteractingUntil = 0;
   let autosaveAt = performance.now();
   let dialogPrimaryAction = null;
   let dialogSecondaryAction = null;
@@ -1384,6 +1412,7 @@ svg {
     closeDialog();
   });
   document.getElementById("dialogSecondary").addEventListener("click", () => { const action = dialogSecondaryAction; if (action) action(); closeDialog(); });
+  document.querySelector(".dialog-close").addEventListener("click", closeDialog);
 
   function welcomeDialog() {
     openDialog({
@@ -1467,7 +1496,7 @@ svg {
     for (const task of state.tasks.filter(t => t.status === "queued")) {
       if (state.tasks.some(other => other !== task && other.status === "active" && other.fieldId === task.fieldId)) continue;
       if (task.contractor) {
-        task.status = "active"; task.phase = "toField"; task.phaseProgress = 0; task.startedDay = state.time.absoluteDay; continue;
+        task.status = "active"; task.phase = "toField"; task.phaseProgress = 0; task.startedDay = state.time.absoluteDay; requestPanelRefresh(); continue;
       }
       const fs = getFieldState(task.fieldId);
       const kit = availableKit(task.operation, task.crop || fs.crop);
@@ -1475,6 +1504,7 @@ svg {
       if (!kit || !worker) continue;
       task.equipmentIds = kit.map(x => x.uid); task.workerId = worker.uid;
       task.status = "active"; task.phase = "toField"; task.phaseProgress = 0; task.startedDay = state.time.absoluteDay;
+      requestPanelRefresh();
     }
   }
 
@@ -1541,12 +1571,15 @@ svg {
           task.phaseProgress = 0;
           if (task.phase === "toField") task.phase = "working";
           else task.status = "complete";
+          requestPanelRefresh();
         }
       } else if (task.phase === "working") {
         if (task.operation === "harvest" && state.weather === "rain") continue;
         const field = getField(task.fieldId);
+        const previousBucket = Math.floor(task.progress * 20);
         task.progress = clamp(task.progress + dt * state.speed * .25 * taskRate(task) / field.area, 0, 1);
-        if (task.progress >= 1) { finishFieldWork(task); task.phase = "returning"; task.phaseProgress = 0; }
+        if (Math.floor(task.progress * 20) !== previousBucket) requestPanelRefresh();
+        if (task.progress >= 1) { finishFieldWork(task); task.phase = "returning"; task.phaseProgress = 0; requestPanelRefresh(); }
       }
     }
     if (state.tasks.length > 34) state.tasks = state.tasks.filter(t => t.status !== "complete").concat(state.tasks.filter(t => t.status === "complete").slice(-8));
@@ -1624,18 +1657,20 @@ svg {
     state.weather = state.forecast.shift() || chooseWeather(); state.forecast.push(chooseWeather());
     processDailyFinances(); rollMarket();
     state.contracts = state.contracts.filter(c => c.status === "accepted" || c.status === "complete" || c.expires >= state.time.absoluteDay);
-    generateContracts(); saveGame();
+    generateContracts(); requestPanelRefresh(); saveGame();
   }
 
   function simulateGrowth(gameHours) {
     Object.entries(state.fieldStates).forEach(([id,fs]) => {
       if (!fs.owned || !["seeded","growing"].includes(fs.stage) || !fs.crop) return;
+      const previousStage=fs.stage,previousBucket=Math.floor(fs.growth*20);
       const crop = CROPS[fs.crop];
       const seasonFactor = crop.seasons.includes(state.time.season) ? 1 : .62;
       const frost = state.weather === "frost" ? .6 : 1;
       fs.growth = clamp(fs.growth + gameHours / (crop.days * 24) * WEATHER[state.weather].growth * seasonFactor * frost, 0, 1);
       fs.stage = fs.growth >= 1 ? "ready" : fs.growth > .05 ? "growing" : "seeded";
       fs.moisture = clamp(fs.moisture + (state.weather === "rain" ? gameHours * .012 : -gameHours * .0025), .28, 1);
+      if(Number(id)===state.selectedField&&(fs.stage!==previousStage||Math.floor(fs.growth*20)!==previousBucket))requestPanelRefresh();
     });
   }
 
@@ -1882,8 +1917,10 @@ svg {
     const fn=renderers[state.ui.panel]||renderOverview;
     panelBody.innerHTML=fn();
     if(preserveScroll) panelBody.scrollTop=scroll;
+    panelDirty=false;
     document.querySelectorAll(".nav-button").forEach(b=>b.classList.toggle("is-active",b.dataset.panel===state.ui.panel));
   }
+  function requestPanelRefresh() { panelDirty=true; }
   function openPanel() { panel.classList.add("is-open"); document.getElementById("mobilePanelToggle").textContent="Management open"; }
   function closePanel() { panel.classList.remove("is-open"); document.getElementById("mobilePanelToggle").textContent="Open management"; }
   function setPanel(name, open = true) { state.ui.panel=name; if(open)openPanel(); renderPanel(false); }
@@ -1916,11 +1953,7 @@ svg {
   function buildRect(def, rotation, x, y) { const turn=Math.abs(rotation%180)===90;return {x:x-(turn?def.h:def.w)/2,y:y-(turn?def.w:def.h)/2,w:turn?def.h:def.w,h:turn?def.w:def.h}; }
   function pointNearRiver(x,y) { return x>535&&x<662; }
   function onRoad(x,y) {
-    if(Math.abs(y-566)<20&&x>500&&x<1235)return true;
-    if(Math.abs(x-625)<19&&y>280&&y<900)return true;
-    if(Math.abs(x-925)<19&&y>240&&y<820)return true;
-    if(Math.abs(y-805)<18&&x>550&&x<1300)return true;
-    return false;
+    return ROAD_NETWORK.some(road=>road.points.some((p,i)=>i>0&&distanceToSegment(x,y,road.points[i-1][0],road.points[i-1][1],p[0],p[1])<road.width/2+8));
   }
   function validBuildPosition(x,y,def,ignoreId=null) {
     const r=buildRect(def,buildMode?.rotation||0,x,y);if(r.x<35||r.y<35||r.x+r.w>1288||r.y+r.h>970)return false;
@@ -1965,6 +1998,8 @@ svg {
     state.tasks=state.tasks.filter(t=>t.id!==id);toast("Job cancelled",task.contractor?"Contractor booking costs are not refundable.":"Equipment and staff are available again.");renderPanel();
   }
 
+  panelBody.addEventListener("pointerdown",()=>{panelInteractingUntil=performance.now()+2500},{capture:true});
+  panelBody.addEventListener("touchmove",()=>{panelInteractingUntil=performance.now()+1200},{passive:true});
   panelBody.addEventListener("click", event => {
     const button=event.target.closest("[data-action]");if(!button)return;const a=button.dataset.action;
     if(a==="select-field"){state.selectedField=Number(button.dataset.field);renderPanel(false)}
@@ -2035,8 +2070,14 @@ svg {
   function clampCamera(){const margin=220/camera.zoom;camera.x=clamp(camera.x,-margin,WORLD.width+margin);camera.y=clamp(camera.y,-margin,WORLD.height+margin)}
 
   function polyPath(poly) {ctx.beginPath();ctx.moveTo(poly[0][0],poly[0][1]);for(let i=1;i<poly.length;i++)ctx.lineTo(poly[i][0],poly[i][1]);ctx.closePath()}
-  function drawRoad(points,width=25) {
-    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.strokeStyle="#687064";ctx.lineWidth=width+7;ctx.stroke();ctx.strokeStyle="#a9a99d";ctx.lineWidth=width;ctx.stroke();ctx.strokeStyle="rgba(239,229,195,.42)";ctx.lineWidth=1.5;ctx.setLineDash([18,18]);ctx.stroke();ctx.restore();
+  function traceLine(points) {ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1])}
+  function drawRoadNetwork() {
+    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+    ROAD_NETWORK.forEach(road=>{traceLine(road.points);ctx.strokeStyle="#687064";ctx.lineWidth=road.width+7;ctx.stroke()});
+    ROAD_NETWORK.forEach(road=>{traceLine(road.points);ctx.strokeStyle="#aaa99d";ctx.lineWidth=road.width;ctx.stroke()});
+    ctx.fillStyle="#aaa99d";[[54,520,10],[930,260,10],[930,545,11],[930,800,11],[675,545,9],[675,800,9]].forEach(j=>{ctx.beginPath();ctx.arc(j[0],j[1],j[2],0,Math.PI*2);ctx.fill()});
+    ROAD_NETWORK.filter(road=>road.width>=18).forEach(road=>{traceLine(road.points);ctx.strokeStyle="rgba(239,229,195,.42)";ctx.lineWidth=1.3;ctx.setLineDash([18,18]);ctx.stroke()});
+    ctx.restore();
   }
   function drawTrack(points,width=11){ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.strokeStyle="#8c826d";ctx.lineWidth=width+3;ctx.stroke();ctx.strokeStyle="#b5aa91";ctx.lineWidth=width;ctx.stroke();ctx.restore()}
   function drawRiver(){
@@ -2045,7 +2086,7 @@ svg {
     ctx.strokeStyle="rgba(211,241,239,.48)";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(581,-10);ctx.bezierCurveTo(578,160,602,243,587,404);ctx.bezierCurveTo(574,560,606,735,592,1010);ctx.stroke();ctx.restore();
     ctx.save();ctx.beginPath();ctx.ellipse(620,45,112,92,-.05,0,Math.PI*2);ctx.fillStyle="#75abb9";ctx.fill();ctx.strokeStyle="#688e72";ctx.lineWidth=11;ctx.stroke();ctx.beginPath();ctx.ellipse(620,45,94,73,-.05,0,Math.PI*2);ctx.strokeStyle="rgba(208,239,238,.3)";ctx.lineWidth=2;ctx.stroke();ctx.restore();
   }
-  function drawBridge(x1,x2,y){ctx.save();ctx.fillStyle="#77766c";ctx.fillRect(x1,y-16,x2-x1,32);ctx.fillStyle="#aaa79a";ctx.fillRect(x1,y-12,x2-x1,24);ctx.strokeStyle="#d8d1b9";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x1,y-12);ctx.lineTo(x2,y-12);ctx.moveTo(x1,y+12);ctx.lineTo(x2,y+12);ctx.stroke();ctx.restore()}
+  function drawBridge(x1,x2,y){ctx.save();ctx.fillStyle="#686b64";ctx.fillRect(x1,y-13,x2-x1,26);ctx.fillStyle="#aaa99d";ctx.fillRect(x1,y-9,x2-x1,18);ctx.strokeStyle="#ded6bf";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x1,y-10);ctx.lineTo(x2,y-10);ctx.moveTo(x1,y+10);ctx.lineTo(x2,y+10);ctx.stroke();ctx.restore()}
 
   function visualFor(field) {
     const fs=getFieldState(field.id);
@@ -2108,17 +2149,12 @@ svg {
     const seasonColours=["#92a876","#8ca36a","#9c9a6a","#89937d"],base=seasonColours[state.time.season];ctx.fillStyle=base;ctx.fillRect(-80,-80,WORLD.width+160,WORLD.height+160);
     decor.grass.forEach(g=>{ctx.fillStyle=`rgba(42,73,40,${g.a})`;ctx.fillRect(g.x,g.y,g.r,g.r)});
     decor.flowers.forEach(f=>{ctx.fillStyle=f.c;ctx.globalAlpha=.5;ctx.fillRect(f.x,f.y,1.5,1.5)});ctx.globalAlpha=1;
-    drawRiver();
-    drawRoad([[15,250],[44,252],[53,520],[51,785],[590,808],[925,806],[1305,810]],26);
-    drawRoad([[611,268],[620,327],[680,329],[927,333],[931,805]],24);
-    drawRoad([[505,566],[601,566],[680,568],[926,566],[1220,566]],24);
-    drawRoad([[672,595],[673,799],[620,830]],20);
-    drawRoad([[926,333],[1175,345],[1211,565]],20);
-    drawTrack([[792,380],[797,420],[806,480],[806,575],[675,590]]);
-    drawTrack([[805,480],[916,480],[930,566]]);
-    drawTrack([[608,320],[506,318],[500,338]]);
-    drawBridge(535,658,566);drawBridge(536,659,327);drawBridge(535,655,807);
-    ctx.save();ctx.strokeStyle="#3b403b";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-20,895);ctx.lineTo(1320,760);ctx.stroke();ctx.strokeStyle="#b8ab8e";ctx.lineWidth=2;ctx.setLineDash([10,8]);ctx.stroke();ctx.restore();
+    drawRiver();drawRoadNetwork();
+    drawTrack([[805,392],[805,430],[805,480],[805,545],[675,570]]);
+    drawTrack([[805,480],[915,480],[930,545]]);
+    drawTrack([[650,260],[565,260],[528,280],[510,315]]);
+    drawBridge(535,658,545);drawBridge(536,659,260);drawBridge(535,655,800);
+    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#3b403b";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-20,818);ctx.lineTo(530,818);ctx.lineTo(930,820);ctx.lineTo(1320,820);ctx.stroke();ctx.strokeStyle="#b8ab8e";ctx.lineWidth=1.8;ctx.setLineDash([10,8]);ctx.stroke();ctx.restore();
     drawFields();
     ctx.save();ctx.fillStyle="#75866b";ctx.fillRect(1300,0,320,1000);ctx.restore();decor.trees.forEach(drawTree);
     ctx.save();ctx.fillStyle="#9c9b8c";ctx.fillRect(1320,188,280,7);ctx.fillStyle="#6f746d";ctx.fillRect(1320,191,280,2);ctx.restore();
@@ -2164,10 +2200,15 @@ svg {
   function drawBuildGhost(){const d=buildingDef(buildMode.kind),valid=validBuildPosition(buildMode.x,buildMode.y,d,buildMode.movingId);buildMode.valid=valid;ctx.save();ctx.translate(buildMode.x,buildMode.y);ctx.rotate(buildMode.rotation*Math.PI/180);ctx.globalAlpha=.63;ctx.fillStyle=valid?"#d7efc8":"#e5a098";ctx.strokeStyle=valid?"#3d7740":"#9d3f37";ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.beginPath();ctx.roundRect(-d.w/2,-d.h/2,d.w,d.h,5);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#273328";ctx.font="600 10px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(valid?"Place":"Blocked",0,0);ctx.restore()}
 
   function travelPath(field) {
-    const c=field.center;if(c.x<535){const y=c.y<430?327:c.y<720?566:807;return [[YARD.x,YARD.y],[700,566],[625,y],[565,y],[510,y],[c.x,c.y]]}
-    if(c.y<390)return [[YARD.x,YARD.y],[920,480],[925,333],[c.x,c.y]];
-    if(c.y>790)return [[YARD.x,YARD.y],[920,566],[925,805],[c.x,c.y]];
-    return [[YARD.x,YARD.y],[920,520],[c.x,c.y]];
+    const c=field.center;
+    if(c.x<535){
+      if(c.y<430)return [[YARD.x,YARD.y],[930,480],[930,260],[650,260],[565,260],[510,315],[c.x,c.y]];
+      if(c.y<720)return [[YARD.x,YARD.y],[805,545],[625,545],[565,545],[c.x,c.y]];
+      return [[YARD.x,YARD.y],[805,545],[675,545],[675,800],[590,800],[c.x,c.y]];
+    }
+    if(c.y<390)return [[YARD.x,YARD.y],[930,480],[930,260],[c.x,c.y]];
+    if(c.y>790)return [[YARD.x,YARD.y],[930,545],[930,800],[c.x,c.y]];
+    return [[YARD.x,YARD.y],[930,520],[c.x,c.y]];
   }
   function pointOnPath(points,t){const parts=[];let total=0;for(let i=0;i<points.length-1;i++){const len=Math.hypot(points[i+1][0]-points[i][0],points[i+1][1]-points[i][1]);parts.push(len);total+=len}let target=clamp(t,0,1)*total;for(let i=0;i<parts.length;i++){if(target<=parts[i]){const q=target/parts[i],a=points[i],b=points[i+1];return{x:lerp(a[0],b[0],q),y:lerp(a[1],b[1],q),angle:Math.atan2(b[1]-a[1],b[0]-a[0])}}target-=parts[i]}const a=points[points.length-2],b=points[points.length-1];return{x:b[0],y:b[1],angle:Math.atan2(b[1]-a[1],b[0]-a[0])}}
   function workPosition(field,p){const total=field.lanes.reduce((s,l)=>s+l.len,0);let target=clamp(p,0,1)*total;for(const l of field.lanes){if(target<=l.len){const t=target/l.len;return{x:lerp(l.x1,l.x2,t),y:l.y1,angle:Math.atan2(l.y2-l.y1,l.x2-l.x1)}}target-=l.len}const l=field.lanes[field.lanes.length-1];return{x:l.x2,y:l.y2,angle:Math.atan2(l.y2-l.y1,l.x2-l.x1)} }
@@ -2194,32 +2235,39 @@ svg {
     for(let i=state.buildings.length-1;i>=0;i--){const b=state.buildings[i],d=buildingDef(b.kind),s=buildingSize(b,d);if(world.x>b.x-s.w/2-5&&world.x<b.x+s.w/2+5&&world.y>b.y-s.h/2-5&&world.y<b.y+s.h/2+5)return{type:"building",id:b.uid}}
     for(const f of FIELD_DEFS)if(pointInPoly(world,f.poly))return{type:"field",id:f.id};return null;
   }
-  function handleMapClick(screen){const world=screenToWorld(screen.x,screen.y);if(buildMode){buildMode.x=world.x;buildMode.y=world.y;placeBuilding(world.x,world.y);return}const hit=hitTest(world);if(hit?.type==="field"){state.selectedField=hit.id;focusField(hit.id);setPanel("fields");if(innerWidth<781)openPanel()}else if(hit?.type==="building"){state.selectedBuilding=hit.id;setPanel("build");if(innerWidth<781)openPanel()} }
-  canvas.addEventListener("pointerdown",event=>{const p=pointerPos(event);pointers.set(event.pointerId,p);canvas.setPointerCapture(event.pointerId);if(pointers.size===1){gesture={dragging:true,moved:false,startX:p.x,startY:p.y,lastX:p.x,lastY:p.y,pinchDist:0,pinchZoom:camera.zoom};canvas.classList.add("is-dragging")}else if(pointers.size===2){const ps=[...pointers.values()];gesture.pinchDist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);gesture.pinchZoom=camera.zoom;gesture.moved=true}});
+  function handleMapClick(screen){const world=screenToWorld(screen.x,screen.y);if(buildMode){buildMode.x=world.x;buildMode.y=world.y;placeBuilding(world.x,world.y);return}const hit=hitTest(world);if(hit?.type==="field"){state.selectedField=hit.id;setPanel("fields");if(innerWidth<781)openPanel()}else if(hit?.type==="building"){state.selectedBuilding=hit.id;setPanel("build");if(innerWidth<781)openPanel()} }
+  canvas.addEventListener("pointerdown",event=>{const p=pointerPos(event);pointers.set(event.pointerId,p);canvas.setPointerCapture(event.pointerId);if(pointers.size===1){gesture={dragging:true,moved:false,startX:p.x,startY:p.y,lastX:p.x,lastY:p.y,pinchDist:0,pinchZoom:camera.zoom};canvas.classList.add("is-dragging")}else{gesture.moved=true}});
   canvas.addEventListener("pointermove",event=>{
     const p=pointerPos(event);if(pointers.has(event.pointerId))pointers.set(event.pointerId,p);
     if(buildMode){const w=screenToWorld(p.x,p.y);buildMode.x=w.x;buildMode.y=w.y}
-    if(pointers.size===2){const ps=[...pointers.values()],dist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),mid={x:(ps[0].x+ps[1].x)/2,y:(ps[0].y+ps[1].y)/2};if(gesture.pinchDist>0){const target=clamp(gesture.pinchZoom*dist/gesture.pinchDist,.28,3),factor=target/camera.zoom;zoomAt(factor,mid.x,mid.y)}return}
+    if(pointers.size>1)return;
     if(pointers.size===1&&gesture.dragging){const dx=p.x-gesture.lastX,dy=p.y-gesture.lastY;if(Math.hypot(p.x-gesture.startX,p.y-gesture.startY)>5)gesture.moved=true;if(gesture.moved&&!buildMode){camera.x-=dx/camera.zoom;camera.y-=dy/camera.zoom;clampCamera()}gesture.lastX=p.x;gesture.lastY=p.y}
     if(event.pointerType==="mouse"&&!gesture.dragging){const w=screenToWorld(p.x,p.y);hovered=hitTest(w);const card=document.getElementById("hoverCard");if(hovered){let title,sub;if(hovered.type==="field"){const f=getField(hovered.id),fs=getFieldState(f.id);title=f.name;sub=fs.owned?`${f.area} ha · ${stageLabel(fs)}`:`${f.area} ha · ${money(f.price)}`}else{const b=state.buildings.find(x=>x.uid===hovered.id);title=b.name;sub=`${buildingDef(b.kind).name} · level ${b.level}`}card.innerHTML=`<strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub)}</span>`;card.hidden=false;card.style.left=Math.min(canvasSize.w-190,p.x+14)+"px";card.style.top=Math.min(canvasSize.h-60,p.y+14)+"px"}else card.hidden=true}
   });
   function endPointer(event){const p=pointerPos(event),wasOnly=pointers.size===1;pointers.delete(event.pointerId);if(wasOnly&&gesture.dragging&&!gesture.moved)handleMapClick(p);if(pointers.size===0){gesture.dragging=false;canvas.classList.remove("is-dragging")}else if(pointers.size===1){const remain=[...pointers.values()][0];gesture.lastX=remain.x;gesture.lastY=remain.y;gesture.startX=remain.x;gesture.startY=remain.y;gesture.moved=true}}
   canvas.addEventListener("pointerup",endPointer);canvas.addEventListener("pointercancel",endPointer);
   canvas.addEventListener("pointerleave",()=>{if(!gesture.dragging){hovered=null;document.getElementById("hoverCard").hidden=true}});
-  canvas.addEventListener("wheel",event=>{event.preventDefault();const p=pointerPos(event);zoomAt(event.deltaY<0?1.13:.885,p.x,p.y)},{passive:false});
+  canvas.addEventListener("wheel",event=>event.preventDefault(),{passive:false});
+  canvas.addEventListener("dblclick",event=>event.preventDefault());
+  ["gesturestart","gesturechange","gestureend"].forEach(type=>document.addEventListener(type,event=>event.preventDefault(),{passive:false}));
   document.getElementById("zoomIn").addEventListener("click",()=>zoomAt(1.22));document.getElementById("zoomOut").addEventListener("click",()=>zoomAt(.82));document.getElementById("resetView").addEventListener("click",resetView);
 
   function updateHud(){
-    document.getElementById("farmNameLabel").textContent=state.farmName;document.getElementById("farmSubtitle").textContent=`River County · Level ${currentLevel()}`;document.getElementById("cashValue").textContent=money(state.cash);document.getElementById("reputationValue").textContent=Math.round(state.reputation);
+    const cashText=money(state.cash);document.getElementById("farmNameLabel").textContent=state.farmName;document.getElementById("farmSubtitle").textContent=`River County · Level ${currentLevel()}`;document.getElementById("cashValue").textContent=cashText;document.getElementById("mobileCashValue").textContent=cashText;document.getElementById("reputationValue").textContent=Math.round(state.reputation);
     const today=todayTotals(),net=today.income-today.cost,todayEl=document.getElementById("todayProfit");todayEl.textContent=(net>=0?"+":"")+money(net);todayEl.className=net>=0?"money-positive":"money-negative";
     document.getElementById("seasonLabel").textContent=`${SEASONS[state.time.season]} · Day ${state.time.day}`;const hh=Math.floor(state.time.hour),mm=Math.floor((state.time.hour-hh)*60);document.getElementById("timeLabel").textContent=String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
     const w=WEATHER[state.weather];document.getElementById("weatherIcon").textContent=w.icon;document.getElementById("weatherLabel").textContent=w.name;document.getElementById("weatherPill").setAttribute("aria-label",`Current weather: ${w.name}`);
     document.querySelectorAll("[data-speed]").forEach(b=>b.classList.toggle("is-active",Number(b.dataset.speed)===state.speed));
-    const status=document.getElementById("mapStatus"),harvestHold=state.weather==="rain"&&state.tasks.some(t=>t.status==="active"&&t.operation==="harvest"&&t.phase==="working");status.classList.toggle("is-paused",!state.speed||harvestHold);document.getElementById("mapStatusText").textContent=!state.speed?"Simulation paused":harvestHold?"Harvest paused by rain":activeTasks().length?`${activeTasks().length} live job${activeTasks().length===1?"":"s"}`:"Farm running in real time";
-    document.getElementById("forecastStrip").innerHTML=state.forecast.slice(0,3).map((key,i)=>`<div class="forecast-day"><span>${i===0?"Tomorrow":`+${i+1} days`}</span><strong>${WEATHER[key].icon} ${WEATHER[key].name}</strong></div>`).join("");
+    const status=document.getElementById("mapStatus"),harvestHold=state.weather==="rain"&&state.tasks.some(t=>t.status==="active"&&t.operation==="harvest"&&t.phase==="working"),mobile=innerWidth<=780;status.classList.toggle("is-paused",!state.speed||harvestHold);document.getElementById("mapStatusText").textContent=mobile?(!state.speed?"Paused":harvestHold?"Weather hold":activeTasks().length?`${activeTasks().length} job${activeTasks().length===1?"":"s"}`:"Farm live"):(!state.speed?"Simulation paused":harvestHold?"Harvest paused by rain":activeTasks().length?`${activeTasks().length} live job${activeTasks().length===1?"":"s"}`:"Farm running in real time");
+    document.getElementById("forecastStrip").innerHTML=[state.weather,...state.forecast.slice(0,2)].map((key,i)=>`<div class="forecast-day"><span>${i===0?"Now":`+${i} day${i===1?"":"s"}`}</span><strong>${WEATHER[key].icon} ${WEATHER[key].name}</strong></div>`).join("");
   }
 
-  function gameLoop(now){const dt=Math.min(.08,(now-lastFrame)/1000);lastFrame=now;simulate(dt);drawMap();updateHud();if(now>panelRefreshAt){renderPanel();panelRefreshAt=now+1000}if(now-autosaveAt>30000){saveGame();autosaveAt=now}requestAnimationFrame(gameLoop)}
+  function gameLoop(now){
+    const dt=Math.min(.08,(now-lastFrame)/1000);lastFrame=now;simulate(dt);drawMap();updateHud();
+    const activeControl=panelBody.contains(document.activeElement)&&document.activeElement.matches("select,input");
+    if(now>panelRefreshAt&&(panelDirty||activeTasks().length>0)&&now>panelInteractingUntil&&!activeControl&&!dialog.open){renderPanel();panelRefreshAt=now+850}
+    if(now-autosaveAt>30000){saveGame();autosaveAt=now}requestAnimationFrame(gameLoop)
+  }
   function initialise(){generateContracts();resizeCanvas();resetView();renderPanel(false);updateHud();if(innerWidth>780)openPanel();if(!state.tutorialSeen)setTimeout(welcomeDialog,350);window.addEventListener("resize",()=>{camera.fitted=false;resizeCanvas();if(innerWidth>780)openPanel()});window.addEventListener("beforeunload",()=>saveGame());requestAnimationFrame(gameLoop)}
   initialise();
 })();
