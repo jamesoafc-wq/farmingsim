@@ -751,7 +751,7 @@ svg {
     </nav>
 
     <section class="map-shell" aria-label="Interactive farm map">
-      <canvas id="farmCanvas" aria-label="Top-down map of Bramblewick Farm. Drag to pan, use the mouse wheel or map buttons to zoom, and select fields or buildings."></canvas>
+      <canvas id="farmCanvas" aria-label="Top-down map of Bramblewick Farm. Drag to pan, use the fixed map buttons to zoom, and select fields, paddocks or buildings."></canvas>
       <div class="map-status" id="mapStatus"><span class="pulse-dot"></span><span id="mapStatusText">Farm running in real time</span></div>
       <div class="forecast-strip" id="forecastStrip" aria-label="Three day weather forecast"></div>
       <div class="map-controls" aria-label="Map controls">
@@ -1066,10 +1066,10 @@ svg {
   const panelEyebrow = document.getElementById("panelEyebrow");
   const dialog = document.getElementById("gameDialog");
   const SAVE_KEY = "bramblewick-farm-manager-v1";
-  const WORLD = { width: 1600, height: 1000 };
+  const WORLD = { width: 1200, height: 1200 };
   const SEASONS = ["Spring", "Summer", "Autumn", "Winter"];
   const SEASON_DAYS = 14;
-  const YARD = { x: 805, y: 480 };
+  const YARD = { x: 575, y: 650 };
 
   const CROPS = {
     wheat:     { name: "Wheat",      icon: "W", color: "#c6a448", ready: "#d4b455", basePrice: 188, yield: 7.6, days: 3.2, seedCost: 52, unlock: 1, seasons: [0,2] },
@@ -1085,20 +1085,13 @@ svg {
   };
 
   const FIELD_DEFS = [
-    { id: 1, name: "Alder Bank", area: 13.7, price: 43800, poly: [[76,77],[332,72],[350,235],[93,241]], visual: ["canola","ready"] },
-    { id: 2, name: "Mill Close", area: 16.2, price: 51600, poly: [[82,277],[303,267],[315,484],[82,495]], visual: ["barley","ready"] },
-    { id: 3, name: "Heron Piece", area: 10.4, price: 34900, poly: [[375,116],[510,139],[517,309],[350,297]], visual: ["wheat","growing"] },
-    { id: 4, name: "Church Leys", area: 11.6, price: 38200, poly: [[335,344],[500,337],[505,546],[312,533]], visual: ["maize","growing"] },
-    { id: 5, name: "Lower Mill", area: 15.9, price: 49700, poly: [[82,548],[288,548],[277,757],[82,741]], visual: ["oats","ready"] },
-    { id: 6, name: "Foxglove Bank", area: 12.8, price: 41800, poly: [[326,578],[504,568],[501,776],[302,766]], visual: ["canola","growing"] },
-    { id: 7, name: "South Acre", area: 18.5, price: 57900, poly: [[88,835],[386,830],[409,950],[76,943]], visual: ["wheat","ready"] },
-    { id: 8, name: "High Pasture", area: 20.1, price: 62500, poly: [[691,69],[1005,79],[1018,246],[684,244]], visual: ["barley","growing"] },
-    { id: 9, name: "Willow Field", area: 8.4, price: 0, poly: [[688,286],[901,280],[916,382],[679,378]], visual: ["wheat","ready"] },
-    { id: 10, name: "Long Furrow", area: 17.9, price: 56200, poly: [[953,282],[1151,290],[1177,524],[944,516]], visual: ["maize","growing"] },
-    { id: 11, name: "Bridge Meadow", area: 15.3, price: 48200, poly: [[690,626],[900,620],[914,779],[690,779]], visual: ["oats","ready"] },
-    { id: 12, name: "Rookery Field", area: 18.7, price: 58800, poly: [[950,562],[1168,565],[1192,780],[950,776]], visual: ["sunflower","ready"] },
-    { id: 13, name: "Station Ground", area: 17.2, price: 53800, poly: [[670,835],[914,829],[912,956],[670,952]], visual: ["canola","growing"] },
-    { id: 14, name: "East Ridge", area: 21.4, price: 67400, poly: [[985,835],[1264,839],[1292,957],[975,954]], visual: ["wheat","ready"] }
+    { id: 9, name: "Starter Field", area: 7.1, price: 0, poly: [[430,438],[620,432],[632,542],[438,550]], visual: ["wheat","ready"] }
+  ];
+
+  const CONTRACT_FIELDS = [
+    { id: -1, name: "Ashbrook Contract Ground", area: 12.4, contract: true, poly: [[1250,470],[1435,470],[1435,670],[1250,670]], visual: ["barley","ready"] },
+    { id: -2, name: "Moorland Contract Ground", area: 17.8, contract: true, poly: [[1250,690],[1470,690],[1470,930],[1250,930]], visual: ["wheat","ready"] },
+    { id: -3, name: "Hawthorn Contract Ground", area: 9.6, contract: true, poly: [[1250,250],[1410,250],[1410,430],[1250,430]], visual: ["canola","ready"] }
   ];
 
   const EQUIPMENT_CATALOG = [
@@ -1137,8 +1130,8 @@ svg {
     { kind: "cafe", category: "Rural business", name: "Farm Café", icon: "☕", price: 47000, unlock: 4, w: 62, h: 48, upkeep: 34, detail: "Turns footfall into income", business: { revenue: 610, margin: .44 } },
     { kind: "pub", category: "Rural business", name: "Country Pub", icon: "◆", price: 84000, unlock: 6, w: 76, h: 54, upkeep: 48, detail: "High income, higher costs", business: { revenue: 1080, margin: .39 } },
     { kind: "greenhouse", category: "Rural business", name: "Glasshouse", icon: "◇", price: 36000, unlock: 3, w: 70, h: 40, upkeep: 25, detail: "Year-round produce", business: { revenue: 330, margin: .56 } },
-    { kind: "coop", category: "Animals", name: "Hen House", icon: "●", price: 14500, unlock: 2, w: 46, h: 34, upkeep: 12, animal: "chickens", capacity: 60, detail: "Room for 60 chickens" },
-    { kind: "sheepfold", category: "Animals", name: "Sheep Fold", icon: "●", price: 28000, unlock: 3, w: 58, h: 42, upkeep: 18, animal: "sheep", capacity: 40, detail: "Room for 40 sheep" },
+    { kind: "coop", category: "Animals", name: "Hen House", icon: "●", price: 14500, unlock: 1, w: 46, h: 34, upkeep: 12, animal: "chickens", capacity: 60, detail: "Room for 60 chickens" },
+    { kind: "sheepfold", category: "Animals", name: "Sheep Fold", icon: "●", price: 28000, unlock: 2, w: 58, h: 42, upkeep: 18, animal: "sheep", capacity: 40, detail: "Room for 40 sheep" },
     { kind: "cowshed", category: "Animals", name: "Cattle Barn", icon: "●", price: 62000, unlock: 5, w: 76, h: 50, upkeep: 38, animal: "cows", capacity: 30, detail: "Room for 30 cattle" },
     { kind: "piggery", category: "Animals", name: "Piggery", icon: "●", price: 52000, unlock: 5, w: 70, h: 48, upkeep: 34, animal: "pigs", capacity: 40, detail: "Room for 40 pigs" },
     { kind: "apiary", category: "Animals", name: "Apiary", icon: "⬡", price: 12500, unlock: 3, w: 42, h: 28, upkeep: 8, animal: "bees", capacity: 12, detail: "Honey and crop pollination" },
@@ -1166,11 +1159,31 @@ svg {
   const OP_PAST = { cultivate: "Cultivated", plant: "Planted", fertilize: "Fertilised", harvest: "Harvested" };
   const NAMES = ["Maya Brooks","Sam Carter","Alex Reed","Ellis Ward","Theo Price","Nina Shaw","Jamie Ford","Robin Hale","Casey Moss","Lou Bell"];
   const ROAD_NETWORK = [
-    { width: 20, points: [[18,255],[52,255],[54,520],[54,782],[590,800],[930,800],[1305,804]] },
-    { width: 18, points: [[510,315],[528,280],[565,260],[650,260],[690,260],[930,260],[930,800]] },
-    { width: 18, points: [[510,545],[570,545],[625,545],[690,545],[930,545],[1225,545]] },
-    { width: 16, points: [[675,545],[675,800],[625,830]] },
-    { width: 16, points: [[930,260],[1170,280],[1200,545]] }
+    { id:"access-road", protected:true, width:18, points:[[560,650],[800,650],[1010,650],[1225,650]] }
+  ];
+  const LAND_TILES = [
+    { id:"tile-nw", name:"Northwest Meadow", x:0, y:0, w:400, h:400, price:44000 },
+    { id:"tile-n",  name:"North Meadow", x:400, y:0, w:400, h:400, price:48000 },
+    { id:"tile-ne", name:"Northeast Rise", x:800, y:0, w:400, h:400, price:52000 },
+    { id:"tile-w",  name:"Riverside West", x:0, y:400, w:400, h:400, price:46500 },
+    { id:"tile-c",  name:"Home Plot", x:400, y:400, w:400, h:400, price:0 },
+    { id:"tile-e",  name:"East Approach", x:800, y:400, w:400, h:400, price:50500 },
+    { id:"tile-sw", name:"Southwest Pasture", x:0, y:800, w:400, h:400, price:49000 },
+    { id:"tile-s",  name:"South Meadow", x:400, y:800, w:400, h:400, price:54000 },
+    { id:"tile-se", name:"Southeast Bank", x:800, y:800, w:400, h:400, price:59000 }
+  ];
+  const ROAD_STYLES = {
+    track:{name:"Farm track",width:10,colour:"#a79878",edge:"#7c725f",cost:8},
+    gravel:{name:"Gravel road",width:16,colour:"#aaa99d",edge:"#686b64",cost:18},
+    tarmac:{name:"Tarmac road",width:20,colour:"#858982",edge:"#565d58",cost:34}
+  };
+  const DECOR_CATALOG = [
+    { kind:"oak", name:"English Oak", icon:"♣", price:260, w:24, h:24, detail:"A broad native shade tree" },
+    { kind:"birch", name:"Silver Birch", icon:"♧", price:190, w:18, h:18, detail:"A light ornamental tree" },
+    { kind:"pine", name:"Scots Pine", icon:"▲", price:220, w:20, h:20, detail:"Evergreen shelter and structure" },
+    { kind:"carpark", name:"Customer Car Park", icon:"▦", price:6800, w:90, h:56, detail:"Boosts nearby shop, café or pub trade" },
+    { kind:"picnic", name:"Picnic Area", icon:"▤", price:1800, w:42, h:32, detail:"Tables and a tidy visitor space" },
+    { kind:"shopsign", name:"Roadside Sign", icon:"⚑", price:650, w:18, h:12, detail:"A welcoming sign for passing customers" }
   ];
 
   function seeded(seed) {
@@ -1205,6 +1218,32 @@ svg {
     const t=length?clamp(((px-ax)*dx+(py-ay)*dy)/length,0,1):0;
     return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
   }
+  function segmentIntersection(a,b,c,d) {
+    const cross=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]);
+    const ab1=cross(a,b,c),ab2=cross(a,b,d),cd1=cross(c,d,a),cd2=cross(c,d,b);
+    return ab1*ab2<-.001&&cd1*cd2<-.001;
+  }
+  function polygonsOverlap(a,b) {
+    if(a.some(p=>pointInPoly({x:p[0],y:p[1]},b))||b.some(p=>pointInPoly({x:p[0],y:p[1]},a)))return true;
+    for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)if(segmentIntersection(a[i],a[(i+1)%a.length],b[j],b[(j+1)%b.length]))return true;
+    return false;
+  }
+  function polygonSelfIntersects(poly) {
+    for(let i=0;i<poly.length;i++)for(let j=i+1;j<poly.length;j++){
+      if(Math.abs(i-j)<=1||(i===0&&j===poly.length-1))continue;
+      if(segmentIntersection(poly[i],poly[(i+1)%poly.length],poly[j],poly[(j+1)%poly.length]))return true;
+    }
+    return false;
+  }
+  function polygonUnits(poly) {let sum=0;for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];sum+=a[0]*b[1]-b[0]*a[1]}return Math.abs(sum)/2}
+  function hectaresFor(poly){return Math.max(.5,polygonUnits(poly)/3000)}
+  function riverCenterX(y){return 265+Math.sin(y/145)*18+Math.sin(y/61)*5}
+  function riverHalfWidth(y){return 31+Math.sin(y/118+1)*4}
+  function isWater(x,y){return Math.abs(x-riverCenterX(y))<riverHalfWidth(y)}
+  function tileAt(x,y){return LAND_TILES.find(t=>x>=t.x&&x<=t.x+t.w&&y>=t.y&&y<=t.y+t.h)||null}
+  function ownsLandAt(x,y){const tile=tileAt(x,y);return Boolean(tile&&state.landTiles.includes(tile.id))}
+  function onStaticRoad(x,y){return ROAD_NETWORK.some(road=>road.points.some((p,i)=>i>0&&distanceToSegment(x,y,road.points[i-1][0],road.points[i-1][1],p[0],p[1])<road.width/2+8))}
+  function sampleLine(a,b,spacing=8){const length=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(length/spacing)),points=[];for(let i=0;i<=n;i++){const t=i/n;points.push([lerp(a[0],b[0],t),lerp(a[1],b[1],t)])}return points}
   function lineIntersections(poly, y) {
     const xs = [];
     for (let i = 0; i < poly.length; i++) {
@@ -1225,7 +1264,9 @@ svg {
     }
     return lanes;
   }
-  FIELD_DEFS.forEach((f, i) => { f.center = centroid(f.poly); f.bounds = bounds(f.poly); f.lanes = makeLanes(f); f.seed = 100 + i * 41; });
+  function prepareFieldDef(f,index=0){f.center=centroid(f.poly);f.bounds=bounds(f.poly);f.lanes=makeLanes(f);f.seed=f.seed||100+index*41;return f}
+  FIELD_DEFS.forEach(prepareFieldDef);
+  CONTRACT_FIELDS.forEach((field,index)=>prepareFieldDef(field,300+index));
 
   function makeDefaultState() {
     const prices = {}, trends = {};
@@ -1233,7 +1274,7 @@ svg {
     const fieldStates = {};
     FIELD_DEFS.forEach(f => { fieldStates[f.id] = { owned: f.id === 9, stage: f.id === 9 ? "ready" : "unowned", crop: f.id === 9 ? "wheat" : null, growth: f.id === 9 ? 1 : 0, fertility: .92, moisture: .72, fertilized: .55 }; });
     return {
-      version: 1, uidCounter: 20, farmName: "Bramblewick Farm", cash: 58000, xp: 0, reputation: 12,
+      version: 1, mapVersion: 2, uidCounter: 20, farmName: "Bramblewick Farm", cash: 58000, xp: 0, reputation: 12,
       time: { year: 1, season: 0, day: 1, absoluteDay: 1, hour: 7 }, speed: 1,
       weather: "clear", forecast: ["clear","cloudy","rain"],
       fieldStates,
@@ -1244,25 +1285,49 @@ svg {
         { uid: "eq4", key: "trailer10", condition: 100, hours: 2.1 }
       ],
       workers: [{ uid: "w1", name: "You", role: "Farm owner", skill: "operator", wage: 0, effect: 1.0, owner: true }],
-      buildings: [
-        { uid: "b1", kind: "farmhouse", name: "Farmhouse", x: 755, y: 463, rotation: 0, level: 1, starter: true },
-        { uid: "b2", kind: "shed", name: "Old Machinery Barn", x: 842, y: 450, rotation: 0, level: 1, starter: true },
-        { uid: "b3", kind: "starterSilo", name: "Old Grain Bin", x: 902, y: 477, rotation: 0, level: 1, starter: true }
-      ],
+      buildings: [{ uid: "b1", kind: "farmhouse", name: "Farmhouse", x: 560, y: 605, rotation: 0, level: 1, starter: true }],
       animals: { chickens: 0, sheep: 0, cows: 0, pigs: 0, bees: 0 },
+      animalHealth: { chickens: 100, sheep: 100, cows: 100, pigs: 100, bees: 100 },
+      customFields: [], customRoads: [], paddocks: [], hedges: [], decorItems: [], landTiles: ["tile-c"],
       businessSettings: {}, storage: {}, market: { prices, trends, event: null },
       tasks: [], contracts: [], ledger: [],
       stats: { hectares: 0, harvests: 0, soldTonnes: 0, contracts: 0, buildings: 0 },
       objectives: { harvest: false, plant: false, build: false },
-      selectedField: 9, selectedBuilding: null, selectedCrop: { 9: "barley" },
+      selectedField: 9, selectedBuilding: null, selectedPaddock: null, selectedTile: "tile-c", selectedCrop: { 9: "barley" },
       ui: { panel: "overview", fleetTab: "owned", financeRange: 7 },
       tutorialSeen: false, lastSave: Date.now()
     };
   }
 
+  function legacyPoint(point){return [clamp(Math.round(point[0]*.5),18,WORLD.width-18),clamp(Math.round(point[1]*.75),18,WORLD.height-18)]}
+  function migrateLegacyMap(raw,merged,fresh){
+    const transformPoly=poly=>(poly||[]).map(legacyPoint);
+    merged.customFields=(raw.customFields||[]).filter(f=>Array.isArray(f.poly)&&f.poly.length>=3).map(f=>Object.assign({},f,{poly:transformPoly(f.poly)}));
+    merged.customRoads=(raw.customRoads||[]).filter(r=>Array.isArray(r.points)&&r.points.length>=2).map(r=>Object.assign({},r,{points:transformPoly(r.points)}));
+    merged.paddocks=(raw.paddocks||[]).filter(p=>Array.isArray(p.poly)&&p.poly.length>=3).map(p=>Object.assign({},p,{poly:transformPoly(p.poly)}));
+    merged.hedges=[];merged.decorItems=[];
+    const legacyOwnedFields=Object.entries(raw.fieldStates||{}).filter(([id,value])=>Number(id)!==9&&Number(id)<100&&value?.owned).length;
+    const ownedCount=clamp(1+Math.max(0,(raw.landTiles||[]).length-1)+legacyOwnedFields,1,LAND_TILES.length);
+    const acquisition=["tile-c","tile-e","tile-s","tile-n","tile-w","tile-se","tile-ne","tile-sw","tile-nw"];
+    merged.landTiles=acquisition.slice(0,ownedCount);
+    const claimPoint=(x,y)=>{const tile=LAND_TILES.find(t=>x>=t.x&&x<=t.x+t.w&&y>=t.y&&y<=t.y+t.h);if(tile&&!merged.landTiles.includes(tile.id))merged.landTiles.push(tile.id)};
+    merged.customFields.forEach(f=>f.poly.forEach(p=>claimPoint(p[0],p[1])));merged.customRoads.forEach(r=>r.points.forEach(p=>claimPoint(p[0],p[1])));merged.paddocks.forEach(p=>p.poly.forEach(q=>claimPoint(q[0],q[1])));
+    const userBuildings=(raw.buildings||[]).filter(b=>!b.starter),slots=[];
+    acquisition.forEach(id=>{const tile=LAND_TILES.find(t=>t.id===id);for(const oy of [105,205,305])for(const ox of [105,205,305])slots.push({x:tile.x+ox,y:tile.y+oy,tile:id})});
+    const reserved=p=>p.tile==="tile-c"&&(Math.hypot(p.x-560,p.y-605)<90||pointInPoly(p,FIELD_DEFS[0].poly)||onStaticRoad(p.x,p.y));
+    const usable=slots.filter(p=>!reserved(p)&&!isWater(p.x,p.y));
+    merged.buildings=[fresh.buildings[0],...userBuildings.map((b,index)=>{const slot=usable[index%usable.length];if(!merged.landTiles.includes(slot.tile))merged.landTiles.push(slot.tile);return Object.assign({},b,{x:slot.x,y:slot.y,starter:false})})];
+    const states={9:Object.assign({},fresh.fieldStates[9],raw.fieldStates?.[9]||{})};
+    merged.customFields.forEach(f=>states[f.id]=Object.assign({owned:true,stage:"stubble",crop:null,growth:0,fertility:.94,moisture:.72,fertilized:0},raw.fieldStates?.[f.id]||{}));
+    merged.fieldStates=states;merged.tasks=[];merged.contracts=[];merged.selectedField=merged.customFields.some(f=>f.id===Number(raw.selectedField))?Number(raw.selectedField):9;merged.selectedTile="tile-c";merged.mapVersion=2;
+    return merged;
+  }
+
   function hydrate(raw) {
     const fresh = makeDefaultState();
     if (!raw || raw.version !== 1) return fresh;
+    const mapDefaults=makeDefaultState();
+    const legacyMap=raw.mapVersion!==2;
     const merged = Object.assign(fresh, raw);
     merged.time = Object.assign(fresh.time, raw.time || {});
     merged.market = Object.assign(fresh.market, raw.market || {});
@@ -1270,19 +1335,29 @@ svg {
     merged.market.trends = Object.assign(fresh.market.trends, raw.market?.trends || {});
     merged.fieldStates = Object.assign(fresh.fieldStates, raw.fieldStates || {});
     merged.animals = Object.assign(fresh.animals, raw.animals || {});
+    merged.animalHealth = Object.assign(fresh.animalHealth, raw.animalHealth || {});
+    merged.customFields = Array.isArray(raw.customFields) ? raw.customFields : [];
+    merged.customRoads = Array.isArray(raw.customRoads) ? raw.customRoads : [];
+    merged.paddocks = Array.isArray(raw.paddocks) ? raw.paddocks : [];
+    merged.hedges = Array.isArray(raw.hedges) ? raw.hedges : [];
+    merged.decorItems = Array.isArray(raw.decorItems) ? raw.decorItems : [];
+    merged.landTiles = Array.isArray(raw.landTiles) ? raw.landTiles.filter(id=>LAND_TILES.some(t=>t.id===id)) : ["tile-c"];
+    if(!merged.landTiles.includes("tile-c"))merged.landTiles.push("tile-c");
     merged.stats = Object.assign(fresh.stats, raw.stats || {});
     merged.objectives = Object.assign(fresh.objectives, raw.objectives || {});
     merged.selectedCrop = Object.assign(fresh.selectedCrop, raw.selectedCrop || {});
     merged.ui = Object.assign(fresh.ui, raw.ui || {});
     merged.businessSettings = raw.businessSettings || {};
     merged.tasks = (raw.tasks || []).filter(t => t.status === "queued");
-    return merged;
+    return legacyMap?migrateLegacyMap(raw,merged,mapDefaults):merged;
   }
 
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (_) { saved = null; }
   let state = hydrate(saved);
+  state.customFields.forEach((f,i)=>prepareFieldDef(f,100+i));
   let buildMode = null;
+  let drawMode = null;
   let hovered = null;
   let lastFrame = performance.now();
   let panelRefreshAt = 0;
@@ -1292,9 +1367,10 @@ svg {
   let dialogPrimaryAction = null;
   let dialogSecondaryAction = null;
   let canvasSize = { w: 800, h: 600, dpr: 1 };
-  const camera = { x: WORLD.width / 2, y: WORLD.height / 2, zoom: .7, fitted: false };
+  const camera = { x: 600, y: 600, zoom: .7, fitted: false };
 
-  function getField(id) { return FIELD_DEFS.find(f => f.id === Number(id)); }
+  function allFields(){return FIELD_DEFS.concat(state.customFields||[])}
+  function getField(id) { return allFields().concat(CONTRACT_FIELDS).find(f => f.id === Number(id)); }
   function getFieldState(id) { return state.fieldStates[Number(id)]; }
   function equipmentDef(item) { return EQUIPMENT_CATALOG.find(e => e.key === item.key); }
   function buildingDef(kind) {
@@ -1302,9 +1378,11 @@ svg {
     if (kind === "starterSilo") return { kind, name: "Old Grain Bin", icon: "◉", price: 0, w: 32, h: 32, capacity: 55, upkeep: 8, detail: "+55t crop storage" };
     return BUILDING_CATALOG.find(b => b.kind === kind);
   }
+  function decorDef(kind){return DECOR_CATALOG.find(item=>item.kind===kind)}
+  function activeBuildDef(){return buildMode?.isDecor?decorDef(buildMode.kind):buildingDef(buildMode?.kind)}
   function currentLevel() { return Math.floor(state.xp / 450) + 1; }
   function levelProgress() { return (state.xp % 450) / 450; }
-  function ownedFields() { return FIELD_DEFS.filter(f => getFieldState(f.id).owned); }
+  function ownedFields() { return allFields().filter(f => getFieldState(f.id)?.owned); }
   function activeTasks() { return state.tasks.filter(t => t.status === "active" || t.status === "queued"); }
   function taskForField(id) { return state.tasks.find(t => Number(t.fieldId) === Number(id) && (t.status === "active" || t.status === "queued")); }
   function workerBusy(uidValue) { return state.tasks.some(t => t.status === "active" && t.workerId === uidValue); }
@@ -1319,13 +1397,17 @@ svg {
   function animalCapacity(type) {
     return state.buildings.reduce((sum,b) => { const d = buildingDef(b.kind); return sum + (d?.animal === type ? d.capacity * (b.level || 1) : 0); }, 0);
   }
-  function businessMultiplier(kind) {
+  function paddockCapacity(paddock,type){const rates={chickens:28,sheep:7,cows:3,pigs:6,bees:0};return Math.floor((paddock.area||0)*(rates[type]||0))}
+  function grazingCapacity(type){return state.paddocks.filter(p=>p.animal===type).reduce((sum,p)=>sum+paddockCapacity(p,type),0)}
+  function pastureCondition(type){const paddocks=state.paddocks.filter(p=>p.animal===type);return paddocks.length?paddocks.reduce((s,p)=>s+(p.condition??100),0)/paddocks.length:0}
+  function businessMultiplier(kind,building=null) {
     const setting = state.businessSettings[kind] || { price: 1 };
     const retail = state.workers.some(w => w.skill === "retail") ? 1.15 : 1;
     const rep = .82 + Math.min(50, state.reputation) * .012;
     const price = Number(setting.price || 1);
     const demand = clamp(1.55 - price * .55, .68, 1.1);
-    return retail * rep * price * demand;
+    const parking=building&&state.decorItems.some(item=>item.kind==="carpark"&&Math.hypot(item.x-building.x,item.y-building.y)<155)?1.12:1;
+    return retail * rep * price * demand * parking;
   }
   function hasSpecialist(skill) { return state.workers.some(w => w.skill === skill); }
 
@@ -1364,7 +1446,7 @@ svg {
   function saveGame(showToast = false) {
     state.lastSave = Date.now();
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state,(key,value)=>["lanes","bounds","center"].includes(key)?undefined:value));
       if (showToast) toast("Farm saved", "Your progress is stored in this browser.");
     } catch (_) {
       if (showToast) toast("Save unavailable", "This browser could not store the farm.");
@@ -1417,9 +1499,9 @@ svg {
   function welcomeDialog() {
     openDialog({
       icon: "🌱", eyebrow: "A new beginning", title: "Welcome to Bramblewick",
-      body: `<p>You have one field of ripe wheat, a modest tractor and £58,000. Machinery works visibly across every field, leaving each pass behind as it goes.</p><ul><li>Select <b>Willow Field</b> and hire a combine for your first harvest.</li><li>Cultivate, choose a crop, drill and fertilise it.</li><li>Expand into livestock, a farm shop, café or country pub.</li></ul>`,
+      body: `<p>You own the centre square, one field of ripe wheat, a farmhouse, a modest tractor and £58,000. Everything else is yours to create.</p><ul><li>Select <b>Starter Field</b> and hire a combine for the first harvest.</li><li>Use Estate Designer to buy any surrounding square and draw your own roads, fields, paddocks and hedges.</li><li>Add visitor parking, trees, livestock or a rural business as the estate grows.</li></ul>`,
       primary: "Show me the farm", secondary: "Skip introduction",
-      onPrimary: () => { state.tutorialSeen = true; state.ui.panel = "fields"; state.selectedField = 9; openPanel(); renderPanel(); toast("First job", "Hire a combine on Willow Field to bring in the wheat."); saveGame(); },
+      onPrimary: () => { state.tutorialSeen = true; state.ui.panel = "fields"; state.selectedField = 9; openPanel(); renderPanel(); toast("First job", "Hire a combine on Starter Field to bring in the wheat."); saveGame(); },
       onSecondary: () => { state.tutorialSeen = true; saveGame(); }
     });
   }
@@ -1484,7 +1566,7 @@ svg {
     if (cost && !canAfford(cost)) return;
     if (cost) record("cost", contractor ? "Contractors" : "Field inputs", cost, `${OP_LABEL[operation]} · ${field.name}`);
     const task = {
-      id: uid("job"), fieldId: field.id, operation, crop: cropKey || fs.crop, contractor: contractor || Boolean(contractId),
+      id: uid("job"), fieldId: field.id, operation, crop: cropKey || fs?.crop || null, contractor: contractor || Boolean(contractId),
       contractId, status: "queued", phase: "queued", progress: 0, phaseProgress: 0, equipmentIds: [], workerId: null, workFinished: false
     };
     state.tasks.push(task);
@@ -1598,7 +1680,7 @@ svg {
     const clients = ["Ashbrook Estate","County Foods","Moorland Co-op","Hawthorn Grange","Riverside Trust"];
     const operations = ["cultivate","plant","fertilize","harvest"];
     for (let i = activeCount; i < 3; i++) {
-      const availableFields = FIELD_DEFS.filter(f => !getFieldState(f.id).owned && !state.contracts.some(c => c.fieldId === f.id && c.status === "accepted"));
+      const availableFields = CONTRACT_FIELDS.filter(f => !state.contracts.some(c => c.fieldId === f.id && ["open","accepted"].includes(c.status)));
       if (!availableFields.length) break;
       const field = availableFields[Math.floor(Math.random() * availableFields.length)];
       const operation = operations[Math.floor(Math.random() * operations.length)];
@@ -1636,18 +1718,27 @@ svg {
       if (["farmshop","cafe","pub"].includes(b.kind)) weatherFactor = state.weather === "rain" ? .84 : state.weather === "clear" ? 1.12 : 1;
       if (b.kind === "solar") weatherFactor = state.weather === "clear" ? 1.28 : state.weather === "rain" ? .5 : .82;
       if (b.kind === "wind") weatherFactor = state.weather === "windy" ? 1.38 : .88;
-      const gross = def.business.revenue * (b.level || 1) * businessMultiplier(b.kind) * weatherFactor;
+      const gross = def.business.revenue * (b.level || 1) * businessMultiplier(b.kind,b) * weatherFactor;
       const cost = gross * (1 - def.business.margin);
       record("income", "Rural ventures", gross, `${b.name} takings`);
       record("cost", "Venture costs", cost, `${b.name} stock and running costs`);
       state.reputation = clamp(state.reputation + .03 * (b.level || 1), 0, 100);
     });
+    state.paddocks.forEach(p=>{
+      const type=p.animal,count=type?(state.animals[type]||0):0,capacity=type?paddockCapacity(p,type):0,total=Math.max(1,grazingCapacity(type));
+      const share=type?count*capacity/total:0,pressure=capacity?share/capacity:0,recovery=state.weather==="rain"?3.8:state.time.season===3 ? .4 : 1.7;
+      p.condition=clamp((p.condition??100)+recovery-pressure*2.6,25,100);
+    });
     Object.entries(ANIMALS).forEach(([key,a]) => {
       const count = state.animals[key] || 0;
       if (!count) return;
       const specialist = hasSpecialist("livestock") ? 1.12 : 1;
-      record("income", "Livestock", count * a.revenue * specialist, `${a.name} produce`);
-      record("cost", "Animal feed", count * a.feed, `${a.name} feed and bedding`);
+      const grazing=Math.min(1,grazingCapacity(key)/Math.max(1,count)),condition=key==="bees"?100:pastureCondition(key),winter=state.time.season===3;
+      const healthDelta=key==="bees" ? .1 : (grazing>.5 ? .65 : -.55)+(condition>65 ? .25 : -.45)+(hasSpecialist("livestock") ? .25 : 0)-(winter ? .25 : 0);
+      state.animalHealth[key]=clamp((state.animalHealth[key]??100)+healthDelta,45,100);
+      const healthFactor=.68+(state.animalHealth[key]/100)*.32,pastureBonus=1+grazing*.08;
+      record("income", "Livestock", count * a.revenue * specialist * healthFactor * pastureBonus, `${a.name} produce`);
+      record("cost", "Animal feed", count * a.feed * (1-grazing*.35), `${a.name} feed and bedding`);
     });
   }
 
@@ -1788,8 +1879,8 @@ svg {
 
   function renderFields() {
     panelEyebrow.textContent = "Land and cropping"; panelTitle.textContent = "Field manager";
-    const selected = getField(state.selectedField) || FIELD_DEFS[8];
-    return `${renderFieldDetail(selected)}<section class="section"><div class="section-head"><h3>Estate map</h3><small>${ownedFields().length} owned · ${FIELD_DEFS.length-ownedFields().length} available</small></div><div class="card-list">${FIELD_DEFS.map(fieldListCard).join("")}</div></section>`;
+    const selected = getField(state.selectedField) || FIELD_DEFS[8],fields=allFields(),available=FIELD_DEFS.filter(f=>!getFieldState(f.id).owned).length;
+    return `${renderFieldDetail(selected)}<section class="section"><div class="section-head"><h3>Estate map</h3><small>${ownedFields().length} owned · ${available} available</small></div><div class="card-list">${fields.map(fieldListCard).join("")}</div></section>`;
   }
 
   function equipmentCard(item) {
@@ -1827,27 +1918,54 @@ svg {
     return `<section class="section"><div class="manage-card is-selected"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(b.name)}</strong><span>${escapeHtml(d.detail)} · level ${b.level}</span></div></div><span class="tag">Selected</span></div><div class="card-actions"><button class="button secondary" data-action="rename-building" data-id="${b.uid}">Rename</button><button class="button secondary" data-action="move-building" data-id="${b.uid}">Move</button>${upgradeCost?`<button class="button primary" data-action="upgrade-building" data-id="${b.uid}">Upgrade · ${money(upgradeCost)}</button>`:""}${!b.starter?`<button class="button danger" data-action="sell-building" data-id="${b.uid}">Sell</button>`:""}</div></div></section>`;
   }
   function renderBuild() {
-    panelEyebrow.textContent = "Custom farmyard"; panelTitle.textContent = buildMode ? "Place your building" : "Build and expand";
-    const categories = [...new Set(BUILDING_CATALOG.map(b=>b.category))];
-    const mode = buildMode ? `<div class="notice gold" style="margin-bottom:13px"><b>${buildMode.movingId ? "Moving" : "Placing"} ${escapeHtml(buildingDef(buildMode.kind).name)}</b><br>Move over clear land, then tap or click to place. Red means the position is blocked.<div class="card-actions"><button class="button secondary" data-action="rotate-build">Rotate 90°</button><button class="button danger" data-action="cancel-build">Cancel</button></div></div>` : `<div class="notice" style="margin-bottom:13px">Choose a building, then place it directly on clear land around your yard. Buildings can be moved, renamed and upgraded later.</div>`;
-    return `${mode}${selectedBuildingCard()}${categories.map(cat=>`<section class="section"><div class="section-head"><h3>${cat}</h3></div><div class="card-list">${BUILDING_CATALOG.filter(d=>d.category===cat).map(d=>{const locked=currentLevel()<d.unlock;return `<div class="manage-card ${locked?"is-muted":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag ${locked?"gray":""}">${locked?`Level ${d.unlock}`:money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-build" data-kind="${d.kind}" ${locked?"disabled":""}>${locked?"Locked":`Place · ${money(d.price)}`}</button></div></div>`}).join("")}</div></section>`).join("")}`;
+    const drawTitles={land:"Buy expansion land",road:"Draw a road",field:"Draw a crop field",paddock:"Draw a paddock",hedge:"Draw a hedge",demolish:"Smart demolition","road-edit":"Edit road nodes"};
+    panelEyebrow.textContent="Estate designer";panelTitle.textContent=buildMode?`Place ${activeBuildDef()?.name||"item"}`:drawMode?drawTitles[drawMode.type]:"Shape your estate";
+    const categories=[...new Set(BUILDING_CATALOG.map(b=>b.category))],ownedTiles=LAND_TILES.filter(t=>state.landTiles.includes(t.id));
+    const stats=`<div class="summary-grid"><div class="summary-card"><span>Land tiles</span><strong>${ownedTiles.length}</strong><small>of ${LAND_TILES.length}</small></div><div class="summary-card"><span>Fields</span><strong>${ownedFields().length}</strong><small>${number(ownedFields().reduce((s,f)=>s+f.area,0),1)} ha</small></div><div class="summary-card"><span>Layout items</span><strong>${state.customRoads.length+state.paddocks.length+state.hedges.length+state.decorItems.length}</strong><small>roads + décor</small></div></div>`;
+    if(buildMode){const d=activeBuildDef(),rotatable=!buildMode.isDecor||!["oak","birch","pine"].includes(buildMode.kind);return `${stats}<div class="notice gold" style="margin-bottom:13px"><b>${buildMode.movingId?"Moving":"Placing"} ${escapeHtml(d.name)}</b><br>Tap clear land you own. Naturally generated trees clear automatically beneath construction.${buildMode.isDecor&&d.kind==="carpark"?" Place it near a shop, café or pub for a 12% trade boost.":""}<div class="card-actions">${rotatable?`<button class="button secondary" data-action="rotate-build">Rotate 90°</button>`:""}<button class="button danger" data-action="cancel-build">Cancel</button></div></div>${buildMode.isDecor?"":selectedBuildingCard()}`}
+    if(drawMode){let detail="";
+      if(drawMode.type==="land"){
+        const tile=LAND_TILES.find(t=>t.id===state.selectedTile),owned=tile&&state.landTiles.includes(tile.id);detail=tile?`<div class="manage-card is-selected"><div class="card-top"><div class="card-title"><span class="asset-icon">▦</span><div class="card-copy"><strong>${escapeHtml(tile.name)}</strong><span>400 × 400m · ${owned?"Owned land":"Available for purchase"}</span></div></div><span class="tag ${owned?"":"blue"}">${owned?"Owned":money(tile.price)}</span></div><div class="card-actions">${owned?`<button class="button ghost" data-action="focus-tile" data-id="${tile.id}">View tile</button>`:`<button class="button primary wide" data-action="buy-land-tile" data-id="${tile.id}">Buy land · ${money(tile.price)}</button>`}</div></div>`:`<div class="empty-state">Tap one of the nine outlined land tiles.</div>`;
+      }else if(drawMode.type==="demolish"){
+        detail=`<div class="notice gold"><b>Tap something user-created</b><br>The tool identifies roads, fields, paddocks, hedges, décor and buildings. It protects the starter field, farmhouse and access road, and checks active work or housed animals before removal.<div class="card-actions"><button class="button danger wide" data-action="draw-cancel">Exit demolition</button></div></div>`;
+      }else if(drawMode.type==="road-edit"){
+        const selected=drawMode.selectedNode!==null&&drawMode.selectedNode!==undefined,styles=`<div class="segmented" style="margin:10px 0">${Object.entries(ROAD_STYLES).map(([key,s])=>`<button data-action="road-style" data-style="${key}" class="${drawMode.style===key?"is-active":""}">${s.name}</button>`).join("")}</div>`;
+        detail=`<div class="notice gold"><b>${drawMode.adding?"Tap the route to insert a node":selected?"Tap a new position for the selected node":"Tap a road node to select it"}</b><br>Move, insert or remove control points; river crossings remain automatic bridges.${styles}<div class="meta-row"><span>Nodes <b>${drawMode.points.length}</b></span><span>Survey <b>${money(350)}</b></span></div><div class="card-actions"><button class="button secondary" data-action="road-add-node">${drawMode.adding?"Cancel insert":"Add node"}</button><button class="button secondary" data-action="road-delete-node" ${!selected||drawMode.points.length<=2?"disabled":""}>Delete selected</button><button class="button primary" data-action="save-road-edit">Save changes</button><button class="button danger" data-action="draw-cancel">Cancel</button></div></div>`;
+      }else{
+        const count=drawMode.points.length,estimate=drawEstimate(),linear=["road","hedge"].includes(drawMode.type),styles=drawMode.type==="road"?`<div class="segmented" style="margin:10px 0">${Object.entries(ROAD_STYLES).map(([key,s])=>`<button data-action="road-style" data-style="${key}" class="${drawMode.style===key?"is-active":""}">${s.name}</button>`).join("")}</div>`:"";
+        const prompt=drawMode.type==="road"?"Tap along the route":drawMode.type==="hedge"?"Tap along the hedge line":`Tap each corner of the ${drawMode.type}`;
+        const explanation=drawMode.type==="road"?"Crossing the river automatically creates and prices a bridge.":drawMode.type==="hedge"?"Hedges may follow field edges and automatically clear generated trees.":"The completed boundary must stay on owned dry land and clear of roads and other plots.";
+        detail=`<div class="notice gold"><b>${prompt}</b><br>${explanation}${styles}<div class="meta-row"><span>Points <b>${count}</b></span><span>Estimate <b>${money(estimate)}</b></span></div><div class="card-actions"><button class="button secondary" data-action="draw-undo" ${count?"":"disabled"}>Undo point</button><button class="button primary" data-action="draw-finish" ${count<(linear?2:3)?"disabled":""}>Finish</button><button class="button danger" data-action="draw-cancel">Cancel</button></div></div>`;
+      }
+      return `${stats}${detail}<div class="card-actions" style="margin-top:10px"><button class="button ghost wide" data-action="fit-estate">View whole estate</button>${drawMode.type==="land"?`<button class="button danger wide" data-action="draw-cancel">Exit land mode</button>`:""}</div>`;
+    }
+    const layoutItems=[["land","▦","Buy land tiles","Unlock any of the eight surrounding plots"],["road","⌁","Draw roads","Tracks, gravel or tarmac with automatic bridges"],["field","◇","Draw crop fields","Create any workable field shape"],["paddock","□","Draw paddocks","Fence grazing land for visible livestock"],["hedge","≋","Draw hedges","Shape boundaries and shelter belts"],["demolish","⌫","Smart demolish","Tap to identify and safely remove an item"]];
+    const layoutList=`<section class="section"><div class="section-head"><h3>Estate tools</h3><small>Build the map yourself</small></div><div class="card-list">${layoutItems.map(([type,icon,name,detail])=>`<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${icon}</span><div class="card-copy"><strong>${name}</strong><span>${detail}</span></div></div></div><div class="card-actions"><button class="button primary wide" data-action="start-draw" data-type="${type}">Open tool</button></div></div>`).join("")}</div></section>`;
+    const hasCreated=state.customFields.length||state.customRoads.length||state.paddocks.length||state.hedges.length||state.decorItems.length;
+    const created=hasCreated?`<section class="section"><div class="section-head"><h3>Your created layout</h3><small>Everything can be revised</small></div><div class="card-list">${state.customFields.map(f=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${escapeHtml(f.name)}</strong><span>${number(f.area,1)} ha crop field</span></div><span class="tag">Field</span></div><div class="card-actions"><button class="button ghost" data-action="focus-field" data-field="${f.id}">View</button><button class="button danger" data-action="remove-layout" data-kind="field" data-id="${f.id}">Remove</button></div></div>`).join("")}${state.paddocks.map(p=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${escapeHtml(p.name)}</strong><span>${number(p.area,1)} ha · ${p.animal?ANIMALS[p.animal].name:"unassigned"}</span></div><span class="tag">Paddock</span></div><div class="card-actions"><button class="button ghost" data-action="focus-paddock" data-id="${p.id}">View</button><button class="button danger" data-action="remove-layout" data-kind="paddock" data-id="${p.id}">Remove</button></div></div>`).join("")}${state.customRoads.map((r,i)=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${ROAD_STYLES[r.style]?.name||"Road"} ${i+1}</strong><span>${r.points.length} editable control points</span></div><span class="tag gray">Road</span></div><div class="card-actions"><button class="button secondary" data-action="edit-road" data-id="${r.id}">Edit nodes</button><button class="button danger" data-action="remove-layout" data-kind="road" data-id="${r.id}">Demolish</button></div></div>`).join("")}${state.hedges.map((h,i)=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>Hedge ${i+1}</strong><span>${h.points.length} control points</span></div><span class="tag gray">Décor</span></div><div class="card-actions"><button class="button danger" data-action="remove-layout" data-kind="hedge" data-id="${h.id}">Remove</button></div></div>`).join("")}${state.decorItems.map(item=>{const d=decorDef(item.kind);return `<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${escapeHtml(d?.name||"Décor")}</strong><span>Placed decoration</span></div><span class="tag gray">Décor</span></div><div class="card-actions"><button class="button danger" data-action="remove-layout" data-kind="decor" data-id="${item.id}">Remove</button></div></div>`}).join("")}</div></section>`:"";
+    const decorSection=`<section class="section"><div class="section-head"><h3>Décor and visitor areas</h3><small>Trees, parking and details</small></div><div class="card-list">${DECOR_CATALOG.map(d=>`<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag">${money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-decor" data-kind="${d.kind}">Place · ${money(d.price)}</button></div></div>`).join("")}</div></section>`;
+    const intro=`<div class="notice" style="margin-bottom:13px">Only the centre plot, starter field, farmhouse and access road are inherited. Purchase the surrounding squares and create every other road, boundary, building and landscape detail yourself.</div>`;
+    return `${stats}${intro}${selectedBuildingCard()}${layoutList}${created}${decorSection}${categories.map(cat=>`<section class="section"><div class="section-head"><h3>${cat}</h3></div><div class="card-list">${BUILDING_CATALOG.filter(d=>d.category===cat).map(d=>{const locked=currentLevel()<d.unlock;return `<div class="manage-card ${locked?"is-muted":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag ${locked?"gray":""}">${locked?`Level ${d.unlock}`:money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-build" data-kind="${d.kind}" ${locked?"disabled":""}>${locked?"Locked":`Place · ${money(d.price)}`}</button></div></div>`}).join("")}</div></section>`).join("")}`;
   }
 
   function renderVentures() {
     panelEyebrow.textContent = "Diversified income"; panelTitle.textContent = "Animals and ventures";
     const ventures = state.buildings.filter(b => buildingDef(b.kind)?.business);
     const livestockRevenue = Object.entries(ANIMALS).reduce((s,[k,a])=>s+(state.animals[k]||0)*(a.revenue-a.feed),0);
-    const ventureEstimate = ventures.reduce((s,b)=>{const d=buildingDef(b.kind);return s+d.business.revenue*d.business.margin*(b.level||1)*businessMultiplier(b.kind)},0);
+    const ventureEstimate = ventures.reduce((s,b)=>{const d=buildingDef(b.kind);return s+d.business.revenue*d.business.margin*(b.level||1)*businessMultiplier(b.kind,b)},0);
     const ventureHtml = ventures.length ? ventures.map(b=>{
       const d=buildingDef(b.kind), setting=state.businessSettings[b.kind]||{price:1}, upgrade=Math.round(d.price*(.55+b.level*.25));
-      return `<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(b.name)}</strong><span>Level ${b.level} · about ${money(d.business.revenue*d.business.margin*b.level*businessMultiplier(b.kind))} net/day</span></div></div><span class="tag">Open</span></div>${["farmshop","cafe","pub"].includes(b.kind)?`<label class="input-label" style="margin-top:10px">Pricing · ${Math.round(Number(setting.price||1)*100)}%<input type="range" min="80" max="130" value="${Math.round(Number(setting.price||1)*100)}" data-action="business-price" data-kind="${b.kind}"></label>`:""}<div class="card-actions"><button class="button primary" data-action="upgrade-building" data-id="${b.uid}">Upgrade · ${money(upgrade)}</button><button class="button ghost" data-action="select-building" data-id="${b.uid}">Find on map</button></div></div>`;
+      const parked=state.decorItems.some(item=>item.kind==="carpark"&&Math.hypot(item.x-b.x,item.y-b.y)<155);
+      return `<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(b.name)}</strong><span>Level ${b.level} · about ${money(d.business.revenue*d.business.margin*b.level*businessMultiplier(b.kind,b))} net/day${parked?" · car park boost":""}</span></div></div><span class="tag">Open</span></div>${["farmshop","cafe","pub"].includes(b.kind)?`<label class="input-label" style="margin-top:10px">Pricing · ${Math.round(Number(setting.price||1)*100)}%<input type="range" min="80" max="130" value="${Math.round(Number(setting.price||1)*100)}" data-action="business-price" data-kind="${b.kind}"></label>`:""}<div class="card-actions"><button class="button primary" data-action="upgrade-building" data-id="${b.uid}">Upgrade · ${money(upgrade)}</button><button class="button ghost" data-action="select-building" data-id="${b.uid}">Find on map</button></div></div>`;
     }).join("") : `<div class="empty-state">Build a farm shop, café, pub, glasshouse or energy project to add reliable daily income.</div>`;
     const animalHtml = Object.entries(ANIMALS).map(([key,a])=>{
-      const count=state.animals[key]||0, cap=animalCapacity(key), canBuy=cap-count>=a.batch, cost=a.cost*a.batch;
-      return `<div class="manage-card ${cap===0?"is-muted":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${a.icon}</span><div class="card-copy"><strong>${escapeHtml(a.name)}</strong><span>${count} / ${cap} ${a.unit} · ${money((a.revenue-a.feed)*count)} net/day</span></div></div><span class="tag ${cap===0?"gray":""}">${cap===0?"Needs housing":money(a.cost)+" each"}</span></div><div class="progress" style="--progress:${cap?count/cap*100:0}%"><span></span></div><div class="card-actions"><button class="button primary" data-action="buy-animal" data-type="${key}" ${!canBuy?"disabled":""}>Buy ${a.batch} · ${money(cost)}</button><button class="button secondary" data-action="sell-animal" data-type="${key}" ${count<a.batch?"disabled":""}>Sell ${a.batch}</button>${cap===0?`<button class="button ghost" data-action="goto-panel" data-panel="build">Build ${escapeHtml(buildingDef(a.building).name)}</button>`:""}</div></div>`;
+      const count=state.animals[key]||0, cap=animalCapacity(key), graze=grazingCapacity(key), health=state.animalHealth[key]??100, canBuy=cap-count>=a.batch, cost=a.cost*a.batch;
+      return `<div class="manage-card ${cap===0?"is-muted":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${a.icon}</span><div class="card-copy"><strong>${escapeHtml(a.name)}</strong><span>${count} / ${cap} ${a.unit} · health ${Math.round(health)}%</span></div></div><span class="tag ${cap===0?"gray":health<70?"red":""}">${cap===0?"Needs housing":money(a.cost)+" each"}</span></div><div class="progress" style="--progress:${health}%"><span></span></div><div class="meta-row"><span>Grazing <b>${key==="bees"?"Apiary":`${Math.min(count,graze)} / ${count} covered`}</b></span><span>Est. net <b>${money((a.revenue-a.feed*(1-Math.min(1,graze/Math.max(1,count))*.35))*count)}</b></span></div><div class="card-actions"><button class="button primary" data-action="buy-animal" data-type="${key}" ${!canBuy?"disabled":""}>Buy ${a.batch} · ${money(cost)}</button><button class="button secondary" data-action="sell-animal" data-type="${key}" ${count<a.batch?"disabled":""}>Sell ${a.batch}</button>${cap===0?`<button class="button ghost" data-action="goto-panel" data-panel="build">Build ${escapeHtml(buildingDef(a.building).name)}</button>`:""}</div></div>`;
     }).join("");
+    const paddockHtml=state.paddocks.length?state.paddocks.map(p=>{const options=`<option value="">Unassigned</option>${["chickens","sheep","cows","pigs"].map(key=>`<option value="${key}" ${p.animal===key?"selected":""}>${ANIMALS[key].name}</option>`).join("")}`,cap=p.animal?paddockCapacity(p,p.animal):0;return `<div class="manage-card ${state.selectedPaddock===p.id?"is-selected":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">□</span><div class="card-copy"><strong>${escapeHtml(p.name)}</strong><span>${number(p.area,1)} ha · pasture ${Math.round(p.condition??100)}%</span></div></div><span class="tag">${p.animal?`${cap} capacity`:"Empty"}</span></div><div class="progress" style="--progress:${p.condition??100}%"><span></span></div><label class="input-label" style="margin-top:9px">Grazing group<select data-action="paddock-animal" data-id="${p.id}">${options}</select></label><div class="card-actions"><button class="button ghost" data-action="focus-paddock" data-id="${p.id}">View paddock</button></div></div>`}).join(""):`<div class="empty-state">Draw a paddock in Estate Designer to give animals visible grazing space, lower feed costs and improve health.</div>`;
     return `<div class="summary-grid"><div class="summary-card"><span>Ventures</span><strong>${ventures.length}</strong><small>open businesses</small></div><div class="summary-card"><span>Business net</span><strong>${money(ventureEstimate,true)}</strong><small>estimated/day</small></div><div class="summary-card"><span>Animal net</span><strong>${money(livestockRevenue,true)}</strong><small>estimated/day</small></div></div>
       <section class="section"><div class="section-head"><h3>Rural businesses</h3><button class="text-button" data-action="goto-panel" data-panel="build">Add venture</button></div><div class="card-list">${ventureHtml}</div></section>
+      <section class="section"><div class="section-head"><h3>Grazing paddocks</h3><button class="text-button" data-action="start-draw" data-type="paddock">Draw paddock</button></div><div class="card-list">${paddockHtml}</div></section>
       <section class="section"><div class="section-head"><h3>Livestock</h3><small>Income and feed post daily</small></div><div class="card-list">${animalHtml}</div></section>`;
   }
 
@@ -1907,7 +2025,7 @@ svg {
   function renderSettings() {
     panelEyebrow.textContent = "Save and preferences"; panelTitle.textContent = "Farm settings";
     return `<section class="section"><div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">⌂</span><div class="card-copy"><strong>${escapeHtml(state.farmName)}</strong><span>Year ${state.time.year} · level ${currentLevel()} · ${state.reputation.toFixed(0)} reputation</span></div></div></div><div class="card-actions"><button class="button secondary" data-action="rename-farm">Rename farm</button><button class="button primary" data-action="save-game">Save now</button></div></div></section>
-      <section class="section"><div class="section-head"><h3>How to play</h3></div><div class="notice"><b>Fields:</b> harvest → cultivate → choose a crop → drill → fertilise → wait for growth.<br><br><b>Map:</b> drag to pan, scroll or pinch to zoom, and tap fields or buildings. Every field operation is shown pass by pass in real time.<br><br><b>Progression:</b> contracts are risk-free early income. Buy land and machinery, then diversify into shops, hospitality, animals and energy.</div></section>
+      <section class="section"><div class="section-head"><h3>How to play</h3></div><div class="notice"><b>Fields:</b> harvest → cultivate → choose a crop → drill → fertilise → wait for growth.<br><br><b>Estate Designer:</b> the centre of the 3×3 map is yours. Buy any surrounding square, then draw roads, crop fields, paddocks and hedges. Roads automatically become bridges over the western river.<br><br><b>Edit and demolish:</b> every road you draw has movable, insertable and removable nodes. Smart Demolish identifies what you tapped and protects essential starter assets.<br><br><b>Landscape:</b> generated trees are distributed consistently across the whole map and disappear beneath fields, roads, paddocks, hedges, buildings or placed décor. Customer car parks boost nearby visitor businesses.<br><br><b>Map:</b> drag to pan, use the fixed +/− buttons to zoom, and tap fields, paddocks or buildings.</div></section>
       <section class="section"><div class="card-actions"><button class="button ghost wide" data-action="show-intro">Show introduction again</button><button class="button danger wide" data-action="reset-game">Reset the entire farm</button></div></section>`;
   }
 
@@ -1924,6 +2042,94 @@ svg {
   function openPanel() { panel.classList.add("is-open"); document.getElementById("mobilePanelToggle").textContent="Management open"; }
   function closePanel() { panel.classList.remove("is-open"); document.getElementById("mobilePanelToggle").textContent="Open management"; }
   function setPanel(name, open = true) { state.ui.panel=name; if(open)openPanel(); renderPanel(false); }
+
+  function pathLength(points){let total=0;for(let i=1;i<points.length;i++)total+=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);return total}
+  function waterLength(points){let total=0;for(let i=1;i<points.length;i++){const samples=sampleLine(points[i-1],points[i],3);for(let j=1;j<samples.length;j++)if(isWater(samples[j][0],samples[j][1]))total+=Math.hypot(samples[j][0]-samples[j-1][0],samples[j][1]-samples[j-1][1])}return total}
+  function drawEstimate(){
+    if(!drawMode)return 0;
+    if(drawMode.type==="road-edit")return 350;
+    if(drawMode.type==="road"){const style=ROAD_STYLES[drawMode.style||"gravel"];return Math.round(pathLength(drawMode.points)*style.cost+waterLength(drawMode.points)*145)}
+    if(drawMode.type==="hedge")return Math.round(180+pathLength(drawMode.points)*5);
+    if(drawMode.points.length<3)return 0;
+    const area=hectaresFor(drawMode.points);return Math.round(drawMode.type==="field"?750+area*120:1200+area*420)
+  }
+  function existingRoadAt(x,y){return onStaticRoad(x,y)}
+  function validRoadPoint(x,y){return ownsLandAt(x,y)||existingRoadAt(x,y)}
+  function roadSamples(){const roads=ROAD_NETWORK.concat(state.customRoads.map(r=>({points:r.points,width:ROAD_STYLES[r.style]?.width||16}))),samples=[];roads.forEach(r=>{for(let i=1;i<r.points.length;i++)samples.push(...sampleLine(r.points[i-1],r.points[i],7))});return samples}
+  function validateDrawnPolygon(poly,type){
+    if(poly.length<3)return "Add at least three corners.";
+    if(polygonSelfIntersects(poly))return "The boundary crosses over itself.";
+    const area=hectaresFor(poly);if(area<1)return "The plot is too small; draw at least one hectare.";if(area>65)return "This plot is too large; keep it below 65 hectares.";
+    for(let i=0;i<poly.length;i++)for(const p of sampleLine(poly[i],poly[(i+1)%poly.length],6)){if(!ownsLandAt(p[0],p[1]))return "Every boundary must stay inside land tiles you own.";if(isWater(p[0],p[1]))return "Fields and paddocks cannot cover the river or lake.";}
+    const b=bounds(poly);for(let y=b.minY;y<=b.maxY;y+=14)for(let x=b.minX;x<=b.maxX;x+=14)if(pointInPoly({x,y},poly)&&(!ownsLandAt(x,y)||isWater(x,y)))return "The inside of this plot includes water or land you do not own.";
+    if(allFields().some(f=>polygonsOverlap(poly,f.poly)))return "This boundary overlaps an existing field.";
+    if(state.paddocks.some(p=>polygonsOverlap(poly,p.poly)))return "This boundary overlaps an existing paddock.";
+    if(roadSamples().some(p=>pointInPoly({x:p[0],y:p[1]},poly)))return "A road runs through this plot; redraw the boundary around it.";
+    if(state.buildings.some(b=>pointInPoly({x:b.x,y:b.y},poly)))return "A building is inside this boundary.";
+    return null;
+  }
+  function addDrawPoint(x,y){
+    if(!drawMode||["land","demolish","road-edit"].includes(drawMode.type))return;
+    if(drawMode.type==="road"){
+      if(!validRoadPoint(x,y)){toast("Outside owned land","Road points must stay on an owned tile or connect to an existing road.");return}
+      if(drawMode.points.length&&Math.hypot(x-drawMode.points.at(-1)[0],y-drawMode.points.at(-1)[1])<18)return;
+    }else if(drawMode.type==="hedge"){
+      if(!ownsLandAt(x,y)){toast("Land not owned","Buy this land tile before drawing a hedge here.");return}
+      if(isWater(x,y)){toast("Water blocks this hedge","Use a bridge or leave a gap at the river.");return}
+      if(drawMode.points.length&&Math.hypot(x-drawMode.points.at(-1)[0],y-drawMode.points.at(-1)[1])<12)return;
+    }else{
+      if(!ownsLandAt(x,y)){toast("Land not owned","Buy this land tile before drawing here.");return}
+      if(isWater(x,y)){toast("Water blocks this boundary",drawMode.type==="field"?"A crop field cannot be drawn over the river.":"Animals need dry ground inside their paddock.");return}
+    }
+    drawMode.points.push([Math.round(x),Math.round(y)]);requestPanelRefresh();renderPanel();
+  }
+  function validateRoadRoute(points){for(let i=1;i<points.length;i++)for(const p of sampleLine(points[i-1],points[i],7)){if(!validRoadPoint(p[0],p[1]))return "The route leaves land you own.";const point={x:p[0],y:p[1]};if(allFields().some(f=>pointInPoly(point,f.poly)))return "The route crosses an existing crop field.";if(state.paddocks.some(pd=>pointInPoly(point,pd.poly)))return "The route crosses an existing paddock.";if(state.buildings.some(b=>{const d=buildingDef(b.kind),r=buildRect(d,b.rotation||0,b.x,b.y);return point.x>=r.x-5&&point.x<=r.x+r.w+5&&point.y>=r.y-5&&point.y<=r.y+r.h+5}))return "The route passes through a building.";if(state.decorItems.some(item=>{const d=decorDef(item.kind),r=buildRect(d,item.rotation||0,item.x,item.y);return point.x>=r.x-3&&point.x<=r.x+r.w+3&&point.y>=r.y-3&&point.y<=r.y+r.h+3}))return "The route passes through placed décor.";}return null}
+  function finishDrawing(){
+    if(!drawMode||["land","demolish","road-edit"].includes(drawMode.type))return;
+    const type=drawMode.type,points=drawMode.points.map(p=>[p[0],p[1]]);
+    if(type==="road"){
+      if(points.length<2)return;const issue=validateRoadRoute(points);if(issue){toast("Route blocked",issue);return}
+      const cost=drawEstimate();if(!canAfford(cost))return;record("cost","Construction",cost,`Built ${ROAD_STYLES[drawMode.style].name.toLowerCase()}`);state.customRoads.push({id:uid("road"),style:drawMode.style,points});toast("Road opened",waterLength(points)>2?"Bridge sections were added automatically where the route crosses water.":"The new route is ready for farm traffic.");addXp(35,"Estate road built");
+    }else if(type==="hedge"){
+      if(points.length<2)return;for(let i=1;i<points.length;i++)for(const p of sampleLine(points[i-1],points[i],6))if(!ownsLandAt(p[0],p[1])||isWater(p[0],p[1])){toast("Hedge route blocked","Keep the entire hedge on owned dry land.");return}
+      const cost=drawEstimate();if(!canAfford(cost))return;record("cost","Landscaping",cost,"Planted a new hedge");state.hedges.push({id:uid("hedge"),points});toast("Hedge planted","The new boundary will also clear any generated trees along its line.");addXp(18,"Estate landscaped");
+    }else{
+      const issue=validateDrawnPolygon(points,type);if(issue){toast("Boundary not valid",issue);return}const cost=drawEstimate();if(!canAfford(cost))return;record("cost","Construction",cost,type==="field"?"Created crop field":"Fenced new paddock");
+      if(type==="field"){const id=Math.max(99,...allFields().map(f=>Number(f.id)))+1,field=prepareFieldDef({id,name:`New Field ${state.customFields.length+1}`,area:Number(hectaresFor(points).toFixed(1)),price:0,poly:points,visual:["wheat","stubble"],custom:true,seed:900+id});state.customFields.push(field);state.fieldStates[id]={owned:true,stage:"stubble",crop:null,growth:0,fertility:.94,moisture:.72,fertilized:0};state.selectedField=id;toast("Field boundary complete",`${field.name} adds ${field.area} hectares of workable land.`);addXp(60,"New field created")}
+      else{const paddock={id:uid("pad"),name:`Paddock ${state.paddocks.length+1}`,poly:points,area:Number(hectaresFor(points).toFixed(1)),animal:null,condition:100};state.paddocks.push(paddock);state.selectedPaddock=paddock.id;toast("Paddock fenced",`${paddock.area} hectares are ready for a grazing group.`);addXp(50,"Paddock created")}
+    }
+    drawMode=null;canvas.classList.remove("is-building");saveGame();renderPanel(false);
+  }
+  function buyLandTile(id){const tile=LAND_TILES.find(t=>t.id===id);if(!tile||state.landTiles.includes(id)||!canAfford(tile.price))return;record("cost","Land",tile.price,`Purchased ${tile.name}`);state.landTiles.push(id);state.reputation+=2;addXp(100,"Estate expanded");toast("Land unlocked",`${tile.name} is ready for roads, fields, paddocks and buildings.`);renderPanel();saveGame()}
+  function removeLayout(kind,id){
+    if(kind==="field"){const f=getField(id),fs=getFieldState(id);if(!f?.custom)return;if(taskForField(id)||!["stubble","cultivated"].includes(fs.stage)){toast("Field still in use","Finish its work and clear the crop before removing the boundary.");return}state.customFields=state.customFields.filter(x=>x.id!==Number(id));delete state.fieldStates[id];if(state.selectedField===Number(id))state.selectedField=9}
+    else if(kind==="paddock")state.paddocks=state.paddocks.filter(p=>p.id!==id);
+    else if(kind==="road")state.customRoads=state.customRoads.filter(r=>r.id!==id);
+    else if(kind==="hedge")state.hedges=state.hedges.filter(h=>h.id!==id);
+    else if(kind==="decor")state.decorItems=state.decorItems.filter(item=>item.id!==id);
+    toast("Layout removed","The land is clear for a new design.");renderPanel(false);saveGame();
+  }
+  function startRoadEdit(id){const road=state.customRoads.find(r=>r.id===id);if(!road)return;buildMode=null;drawMode={type:"road-edit",roadId:id,points:road.points.map(p=>[p[0],p[1]]),originalLength:pathLength(road.points),style:road.style,selectedNode:null,adding:false,hover:null};canvas.classList.add("is-building");const c=centroid(road.points);camera.x=c.x;camera.y=c.y;camera.zoom=Math.max(camera.zoom,.95);renderPanel(false);if(innerWidth<781)closePanel()}
+  function nearestSegment(points,x,y){let best={index:0,distance:Infinity};for(let i=1;i<points.length;i++){const distance=distanceToSegment(x,y,points[i-1][0],points[i-1][1],points[i][0],points[i][1]);if(distance<best.distance)best={index:i-1,distance}}return best}
+  function handleRoadEditPoint(x,y){if(drawMode?.type!=="road-edit")return;if(drawMode.adding){const segment=nearestSegment(drawMode.points,x,y);if(segment.distance>32/camera.zoom){toast("Tap closer to the road","The new node is inserted into the segment you tap.");return}if(!validRoadPoint(x,y)){toast("Node outside the estate","Insert the node on owned land or the protected access road.");return}drawMode.points.splice(segment.index+1,0,[Math.round(x),Math.round(y)]);drawMode.adding=false;drawMode.selectedNode=segment.index+1;renderPanel();return}if(drawMode.selectedNode!==null){if(!validRoadPoint(x,y)){toast("Node outside the estate","Move this node onto owned land or the protected access road.");return}drawMode.points[drawMode.selectedNode]=[Math.round(x),Math.round(y)];drawMode.selectedNode=null;renderPanel();return}let best={index:-1,distance:Infinity};drawMode.points.forEach((p,index)=>{const distance=Math.hypot(x-p[0],y-p[1]);if(distance<best.distance)best={index,distance}});if(best.distance<24/camera.zoom){drawMode.selectedNode=best.index;renderPanel()}else toast("Choose a road node","Tap one of the highlighted control points, or use Add node.")}
+  function saveRoadEdit(){if(drawMode?.type!=="road-edit")return;const points=drawMode.points,issue=validateRoadRoute(points);if(issue){toast("Edited route blocked",issue);return}const road=state.customRoads.find(r=>r.id===drawMode.roadId);if(!road)return;const extra=Math.max(0,pathLength(points)-drawMode.originalLength),cost=Math.round(350+extra*(ROAD_STYLES[drawMode.style]?.cost||18));if(!canAfford(cost))return;record("cost","Construction",cost,"Revised road alignment");road.points=points.map(p=>[p[0],p[1]]);road.style=drawMode.style;drawMode=null;canvas.classList.remove("is-building");toast("Road updated","The revised nodes and any bridge spans are now live.");renderPanel(false);saveGame()}
+  function hitTestLayout(world){
+    for(let i=state.decorItems.length-1;i>=0;i--){const item=state.decorItems[i],d=decorDef(item.kind),r=buildRect(d,item.rotation||0,item.x,item.y);if(world.x>=r.x&&world.x<=r.x+r.w&&world.y>=r.y&&world.y<=r.y+r.h)return{type:"decor",id:item.id,name:d.name}}
+    for(let i=state.buildings.length-1;i>=0;i--){const b=state.buildings[i],d=buildingDef(b.kind),r=buildRect(d,b.rotation||0,b.x,b.y);if(world.x>=r.x&&world.x<=r.x+r.w&&world.y>=r.y&&world.y<=r.y+r.h)return{type:"building",id:b.uid,name:b.name,protected:b.starter}}
+    for(const f of allFields())if(pointInPoly(world,f.poly))return{type:"field",id:f.id,name:f.name,protected:!f.custom};
+    for(const p of state.paddocks)if(pointInPoly(world,p.poly))return{type:"paddock",id:p.id,name:p.name};
+    for(const h of state.hedges)if(h.points.some((p,i)=>i>0&&distanceToSegment(world.x,world.y,h.points[i-1][0],h.points[i-1][1],p[0],p[1])<10))return{type:"hedge",id:h.id,name:"Hedge"};
+    for(const road of state.customRoads){const width=ROAD_STYLES[road.style]?.width||16;if(road.points.some((p,i)=>i>0&&distanceToSegment(world.x,world.y,road.points[i-1][0],road.points[i-1][1],p[0],p[1])<width/2+7))return{type:"road",id:road.id,name:ROAD_STYLES[road.style]?.name||"Road"}}
+    if(onStaticRoad(world.x,world.y))return{type:"road",id:"access-road",name:"Access road",protected:true};return null;
+  }
+  function smartDemolishAt(world){const hit=hitTestLayout(world);if(!hit){toast("Nothing to demolish","Tap a user-created road, boundary, building or decoration.");return}if(hit.protected){toast("Starter asset protected",`${hit.name} is kept so the farm always remains playable.`);return}let body=`<p>The selected <b>${escapeHtml(hit.name)}</b> will be removed from the estate.</p>`,action=null;
+    if(hit.type==="building"){const b=state.buildings.find(item=>item.uid===hit.id),d=buildingDef(b?.kind);if(d?.animal&&(state.animals[d.animal]||0)>0){toast("Animals still housed","Sell or relocate the animals before demolishing this building.");return}body+=`<p>You will recover <b>${money((d?.price||0)*.45)}</b> in reusable materials.</p>`;action=()=>sellBuilding(hit.id)}
+    else if(hit.type==="field"){const f=getField(hit.id),fs=getFieldState(hit.id);if(taskForField(hit.id)||!["stubble","cultivated"].includes(fs.stage)){toast("Field still in use","Finish its work and clear the crop before removing the boundary.");return}action=()=>removeLayout("field",hit.id)}
+    else action=()=>removeLayout(hit.type,hit.id);
+    openDialog({icon:"⌫",eyebrow:"Smart demolition",title:`Remove ${escapeHtml(hit.name)}?`,body,primary:"Demolish",secondary:"Keep it",onPrimary:action})
+  }
+  function focusTile(id){const t=LAND_TILES.find(x=>x.id===id);if(!t)return;camera.x=t.x+t.w/2;camera.y=t.y+t.h/2;camera.zoom=clamp(Math.max(camera.zoom,.9),.32,2.4)}
+  function fitEstate(){camera.x=WORLD.width/2;camera.y=WORLD.height/2;camera.zoom=clamp(Math.min((canvasSize.w-45)/WORLD.width,(canvasSize.h-45)/WORLD.height),.16,1)}
 
   function buyField(id) {
     const field=getField(id),fs=getFieldState(id); if(!field||fs.owned||!canAfford(field.price))return;
@@ -1951,21 +2157,24 @@ svg {
     const w=state.workers.find(x=>x.uid===id);if(!w||w.owner||workerBusy(id))return;state.workers=state.workers.filter(x=>x.uid!==id);toast("Contract ended",`${w.name} has left the farm.`);renderPanel();
   }
   function buildRect(def, rotation, x, y) { const turn=Math.abs(rotation%180)===90;return {x:x-(turn?def.h:def.w)/2,y:y-(turn?def.w:def.h)/2,w:turn?def.h:def.w,h:turn?def.w:def.h}; }
-  function pointNearRiver(x,y) { return x>535&&x<662; }
   function onRoad(x,y) {
-    return ROAD_NETWORK.some(road=>road.points.some((p,i)=>i>0&&distanceToSegment(x,y,road.points[i-1][0],road.points[i-1][1],p[0],p[1])<road.width/2+8));
+    const roads=ROAD_NETWORK.concat(state.customRoads.map(road=>({points:road.points,width:ROAD_STYLES[road.style]?.width||16})));
+    return roads.some(road=>road.points.some((p,i)=>i>0&&distanceToSegment(x,y,road.points[i-1][0],road.points[i-1][1],p[0],p[1])<road.width/2+8));
   }
   function validBuildPosition(x,y,def,ignoreId=null) {
-    const r=buildRect(def,buildMode?.rotation||0,x,y);if(r.x<35||r.y<35||r.x+r.w>1288||r.y+r.h>970)return false;
-    const corners=[[r.x,r.y],[r.x+r.w,r.y],[r.x+r.w,r.y+r.h],[r.x,r.y+r.h]].map(p=>({x:p[0],y:p[1]}));
-    if(corners.some(p=>pointNearRiver(p.x,p.y)||onRoad(p.x,p.y)||FIELD_DEFS.some(f=>pointInPoly(p,f.poly))))return false;
+    const r=buildRect(def,buildMode?.rotation||0,x,y);if(r.x<20||r.y<20||r.x+r.w>WORLD.width-20||r.y+r.h>WORLD.height-20)return false;
+    const corners=[[r.x,r.y],[r.x+r.w,r.y],[r.x+r.w,r.y+r.h],[r.x,r.y+r.h],[r.x+r.w/2,r.y],[r.x+r.w/2,r.y+r.h],[r.x,r.y+r.h/2],[r.x+r.w,r.y+r.h/2],[r.x+r.w/2,r.y+r.h/2]].map(p=>({x:p[0],y:p[1]}));
+    if(corners.some(p=>!ownsLandAt(p.x,p.y)))return false;
+    if(corners.some(p=>isWater(p.x,p.y)||onRoad(p.x,p.y)||allFields().some(f=>pointInPoly(p,f.poly))||state.paddocks.some(pd=>pointInPoly(p,pd.poly))))return false;
     if(state.buildings.some(b=>{if(b.uid===ignoreId)return false;const d=buildingDef(b.kind),br=buildRect(d,b.rotation,b.x,b.y);return !(r.x+r.w+8<br.x||br.x+br.w+8<r.x||r.y+r.h+8<br.y||br.y+br.h+8<r.y)}))return false;
-    if(x>1290)return false;
+    if(state.decorItems.some(item=>{const d=decorDef(item.kind),dr=buildRect(d,item.rotation||0,item.x,item.y);return !(r.x+r.w+5<dr.x||dr.x+dr.w+5<r.x||r.y+r.h+5<dr.y||dr.y+dr.h+5<r.y)}))return false;
+    if(state.hedges.some(h=>h.points.some((p,i)=>i>0&&sampleLine(h.points[i-1],p,7).some(q=>q[0]>=r.x-4&&q[0]<=r.x+r.w+4&&q[1]>=r.y-4&&q[1]<=r.y+r.h+4))))return false;
     return true;
   }
   function placeBuilding(x,y) {
-    if(!buildMode)return;const d=buildingDef(buildMode.kind);if(!validBuildPosition(x,y,d,buildMode.movingId)){toast("Position blocked","Choose clear grass away from fields, roads, water and other buildings.");return}
-    if(buildMode.movingId){const b=state.buildings.find(v=>v.uid===buildMode.movingId);if(b){b.x=x;b.y=y;b.rotation=buildMode.rotation}toast("Building moved",`${b?.name||d.name} has a new position.`)}else{
+    if(!buildMode)return;const d=activeBuildDef();if(!validBuildPosition(x,y,d,buildMode.movingId)){toast("Position blocked","Choose clear land you own, away from water, roads, fields, paddocks and placed items.");return}
+    if(buildMode.isDecor){if(!canAfford(d.price))return;record("cost","Landscaping",d.price,`Placed ${d.name}`);state.decorItems.push({id:uid("decor"),kind:d.kind,x:Math.round(x),y:Math.round(y),rotation:buildMode.rotation||0});toast(`${d.name} placed`,d.kind==="carpark"?"Nearby visitor businesses now receive a trade boost.":"The landscape has been updated.");addXp(8,"Estate landscaped")}
+    else if(buildMode.movingId){const b=state.buildings.find(v=>v.uid===buildMode.movingId);if(b){b.x=x;b.y=y;b.rotation=buildMode.rotation}toast("Building moved",`${b?.name||d.name} has a new position.`)}else{
       if(!canAfford(d.price))return;record("cost","Construction",d.price,`Built ${d.name}`);const b={uid:uid("b"),kind:d.kind,name:d.name,x,y,rotation:buildMode.rotation,level:1,starter:false};state.buildings.push(b);state.selectedBuilding=b.uid;state.stats.buildings+=1;state.reputation+=1;addXp(70,"Farmyard expanded");if(d.business||d.animal)completeObjective("build");toast("Construction complete",`${d.name} is now open.`)
     }
     buildMode=null;canvas.classList.remove("is-building");renderPanel(false);saveGame();
@@ -1977,7 +2186,7 @@ svg {
   function sellBuilding(id) {
     const b=state.buildings.find(x=>x.uid===id),d=buildingDef(b?.kind);if(!b||b.starter)return;
     if(d.animal&&(state.animals[d.animal]||0)>0){toast("Animals still housed","Sell or move the animals before removing this building.");return}
-    const value=Math.round(d.price*.45);state.buildings=state.buildings.filter(x=>x.uid!==id);state.selectedBuilding=null;record("income","Asset sales",value,`Removed ${b.name}`);toast("Building sold",`${money(value)} recovered.`);renderPanel();
+    const value=Math.round(d.price*.45);state.buildings=state.buildings.filter(x=>x.uid!==id);state.selectedBuilding=null;record("income","Asset sales",value,`Removed ${b.name}`);toast("Building sold",`${money(value)} recovered.`);renderPanel();saveGame();
   }
   function buyAnimals(type) {
     const a=ANIMALS[type],count=state.animals[type]||0;if(!a||count+a.batch>animalCapacity(type))return;const cost=a.cost*a.batch;if(!canAfford(cost))return;
@@ -2014,11 +2223,26 @@ svg {
     else if(a==="repair-equipment")repairEquipment(button.dataset.id);
     else if(a==="hire-worker")hireWorker(button.dataset.index);
     else if(a==="fire-worker")fireWorker(button.dataset.id);
-    else if(a==="select-build"){const d=buildingDef(button.dataset.kind);if(!canAfford(d.price,true)){canAfford(d.price);return}buildMode={kind:d.kind,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast("Placement mode",`Tap clear grass to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
+    else if(a==="start-draw"){buildMode=null;drawMode={type:button.dataset.type,points:[],style:"gravel",hover:null};state.ui.panel="build";canvas.classList.add("is-building");if(["land","demolish"].includes(drawMode.type))fitEstate();else{let tile=LAND_TILES.find(t=>t.id===state.selectedTile&&state.landTiles.includes(t.id))||LAND_TILES.find(t=>state.landTiles.includes(t.id));state.selectedTile=tile.id;focusTile(tile.id)}renderPanel(false);if(innerWidth<781)closePanel()}
+    else if(a==="draw-undo"){if(drawMode?.points.length)drawMode.points.pop();renderPanel()}
+    else if(a==="draw-finish")finishDrawing();
+    else if(a==="draw-cancel"){drawMode=null;canvas.classList.remove("is-building");renderPanel(false)}
+    else if(a==="road-style"){if(["road","road-edit"].includes(drawMode?.type))drawMode.style=button.dataset.style;renderPanel()}
+    else if(a==="edit-road")startRoadEdit(button.dataset.id);
+    else if(a==="road-add-node"){if(drawMode?.type==="road-edit"){drawMode.adding=!drawMode.adding;drawMode.selectedNode=null;renderPanel()}}
+    else if(a==="road-delete-node"){if(drawMode?.type==="road-edit"&&drawMode.selectedNode!==null&&drawMode.points.length>2){drawMode.points.splice(drawMode.selectedNode,1);drawMode.selectedNode=null;renderPanel()}}
+    else if(a==="save-road-edit")saveRoadEdit();
+    else if(a==="buy-land-tile")buyLandTile(button.dataset.id);
+    else if(a==="focus-tile")focusTile(button.dataset.id);
+    else if(a==="fit-estate")fitEstate();
+    else if(a==="remove-layout")removeLayout(button.dataset.kind,button.dataset.id);
+    else if(a==="focus-paddock"){const p=state.paddocks.find(x=>x.id===button.dataset.id);if(p){state.selectedPaddock=p.id;const c=centroid(p.poly);camera.x=c.x;camera.y=c.y;camera.zoom=Math.max(camera.zoom,.95)}renderPanel()}
+    else if(a==="select-build"){const d=buildingDef(button.dataset.kind);if(!canAfford(d.price,true)){canAfford(d.price);return}drawMode=null;buildMode={kind:d.kind,isDecor:false,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast("Placement mode",`Tap clear grass you own to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
+    else if(a==="select-decor"){const d=decorDef(button.dataset.kind);if(!d||!canAfford(d.price,true)){if(d)canAfford(d.price);return}drawMode=null;buildMode={kind:d.kind,isDecor:true,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast("Decoration placement",`Tap clear land you own to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
     else if(a==="cancel-build"){buildMode=null;canvas.classList.remove("is-building");renderPanel(false)}
     else if(a==="rotate-build"){if(buildMode)buildMode.rotation=(buildMode.rotation+90)%360;renderPanel()}
     else if(a==="select-building"){state.selectedBuilding=button.dataset.id;const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b){camera.x=b.x;camera.y=b.y;camera.zoom=Math.max(camera.zoom,1.15)}setPanel("build")}
-    else if(a==="move-building"){const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b){buildMode={kind:b.kind,rotation:b.rotation,movingId:b.uid,x:b.x,y:b.y,valid:true};canvas.classList.add("is-building");if(innerWidth<781)closePanel();renderPanel(false)}}
+    else if(a==="move-building"){const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b){buildMode={kind:b.kind,isDecor:false,rotation:b.rotation,movingId:b.uid,x:b.x,y:b.y,valid:true};canvas.classList.add("is-building");if(innerWidth<781)closePanel();renderPanel(false)}}
     else if(a==="rename-building"){const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b)openDialog({icon:"✎",title:"Rename building",body:"<p>Give this part of the farm its own character.</p>",input:{label:"Building name",value:b.name},primary:"Save name",secondary:"Cancel",onPrimary:value=>{if(!value)return false;b.name=value;renderPanel(false)}})}
     else if(a==="upgrade-building")upgradeBuilding(button.dataset.id);
     else if(a==="sell-building"){const b=state.buildings.find(x=>x.uid===button.dataset.id),d=buildingDef(b?.kind);if(b)openDialog({icon:"⌂",title:`Sell ${escapeHtml(b.name)}?`,body:`<p>The building will be removed and you will recover <b>${money(d.price*.45)}</b>.</p>`,primary:"Sell building",secondary:"Keep it",onPrimary:()=>sellBuilding(b.uid)})}
@@ -2031,16 +2255,16 @@ svg {
     else if(a==="rename-farm")openDialog({icon:"🌿",title:"Rename your farm",body:"<p>The new name appears across your management dashboard.</p>",input:{label:"Farm name",value:state.farmName},primary:"Save name",secondary:"Cancel",onPrimary:value=>{if(!value)return false;state.farmName=value;updateHud();renderPanel(false);saveGame()}})
     else if(a==="save-game")saveGame(true);
     else if(a==="show-intro")welcomeDialog();
-    else if(a==="reset-game")openDialog({icon:"↺",title:"Start the farm again?",body:"<p>This permanently clears your money, land, equipment, buildings, animals and statistics in this browser.</p>",primary:"Reset everything",secondary:"Keep my farm",onPrimary:()=>{localStorage.removeItem(SAVE_KEY);state=makeDefaultState();buildMode=null;generateContracts();resetView();renderPanel(false);updateHud();toast("New farm started","Bramblewick is back to its original state.")}});
+    else if(a==="reset-game")openDialog({icon:"↺",title:"Start the farm again?",body:"<p>This permanently clears your money, land, equipment, buildings, animals and statistics in this browser.</p>",primary:"Reset everything",secondary:"Keep my farm",onPrimary:()=>{localStorage.removeItem(SAVE_KEY);state=makeDefaultState();buildMode=null;drawMode=null;generateContracts();resetView();renderPanel(false);updateHud();toast("New farm started","Bramblewick is back to its original state.")}});
   });
   panelBody.addEventListener("change",event=>{
-    const target=event.target;if(target.dataset.action==="crop-select"){state.selectedCrop[target.dataset.field]=target.value;renderPanel()}
+    const target=event.target;if(target.dataset.action==="crop-select"){state.selectedCrop[target.dataset.field]=target.value;renderPanel()}else if(target.dataset.action==="paddock-animal"){const p=state.paddocks.find(x=>x.id===target.dataset.id);if(p){p.animal=target.value||null;p.condition=Math.max(65,p.condition??100);toast("Grazing group updated",p.animal?`${ANIMALS[p.animal].name} will now use ${p.name}.`:`${p.name} is now resting.`);renderPanel();saveGame()}}
   });
   panelBody.addEventListener("input",event=>{
     const target=event.target;if(target.dataset.action==="business-price"){const kind=target.dataset.kind;state.businessSettings[kind]=state.businessSettings[kind]||{};state.businessSettings[kind].price=Number(target.value)/100;const label=target.closest("label");if(label)label.childNodes[0].textContent=`Pricing · ${target.value}%`;}
   });
 
-  document.querySelectorAll(".nav-button").forEach(button=>button.addEventListener("click",()=>setPanel(button.dataset.panel)));
+  document.querySelectorAll(".nav-button").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.panel!=="build"&&(drawMode||buildMode)){drawMode=null;buildMode=null;canvas.classList.remove("is-building")}setPanel(button.dataset.panel)}));
   document.getElementById("panelClose").addEventListener("click",closePanel);
   document.getElementById("mobilePanelToggle").addEventListener("click",()=>panel.classList.contains("is-open")?closePanel():openPanel());
   document.getElementById("brandButton").addEventListener("click",()=>setPanel("settings"));
@@ -2048,10 +2272,9 @@ svg {
 
   const decor = (()=>{
     const rand=seeded(8842),grass=[],trees=[],flowers=[];
-    for(let i=0;i<850;i++){const x=rand()*WORLD.width,y=rand()*WORLD.height;if(!pointNearRiver(x,y))grass.push({x,y,r:.6+rand()*1.6,a:.05+rand()*.12})}
-    for(let i=0;i<190;i++){const x=1305+rand()*275,y=22+rand()*955;trees.push({x,y,r:7+rand()*8,t:rand()})}
-    for(let i=0;i<45;i++){const x=1210+rand()*100,y=40+rand()*900;trees.push({x,y,r:6+rand()*7,t:rand()})}
-    for(let i=0;i<110;i++){const x=rand()*1250,y=rand()*990;if(!FIELD_DEFS.some(f=>pointInPoly({x,y},f.poly))&&!pointNearRiver(x,y))flowers.push({x,y,c:rand()>.5?"#d7cf8b":"#d8b5a3"})}
+    for(let i=0;i<900;i++){const x=rand()*WORLD.width,y=rand()*WORLD.height;if(!isWater(x,y))grass.push({x,y,r:.6+rand()*1.6,a:.05+rand()*.12})}
+    let attempts=0;while(trees.length<225&&attempts<5000){attempts++;const x=18+rand()*(WORLD.width-36),y=18+rand()*(WORLD.height-36),r=6+rand()*7;if(isWater(x,y)||trees.some(t=>Math.hypot(t.x-x,t.y-y)<22+r))continue;const roll=rand(),kind=roll<.52?"oak":roll<.78?"birch":"pine";trees.push({x,y,r,t:rand(),kind})}
+    for(let i=0;i<150;i++){const x=rand()*WORLD.width,y=rand()*WORLD.height;if(!isWater(x,y))flowers.push({x,y,c:rand()>.5?"#d7cf8b":"#d8b5a3"})}
     return {grass,trees,flowers};
   })();
 
@@ -2061,12 +2284,12 @@ svg {
     if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvasSize={w,h,dpr};if(!camera.fitted)resetView()}
   }
   function resetView() {
-    camera.x=790;camera.y=505;const pad=25;camera.zoom=Math.min((canvasSize.w-pad*2)/WORLD.width,(canvasSize.h-pad*2)/WORLD.height)*1.06;if(canvasSize.w<600)camera.zoom=Math.max(camera.zoom,.58);camera.zoom=clamp(camera.zoom,.28,1.1);camera.fitted=true;
+    camera.x=WORLD.width/2;camera.y=WORLD.height/2;const pad=25;camera.zoom=Math.min((canvasSize.w-pad*2)/WORLD.width,(canvasSize.h-pad*2)/WORLD.height)*1.04;if(canvasSize.w<600)camera.zoom=Math.max(camera.zoom,.42);camera.zoom=clamp(camera.zoom,.28,1.1);camera.fitted=true;
   }
   function focusField(id) {const f=getField(id);if(!f)return;camera.x=f.center.x;camera.y=f.center.y;camera.zoom=clamp(Math.max(camera.zoom,1.05),.35,2.4)}
   function screenToWorld(sx,sy){return{x:(sx-canvasSize.w/2)/camera.zoom+camera.x,y:(sy-canvasSize.h/2)/camera.zoom+camera.y}}
   function worldToScreen(x,y){return{x:(x-camera.x)*camera.zoom+canvasSize.w/2,y:(y-camera.y)*camera.zoom+canvasSize.h/2}}
-  function zoomAt(factor,sx=canvasSize.w/2,sy=canvasSize.h/2){const before=screenToWorld(sx,sy);camera.zoom=clamp(camera.zoom*factor,.28,3);const after=screenToWorld(sx,sy);camera.x+=before.x-after.x;camera.y+=before.y-after.y;clampCamera()}
+  function zoomAt(factor,sx=canvasSize.w/2,sy=canvasSize.h/2){const before=screenToWorld(sx,sy);camera.zoom=clamp(camera.zoom*factor,.16,3);const after=screenToWorld(sx,sy);camera.x+=before.x-after.x;camera.y+=before.y-after.y;clampCamera()}
   function clampCamera(){const margin=220/camera.zoom;camera.x=clamp(camera.x,-margin,WORLD.width+margin);camera.y=clamp(camera.y,-margin,WORLD.height+margin)}
 
   function polyPath(poly) {ctx.beginPath();ctx.moveTo(poly[0][0],poly[0][1]);for(let i=1;i<poly.length;i++)ctx.lineTo(poly[i][0],poly[i][1]);ctx.closePath()}
@@ -2075,16 +2298,23 @@ svg {
     ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
     ROAD_NETWORK.forEach(road=>{traceLine(road.points);ctx.strokeStyle="#687064";ctx.lineWidth=road.width+7;ctx.stroke()});
     ROAD_NETWORK.forEach(road=>{traceLine(road.points);ctx.strokeStyle="#aaa99d";ctx.lineWidth=road.width;ctx.stroke()});
-    ctx.fillStyle="#aaa99d";[[54,520,10],[930,260,10],[930,545,11],[930,800,11],[675,545,9],[675,800,9]].forEach(j=>{ctx.beginPath();ctx.arc(j[0],j[1],j[2],0,Math.PI*2);ctx.fill()});
     ROAD_NETWORK.filter(road=>road.width>=18).forEach(road=>{traceLine(road.points);ctx.strokeStyle="rgba(239,229,195,.42)";ctx.lineWidth=1.3;ctx.setLineDash([18,18]);ctx.stroke()});
+    ctx.restore();
+  }
+  function waterRuns(points){const runs=[];for(let i=1;i<points.length;i++){const samples=sampleLine(points[i-1],points[i],3);let start=null,last=null;for(const p of samples){if(isWater(p[0],p[1])){if(!start)start=p;last=p}else if(start){runs.push([start,last]);start=null;last=null}}if(start)runs.push([start,last])}return runs}
+  function drawBridgeSegment(a,b,width){const length=Math.hypot(b[0]-a[0],b[1]-a[1]),angle=Math.atan2(b[1]-a[1],b[0]-a[0]);if(length<3)return;ctx.save();ctx.translate((a[0]+b[0])/2,(a[1]+b[1])/2);ctx.rotate(angle);ctx.fillStyle="#666a64";ctx.fillRect(-length/2-5,-width/2-4,length+10,width+8);ctx.fillStyle="#aaa99d";ctx.fillRect(-length/2-5,-width/2,length+10,width);ctx.strokeStyle="#e2d8bd";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-length/2-5,-width/2-2);ctx.lineTo(length/2+5,-width/2-2);ctx.moveTo(-length/2-5,width/2+2);ctx.lineTo(length/2+5,width/2+2);ctx.stroke();ctx.restore()}
+  function drawCustomRoads(){
+    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+    state.customRoads.filter(road=>road.id!==drawMode?.roadId).forEach(road=>{const s=ROAD_STYLES[road.style]||ROAD_STYLES.gravel;traceLine(road.points);ctx.strokeStyle=s.edge;ctx.lineWidth=s.width+6;ctx.stroke()});
+    state.customRoads.filter(road=>road.id!==drawMode?.roadId).forEach(road=>{const s=ROAD_STYLES[road.style]||ROAD_STYLES.gravel;traceLine(road.points);ctx.strokeStyle=s.colour;ctx.lineWidth=s.width;ctx.stroke();waterRuns(road.points).forEach(run=>drawBridgeSegment(run[0],run[1],s.width))});
     ctx.restore();
   }
   function drawTrack(points,width=11){ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.strokeStyle="#8c826d";ctx.lineWidth=width+3;ctx.stroke();ctx.strokeStyle="#b5aa91";ctx.lineWidth=width;ctx.stroke();ctx.restore()}
   function drawRiver(){
-    ctx.save();ctx.beginPath();ctx.moveTo(548,-20);ctx.bezierCurveTo(554,75,532,135,554,205);ctx.bezierCurveTo(574,270,548,340,559,420);ctx.bezierCurveTo(566,495,544,590,558,675);ctx.bezierCurveTo(572,770,550,882,566,1020);ctx.lineTo(655,1020);ctx.bezierCurveTo(636,890,657,782,640,682);ctx.bezierCurveTo(625,596,650,500,638,413);ctx.bezierCurveTo(630,340,654,265,626,198);ctx.bezierCurveTo(606,133,635,66,626,-20);ctx.closePath();ctx.fillStyle="#6c8d70";ctx.fill();
-    ctx.beginPath();ctx.moveTo(558,-20);ctx.bezierCurveTo(562,77,544,137,565,203);ctx.bezierCurveTo(586,270,559,344,570,419);ctx.bezierCurveTo(578,498,556,591,570,675);ctx.bezierCurveTo(585,773,562,881,578,1020);ctx.lineTo(642,1020);ctx.bezierCurveTo(624,890,646,782,629,684);ctx.bezierCurveTo(614,595,639,502,626,415);ctx.bezierCurveTo(619,340,643,269,615,202);ctx.bezierCurveTo(595,134,624,68,615,-20);ctx.closePath();ctx.fillStyle="#81b6c2";ctx.fill();
-    ctx.strokeStyle="rgba(211,241,239,.48)";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(581,-10);ctx.bezierCurveTo(578,160,602,243,587,404);ctx.bezierCurveTo(574,560,606,735,592,1010);ctx.stroke();ctx.restore();
-    ctx.save();ctx.beginPath();ctx.ellipse(620,45,112,92,-.05,0,Math.PI*2);ctx.fillStyle="#75abb9";ctx.fill();ctx.strokeStyle="#688e72";ctx.lineWidth=11;ctx.stroke();ctx.beginPath();ctx.ellipse(620,45,94,73,-.05,0,Math.PI*2);ctx.strokeStyle="rgba(208,239,238,.3)";ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    const path=extra=>{ctx.beginPath();for(let y=-25;y<=WORLD.height+25;y+=20){const x=riverCenterX(y)-riverHalfWidth(y)-extra;if(y===-25)ctx.moveTo(x,y);else ctx.lineTo(x,y)}for(let y=WORLD.height+25;y>=-25;y-=20)ctx.lineTo(riverCenterX(y)+riverHalfWidth(y)+extra,y);ctx.closePath()};
+    ctx.save();path(11);ctx.fillStyle="#657f66";ctx.fill();path(0);ctx.fillStyle="#7db3c0";ctx.fill();
+    ctx.strokeStyle="rgba(214,241,240,.38)";ctx.lineWidth=2.5;ctx.beginPath();for(let y=-10;y<=WORLD.height+10;y+=24){const x=riverCenterX(y)-9+Math.sin(y/75)*5;if(y===-10)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke();
+    ctx.restore();
   }
   function drawBridge(x1,x2,y){ctx.save();ctx.fillStyle="#686b64";ctx.fillRect(x1,y-13,x2-x1,26);ctx.fillStyle="#aaa99d";ctx.fillRect(x1,y-9,x2-x1,18);ctx.strokeStyle="#ded6bf";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x1,y-10);ctx.lineTo(x2,y-10);ctx.moveTo(x1,y+10);ctx.lineTo(x2,y+10);ctx.stroke();ctx.restore()}
 
@@ -2132,33 +2362,49 @@ svg {
     ctx.restore();
   }
   function drawFields() {
-    FIELD_DEFS.forEach(field=>{drawFieldTexture(field,visualFor(field));drawHedge(field)});
+    allFields().forEach(field=>{drawFieldTexture(field,visualFor(field));drawHedge(field)});
     state.tasks.filter(t=>t.status==="active"&&t.progress>0).forEach(drawWorkProgress);
-    FIELD_DEFS.forEach(field=>{
+    allFields().forEach(field=>{
       const selected=state.selectedField===field.id,hover=hovered?.type==="field"&&hovered.id===field.id;if(!selected&&!hover)return;
       ctx.save();polyPath(field.poly);ctx.strokeStyle=selected?"#f4f1cb":"rgba(255,255,255,.75)";ctx.lineWidth=selected?4:2.5;ctx.shadowColor="rgba(22,36,23,.35)";ctx.shadowBlur=8;ctx.stroke();ctx.restore();
       const c=field.center,fs=getFieldState(field.id),label=fs.owned?field.name:`${field.name} · ${money(field.price,true)}`;
       ctx.save();ctx.font="600 11px system-ui";const w=ctx.measureText(label).width+16;ctx.fillStyle="rgba(29,42,31,.84)";ctx.beginPath();ctx.roundRect(c.x-w/2,c.y-12,w,24,7);ctx.fill();ctx.fillStyle="#f8f8ed";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,c.x,c.y);ctx.restore();
     });
   }
+  function drawPaddocks(){
+    state.paddocks.forEach(p=>{
+      const selected=state.selectedPaddock===p.id;ctx.save();polyPath(p.poly);ctx.fillStyle=p.animal?"rgba(100,143,69,.28)":"rgba(132,151,91,.20)";ctx.fill();ctx.strokeStyle=selected?"#f5efc7":"#6d5b43";ctx.lineWidth=selected?3:2;ctx.setLineDash([]);ctx.stroke();
+      ctx.fillStyle="#6b5940";for(let i=0;i<p.poly.length;i++){const a=p.poly[i],b=p.poly[(i+1)%p.poly.length],len=Math.hypot(b[0]-a[0],b[1]-a[1]),posts=Math.max(1,Math.floor(len/18));for(let j=0;j<=posts;j++){const t=j/posts;ctx.beginPath();ctx.arc(lerp(a[0],b[0],t),lerp(a[1],b[1],t),1.8,0,Math.PI*2);ctx.fill()}}
+      const a=p.poly[0],b=p.poly[1];ctx.strokeStyle="#d5bf8f";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(lerp(a[0],b[0],.43),lerp(a[1],b[1],.43));ctx.lineTo(lerp(a[0],b[0],.57),lerp(a[1],b[1],.57));ctx.stroke();
+      if(selected){ctx.font="600 10px system-ui";ctx.fillStyle="rgba(29,42,31,.86)";const label=`${p.name}${p.animal?` · ${ANIMALS[p.animal].name}`:""}`,w=ctx.measureText(label).width+14,c=centroid(p.poly);ctx.beginPath();ctx.roundRect(c.x-w/2,c.y-10,w,20,6);ctx.fill();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,c.x,c.y)}ctx.restore();
+    })
+  }
+  function drawLandTiles(){
+    const design=state.ui.panel==="build"||Boolean(drawMode);ctx.save();ctx.font="600 12px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
+    LAND_TILES.forEach(t=>{const owned=state.landTiles.includes(t.id),selected=state.selectedTile===t.id&&drawMode?.type==="land";ctx.fillStyle=design?(owned?"rgba(104,148,78,.10)":"rgba(102,82,59,.13)"):owned?"rgba(224,239,199,.025)":"rgba(76,68,55,.035)";ctx.fillRect(t.x+2,t.y+2,t.w-4,t.h-4);ctx.strokeStyle=selected?"#f4d66b":design?(owned?"rgba(225,239,194,.78)":"rgba(69,64,52,.55)"):owned?"rgba(231,239,210,.28)":"rgba(65,68,58,.23)";ctx.lineWidth=selected?5:design?2:1;ctx.setLineDash(owned?[]:[11,8]);ctx.strokeRect(t.x+3,t.y+3,t.w-6,t.h-6);ctx.setLineDash([]);if(design){const label=owned?`${t.name} · owned`:`${t.name} · ${money(t.price,true)}`,w=ctx.measureText(label).width+18;ctx.fillStyle=owned?"rgba(49,78,47,.88)":"rgba(58,54,45,.82)";ctx.beginPath();ctx.roundRect(t.x+t.w/2-w/2,t.y+t.h/2-12,w,24,7);ctx.fill();ctx.fillStyle="#fff";ctx.fillText(label,t.x+t.w/2,t.y+t.h/2)}});ctx.restore();
+  }
+  function drawLayoutPreview(){
+    if(!drawMode||["land","demolish"].includes(drawMode.type)||!drawMode.points.length)return;const includeHover=drawMode.type!=="road-edit"&&drawMode.hover,points=includeHover?[...drawMode.points,[drawMode.hover.x,drawMode.hover.y]]:drawMode.points,style=ROAD_STYLES[drawMode.style]||ROAD_STYLES.gravel;ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
+    if(["road","road-edit"].includes(drawMode.type)){traceLine(points);ctx.strokeStyle="rgba(244,229,167,.9)";ctx.lineWidth=style.width+5;ctx.stroke();traceLine(points);ctx.strokeStyle=style.colour;ctx.lineWidth=style.width;ctx.stroke();waterRuns(points).forEach(run=>drawBridgeSegment(run[0],run[1],style.width))}
+    else if(drawMode.type==="hedge"){traceLine(points);ctx.strokeStyle="#3d5e3d";ctx.lineWidth=9;ctx.stroke();traceLine(points);ctx.strokeStyle="#78945f";ctx.lineWidth=4;ctx.stroke()}
+    else{ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);if(drawMode.points.length>=3)ctx.closePath();const bad=points.some(p=>!ownsLandAt(p[0],p[1])||isWater(p[0],p[1]));ctx.fillStyle=bad?"rgba(180,71,58,.2)":drawMode.type==="field"?"rgba(180,156,76,.28)":"rgba(102,155,75,.24)";ctx.fill();ctx.strokeStyle=bad?"#b54f45":"#f4e8a8";ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.stroke()}
+    ctx.setLineDash([]);drawMode.points.forEach((p,i)=>{const selected=drawMode.type==="road-edit"&&drawMode.selectedNode===i;ctx.fillStyle=selected?"#f3b94f":"#fff4c5";ctx.beginPath();ctx.arc(p[0],p[1],selected?7:i===0?6:4.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#475841";ctx.lineWidth=1.5;ctx.stroke()});ctx.restore();
+  }
 
   function drawTree(t) {
-    ctx.save();ctx.translate(t.x,t.y);ctx.fillStyle="rgba(30,42,27,.22)";ctx.beginPath();ctx.ellipse(4,6,t.r*.85,t.r*.58,.4,0,Math.PI*2);ctx.fill();ctx.fillStyle=t.t>.5?"#38563a":"#486642";ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();ctx.fillStyle=t.t>.5?"#526f48":"#607b50";ctx.beginPath();ctx.arc(-t.r*.25,-t.r*.25,t.r*.58,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(159,178,105,.28)";ctx.beginPath();ctx.arc(-t.r*.35,-t.r*.38,t.r*.25,0,Math.PI*2);ctx.fill();ctx.restore();
+    const kind=t.kind||"oak";ctx.save();ctx.translate(t.x,t.y);ctx.fillStyle="rgba(30,42,27,.20)";ctx.beginPath();ctx.ellipse(4,6,t.r*.85,t.r*.58,.4,0,Math.PI*2);ctx.fill();
+    if(kind==="pine"){ctx.fillStyle="#324f3c";for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(0,-t.r*(1.2-i*.35));ctx.lineTo(-t.r*(.78-i*.12),t.r*(.55+i*.12));ctx.lineTo(t.r*(.78-i*.12),t.r*(.55+i*.12));ctx.closePath();ctx.fill()}}
+    else{const dark=kind==="birch"?"#547052":t.t>.5?"#38563a":"#486642",light=kind==="birch"?"#78906a":t.t>.5?"#526f48":"#607b50";ctx.fillStyle=dark;ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();ctx.fillStyle=light;ctx.beginPath();ctx.arc(-t.r*.25,-t.r*.25,t.r*.58,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(170,190,125,.28)";ctx.beginPath();ctx.arc(-t.r*.35,-t.r*.38,t.r*.25,0,Math.PI*2);ctx.fill();if(kind==="birch"){ctx.fillStyle="#e2ded0";ctx.fillRect(-1.1,t.r*.5,2.2,t.r*.65)}}ctx.restore();
   }
+  function treeBlocked(t){const point={x:t.x,y:t.y};if(isWater(t.x,t.y)||allFields().some(f=>pointInPoly(point,f.poly))||state.paddocks.some(p=>pointInPoly(point,p.poly))||onRoad(t.x,t.y))return true;if(state.hedges.some(h=>h.points.some((p,i)=>i>0&&distanceToSegment(t.x,t.y,h.points[i-1][0],h.points[i-1][1],p[0],p[1])<12)))return true;if(state.buildings.some(b=>{const d=buildingDef(b.kind),r=buildRect(d,b.rotation||0,b.x,b.y);return t.x>r.x-12&&t.x<r.x+r.w+12&&t.y>r.y-12&&t.y<r.y+r.h+12}))return true;if(state.decorItems.some(item=>{const d=decorDef(item.kind),r=buildRect(d,item.rotation||0,item.x,item.y);return t.x>r.x-10&&t.x<r.x+r.w+10&&t.y>r.y-10&&t.y<r.y+r.h+10}))return true;return false}
+  function drawHedges(){ctx.save();ctx.lineCap="round";ctx.lineJoin="round";state.hedges.forEach((h,index)=>{traceLine(h.points);ctx.strokeStyle="#36583a";ctx.lineWidth=10;ctx.stroke();traceLine(h.points);ctx.strokeStyle="#718b58";ctx.lineWidth=5;ctx.stroke();const rand=seeded(7000+index*91);for(let i=1;i<h.points.length;i++){const a=h.points[i-1],b=h.points[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]),count=Math.floor(length/14);for(let j=0;j<=count;j++){const q=count?j/count:0;ctx.fillStyle=rand()>.5?"#56744a":"#6e8754";ctx.beginPath();ctx.arc(lerp(a[0],b[0],q),lerp(a[1],b[1],q),2.4+rand()*1.8,0,Math.PI*2);ctx.fill()}}});ctx.restore()}
+  function drawDecorItem(item){const d=decorDef(item.kind);if(!d)return;if(["oak","birch","pine"].includes(item.kind)){drawTree({x:item.x,y:item.y,r:item.kind==="oak"?13:item.kind==="birch"?10:12,t:.7,kind:item.kind});return}ctx.save();ctx.translate(item.x,item.y);ctx.rotate((item.rotation||0)*Math.PI/180);const w=d.w,h=d.h;if(item.kind==="carpark"){ctx.fillStyle="#666a66";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,4);ctx.fill();ctx.strokeStyle="#cfd0c7";ctx.lineWidth=1.3;for(let x=-w/2+12;x<w/2-3;x+=15){ctx.beginPath();ctx.moveTo(x,-h/2+5);ctx.lineTo(x,-4);ctx.moveTo(x,4);ctx.lineTo(x,h/2-5);ctx.stroke()}ctx.fillStyle="#87907f";ctx.fillRect(-w/2+4,-3,w-8,6)}else if(item.kind==="picnic"){ctx.fillStyle="#8c7554";for(const x of [-12,12]){ctx.fillRect(x-8,-2,16,4);ctx.fillRect(x-1,-9,2,18)}ctx.strokeStyle="#dde1d2";ctx.lineWidth=2;ctx.strokeRect(-w/2,-h/2,w,h)}else{ctx.strokeStyle="#705840";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(0,-h/2);ctx.stroke();ctx.fillStyle="#f0dfb6";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h*.65,2);ctx.fill();ctx.fillStyle="#426b45";ctx.fillRect(-w/2+3,-h/2+3,w-6,2)}ctx.restore()}
+  function drawDecorItems(){state.decorItems.forEach(drawDecorItem)}
   function drawLandscape() {
     const seasonColours=["#92a876","#8ca36a","#9c9a6a","#89937d"],base=seasonColours[state.time.season];ctx.fillStyle=base;ctx.fillRect(-80,-80,WORLD.width+160,WORLD.height+160);
     decor.grass.forEach(g=>{ctx.fillStyle=`rgba(42,73,40,${g.a})`;ctx.fillRect(g.x,g.y,g.r,g.r)});
     decor.flowers.forEach(f=>{ctx.fillStyle=f.c;ctx.globalAlpha=.5;ctx.fillRect(f.x,f.y,1.5,1.5)});ctx.globalAlpha=1;
-    drawRiver();drawRoadNetwork();
-    drawTrack([[805,392],[805,430],[805,480],[805,545],[675,570]]);
-    drawTrack([[805,480],[915,480],[930,545]]);
-    drawTrack([[650,260],[565,260],[528,280],[510,315]]);
-    drawBridge(535,658,545);drawBridge(536,659,260);drawBridge(535,655,800);
-    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#3b403b";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-20,818);ctx.lineTo(530,818);ctx.lineTo(930,820);ctx.lineTo(1320,820);ctx.stroke();ctx.strokeStyle="#b8ab8e";ctx.lineWidth=1.8;ctx.setLineDash([10,8]);ctx.stroke();ctx.restore();
-    drawFields();
-    ctx.save();ctx.fillStyle="#75866b";ctx.fillRect(1300,0,320,1000);ctx.restore();decor.trees.forEach(drawTree);
-    ctx.save();ctx.fillStyle="#9c9b8c";ctx.fillRect(1320,188,280,7);ctx.fillStyle="#6f746d";ctx.fillRect(1320,191,280,2);ctx.restore();
-    drawVillage();drawFarmBuildings();drawAnimals();drawVehicles();
+    drawRiver();decor.trees.filter(tree=>!treeBlocked(tree)).forEach(drawTree);drawRoadNetwork();drawCustomRoads();drawHedges();drawPaddocks();drawFields();drawDecorItems();drawFarmBuildings();drawAnimals();drawVehicles();drawLandTiles();drawLayoutPreview();
     if(buildMode)drawBuildGhost();
   }
   function drawVillage() {
@@ -2194,21 +2440,24 @@ svg {
     if(selected){ctx.save();ctx.font="600 10px system-ui";const width=ctx.measureText(b.name).width+14;ctx.fillStyle="rgba(29,42,31,.84)";ctx.beginPath();ctx.roundRect(b.x-width/2,b.y-s.h/2-29,width,20,6);ctx.fill();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(b.name,b.x,b.y-s.h/2-19);ctx.restore()}
   }
   function drawFarmBuildings(){state.buildings.forEach(drawBuilding)}
+  function randomPointInPolygon(poly,rand){const b=bounds(poly);for(let i=0;i<80;i++){const p={x:lerp(b.minX,b.maxX,rand()),y:lerp(b.minY,b.maxY,rand())};if(pointInPoly(p,poly)&&!isWater(p.x,p.y))return p}return centroid(poly)}
+  function drawAnimalSprite(type,x,y,angle){ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.fillStyle="rgba(39,47,35,.18)";ctx.beginPath();ctx.ellipse(2,3,type==="chickens"?3:5,type==="chickens"?2:3,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=type==="cows"?"#ece6d4":type==="pigs"?"#cb9385":type==="sheep"?"#e5e1d3":type==="chickens"?"#d7a75a":"#9c7840";ctx.beginPath();ctx.ellipse(0,0,type==="chickens"?2.5:4.5,type==="chickens"?1.8:3,0,0,Math.PI*2);ctx.fill();if(type==="cows"){ctx.fillStyle="#55483c";ctx.beginPath();ctx.arc(-1,-1,1.4,0,Math.PI*2);ctx.fill()}ctx.fillStyle="#574b3d";ctx.beginPath();ctx.arc(type==="chickens"?2.6:4.5,0,1.3,0,Math.PI*2);ctx.fill();ctx.restore()}
   function drawAnimals(){
-    Object.entries(ANIMALS).forEach(([type,a],ti)=>{const count=state.animals[type]||0;if(!count)return;const homes=state.buildings.filter(b=>buildingDef(b.kind)?.animal===type);if(!homes.length)return;const rand=seeded(920+ti*55);for(let i=0;i<Math.min(count,26);i++){const h=homes[i%homes.length],ang=rand()*Math.PI*2,dist=24+rand()*45,x=h.x+Math.cos(ang)*dist,y=h.y+Math.sin(ang)*dist;ctx.save();ctx.translate(x,y);ctx.rotate(rand()*Math.PI*2);ctx.fillStyle=type==="cows"?"#ece6d4":type==="pigs"?"#cb9385":type==="sheep"?"#e5e1d3":type==="chickens"?"#d7a75a":"#9c7840";ctx.beginPath();ctx.ellipse(0,0,type==="chickens"?2.5:4.5,type==="chickens"?1.8:3,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#574b3d";ctx.beginPath();ctx.arc(type==="chickens"?2.6:4.5,0,1.3,0,Math.PI*2);ctx.fill();ctx.restore()}})
+    const time=performance.now()/2400;
+    Object.entries(ANIMALS).forEach(([type,a],ti)=>{const count=state.animals[type]||0;if(!count)return;const paddocks=state.paddocks.filter(p=>p.animal===type),homes=state.buildings.filter(b=>buildingDef(b.kind)?.animal===type),rand=seeded(920+ti*55);
+      for(let i=0;i<Math.min(count,32);i++){
+        if(paddocks.length){const p=paddocks[i%paddocks.length],base=randomPointInPolygon(p.poly,rand),angle=time*.32+i*1.73,step=type==="chickens"?3:7,candidate={x:base.x+Math.sin(angle)*step,y:base.y+Math.cos(angle*.83)*step};if(!pointInPoly(candidate,p.poly)){candidate.x=base.x;candidate.y=base.y}drawAnimalSprite(type,candidate.x,candidate.y,angle)}
+        else if(homes.length){const h=homes[i%homes.length],ang=rand()*Math.PI*2,dist=24+rand()*45;drawAnimalSprite(type,h.x+Math.cos(ang)*dist,h.y+Math.sin(ang)*dist,ang)}
+      }
+    })
   }
-  function drawBuildGhost(){const d=buildingDef(buildMode.kind),valid=validBuildPosition(buildMode.x,buildMode.y,d,buildMode.movingId);buildMode.valid=valid;ctx.save();ctx.translate(buildMode.x,buildMode.y);ctx.rotate(buildMode.rotation*Math.PI/180);ctx.globalAlpha=.63;ctx.fillStyle=valid?"#d7efc8":"#e5a098";ctx.strokeStyle=valid?"#3d7740":"#9d3f37";ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.beginPath();ctx.roundRect(-d.w/2,-d.h/2,d.w,d.h,5);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#273328";ctx.font="600 10px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(valid?"Place":"Blocked",0,0);ctx.restore()}
+  function drawBuildGhost(){const d=activeBuildDef(),valid=validBuildPosition(buildMode.x,buildMode.y,d,buildMode.movingId);buildMode.valid=valid;ctx.save();ctx.translate(buildMode.x,buildMode.y);ctx.rotate(buildMode.rotation*Math.PI/180);ctx.globalAlpha=.63;ctx.fillStyle=valid?"#d7efc8":"#e5a098";ctx.strokeStyle=valid?"#3d7740":"#9d3f37";ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.beginPath();ctx.roundRect(-d.w/2,-d.h/2,d.w,d.h,5);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#273328";ctx.font="600 10px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(valid?"Place":"Blocked",0,0);ctx.restore()}
 
   function travelPath(field) {
     const c=field.center;
-    if(c.x<535){
-      if(c.y<430)return [[YARD.x,YARD.y],[930,480],[930,260],[650,260],[565,260],[510,315],[c.x,c.y]];
-      if(c.y<720)return [[YARD.x,YARD.y],[805,545],[625,545],[565,545],[c.x,c.y]];
-      return [[YARD.x,YARD.y],[805,545],[675,545],[675,800],[590,800],[c.x,c.y]];
-    }
-    if(c.y<390)return [[YARD.x,YARD.y],[930,480],[930,260],[c.x,c.y]];
-    if(c.y>790)return [[YARD.x,YARD.y],[930,545],[930,800],[c.x,c.y]];
-    return [[YARD.x,YARD.y],[930,520],[c.x,c.y]];
+    if(field.contract)return [[YARD.x,YARD.y],[800,650],[1030,650],[1210,650],[c.x,c.y]];
+    if(field.custom&&state.customRoads.length){const road=state.customRoads.reduce((best,r)=>{const a=r.points[0],b=r.points.at(-1),distance=Math.min(Math.hypot(c.x-a[0],c.y-a[1]),Math.hypot(c.x-b[0],c.y-b[1]));return !best||distance<best.distance?{road:r,distance}:best},null)?.road;if(road){let route=road.points.map(p=>[p[0],p[1]]),first=route[0],last=route.at(-1);if(Math.hypot(c.x-first[0],c.y-first[1])<Math.hypot(c.x-last[0],c.y-last[1]))route.reverse();const start=route[0],base=[[YARD.x,YARD.y],[800,650],[start[0],start[1]]];return base.concat(route.slice(1),[[c.x,c.y]])}}
+    return [[YARD.x,YARD.y],[560,650],[560,575],[c.x,c.y]];
   }
   function pointOnPath(points,t){const parts=[];let total=0;for(let i=0;i<points.length-1;i++){const len=Math.hypot(points[i+1][0]-points[i][0],points[i+1][1]-points[i][1]);parts.push(len);total+=len}let target=clamp(t,0,1)*total;for(let i=0;i<parts.length;i++){if(target<=parts[i]){const q=target/parts[i],a=points[i],b=points[i+1];return{x:lerp(a[0],b[0],q),y:lerp(a[1],b[1],q),angle:Math.atan2(b[1]-a[1],b[0]-a[0])}}target-=parts[i]}const a=points[points.length-2],b=points[points.length-1];return{x:b[0],y:b[1],angle:Math.atan2(b[1]-a[1],b[0]-a[0])}}
   function workPosition(field,p){const total=field.lanes.reduce((s,l)=>s+l.len,0);let target=clamp(p,0,1)*total;for(const l of field.lanes){if(target<=l.len){const t=target/l.len;return{x:lerp(l.x1,l.x2,t),y:l.y1,angle:Math.atan2(l.y2-l.y1,l.x2-l.x1)}}target-=l.len}const l=field.lanes[field.lanes.length-1];return{x:l.x2,y:l.y2,angle:Math.atan2(l.y2-l.y1,l.x2-l.x1)} }
@@ -2222,27 +2471,35 @@ svg {
     ctx.restore();
   }
   function drawVehicles(){state.tasks.filter(t=>t.status==="active").forEach(t=>drawVehicleShape(t,taskPosition(t)))}
+  function drawRain(){
+    const w=canvasSize.w,h=canvasSize.h,time=performance.now()/1000;ctx.save();const wash=ctx.createLinearGradient(0,0,0,h);wash.addColorStop(0,"rgba(44,58,64,.16)");wash.addColorStop(.55,"rgba(55,70,69,.07)");wash.addColorStop(1,"rgba(34,48,54,.12)");ctx.fillStyle=wash;ctx.fillRect(0,0,w,h);
+    const count=Math.min(150,Math.max(70,Math.round(w/7)));ctx.lineCap="round";
+    for(let i=0;i<count;i++){const layer=i%3,speed=310+layer*130,length=8+layer*6,cycle=h+120,xBase=((i*67.7)%(w+220))-80,y=((i*43.3+time*speed)%cycle)-60,x=(xBase+time*(55+layer*18))%(w+180)-40;ctx.strokeStyle=`rgba(222,239,242,${.18+layer*.10})`;ctx.lineWidth=.65+layer*.35;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-length*.45,y+length);ctx.stroke()}
+    for(let i=0;i<22;i++){const phase=(time*1.9+i*.173)%1,x=(i*83.7+31)%w,y=h*.32+((i*57.1)%Math.max(1,h*.64));if(phase<.38){const p=phase/.38;ctx.strokeStyle=`rgba(218,237,239,${(1-p)*.28})`;ctx.lineWidth=.8;ctx.beginPath();ctx.ellipse(x,y,2+p*7,.7+p*2,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-1);ctx.lineTo(x-2-p*2,y-5-p*4);ctx.moveTo(x,y-1);ctx.lineTo(x+2+p*2,y-5-p*4);ctx.stroke()}}
+    ctx.restore();
+  }
 
   function drawMap() {
     resizeCanvas();ctx.setTransform(canvasSize.dpr,0,0,canvasSize.dpr,0,0);ctx.clearRect(0,0,canvasSize.w,canvasSize.h);ctx.save();ctx.translate(canvasSize.w/2,canvasSize.h/2);ctx.scale(camera.zoom,camera.zoom);ctx.translate(-camera.x,-camera.y);drawLandscape();ctx.restore();
-    const darkness=state.time.hour<5?.4:state.time.hour<7?(7-state.time.hour)*.11:state.time.hour>21?.34:state.time.hour>19?(state.time.hour-19)*.1:0;if(darkness){ctx.fillStyle=`rgba(26,38,55,${darkness})`;ctx.fillRect(0,0,canvasSize.w,canvasSize.h)}
-    if(state.weather==="rain"){ctx.save();ctx.strokeStyle="rgba(220,235,238,.32)";ctx.lineWidth=1;const offset=(performance.now()/18)%26;for(let x=-canvasSize.h;x<canvasSize.w+canvasSize.h;x+=24){ctx.beginPath();ctx.moveTo(x+offset,0);ctx.lineTo(x-canvasSize.h*.45+offset,canvasSize.h);ctx.stroke()}ctx.restore()}
+    const darkness=state.time.hour<5 ? .4 : state.time.hour<7 ? (7-state.time.hour)*.11 : state.time.hour>21 ? .34 : state.time.hour>19 ? (state.time.hour-19)*.1 : 0;if(darkness){ctx.fillStyle=`rgba(26,38,55,${darkness})`;ctx.fillRect(0,0,canvasSize.w,canvasSize.h)}
+    if(state.weather==="rain")drawRain();
   }
 
   const pointers=new Map();let gesture={dragging:false,moved:false,startX:0,startY:0,lastX:0,lastY:0,pinchDist:0,pinchZoom:0};
   function pointerPos(event){const r=canvas.getBoundingClientRect();return{x:event.clientX-r.left,y:event.clientY-r.top}}
   function hitTest(world){
     for(let i=state.buildings.length-1;i>=0;i--){const b=state.buildings[i],d=buildingDef(b.kind),s=buildingSize(b,d);if(world.x>b.x-s.w/2-5&&world.x<b.x+s.w/2+5&&world.y>b.y-s.h/2-5&&world.y<b.y+s.h/2+5)return{type:"building",id:b.uid}}
-    for(const f of FIELD_DEFS)if(pointInPoly(world,f.poly))return{type:"field",id:f.id};return null;
+    for(const f of allFields())if(pointInPoly(world,f.poly))return{type:"field",id:f.id};for(const p of state.paddocks)if(pointInPoly(world,p.poly))return{type:"paddock",id:p.id};return null;
   }
-  function handleMapClick(screen){const world=screenToWorld(screen.x,screen.y);if(buildMode){buildMode.x=world.x;buildMode.y=world.y;placeBuilding(world.x,world.y);return}const hit=hitTest(world);if(hit?.type==="field"){state.selectedField=hit.id;setPanel("fields");if(innerWidth<781)openPanel()}else if(hit?.type==="building"){state.selectedBuilding=hit.id;setPanel("build");if(innerWidth<781)openPanel()} }
+  function handleMapClick(screen){const world=screenToWorld(screen.x,screen.y);if(buildMode){buildMode.x=world.x;buildMode.y=world.y;placeBuilding(world.x,world.y);return}if(drawMode){if(drawMode.type==="land"){const tile=tileAt(world.x,world.y);if(tile){state.selectedTile=tile.id;renderPanel();focusTile(tile.id)}}else if(drawMode.type==="demolish")smartDemolishAt(world);else if(drawMode.type==="road-edit")handleRoadEditPoint(world.x,world.y);else addDrawPoint(world.x,world.y);return}const hit=hitTest(world);if(hit?.type==="field"){state.selectedField=hit.id;setPanel("fields");if(innerWidth<781)openPanel()}else if(hit?.type==="building"){state.selectedBuilding=hit.id;setPanel("build");if(innerWidth<781)openPanel()}else if(hit?.type==="paddock"){state.selectedPaddock=hit.id;setPanel("ventures");if(innerWidth<781)openPanel()} }
   canvas.addEventListener("pointerdown",event=>{const p=pointerPos(event);pointers.set(event.pointerId,p);canvas.setPointerCapture(event.pointerId);if(pointers.size===1){gesture={dragging:true,moved:false,startX:p.x,startY:p.y,lastX:p.x,lastY:p.y,pinchDist:0,pinchZoom:camera.zoom};canvas.classList.add("is-dragging")}else{gesture.moved=true}});
   canvas.addEventListener("pointermove",event=>{
     const p=pointerPos(event);if(pointers.has(event.pointerId))pointers.set(event.pointerId,p);
     if(buildMode){const w=screenToWorld(p.x,p.y);buildMode.x=w.x;buildMode.y=w.y}
+    if(drawMode&&drawMode.type!=="land"){const w=screenToWorld(p.x,p.y);drawMode.hover=w}
     if(pointers.size>1)return;
     if(pointers.size===1&&gesture.dragging){const dx=p.x-gesture.lastX,dy=p.y-gesture.lastY;if(Math.hypot(p.x-gesture.startX,p.y-gesture.startY)>5)gesture.moved=true;if(gesture.moved&&!buildMode){camera.x-=dx/camera.zoom;camera.y-=dy/camera.zoom;clampCamera()}gesture.lastX=p.x;gesture.lastY=p.y}
-    if(event.pointerType==="mouse"&&!gesture.dragging){const w=screenToWorld(p.x,p.y);hovered=hitTest(w);const card=document.getElementById("hoverCard");if(hovered){let title,sub;if(hovered.type==="field"){const f=getField(hovered.id),fs=getFieldState(f.id);title=f.name;sub=fs.owned?`${f.area} ha · ${stageLabel(fs)}`:`${f.area} ha · ${money(f.price)}`}else{const b=state.buildings.find(x=>x.uid===hovered.id);title=b.name;sub=`${buildingDef(b.kind).name} · level ${b.level}`}card.innerHTML=`<strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub)}</span>`;card.hidden=false;card.style.left=Math.min(canvasSize.w-190,p.x+14)+"px";card.style.top=Math.min(canvasSize.h-60,p.y+14)+"px"}else card.hidden=true}
+    if(event.pointerType==="mouse"&&!gesture.dragging){const w=screenToWorld(p.x,p.y);hovered=hitTest(w);const card=document.getElementById("hoverCard");if(hovered){let title,sub;if(hovered.type==="field"){const f=getField(hovered.id),fs=getFieldState(f.id);title=f.name;sub=fs.owned?`${f.area} ha · ${stageLabel(fs)}`:`${f.area} ha · ${money(f.price)}`}else if(hovered.type==="building"){const b=state.buildings.find(x=>x.uid===hovered.id);title=b.name;sub=`${buildingDef(b.kind).name} · level ${b.level}`}else{const pd=state.paddocks.find(x=>x.id===hovered.id);title=pd.name;sub=`${pd.area} ha · ${pd.animal?ANIMALS[pd.animal].name:"unassigned paddock"}`}card.innerHTML=`<strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub)}</span>`;card.hidden=false;card.style.left=Math.min(canvasSize.w-190,p.x+14)+"px";card.style.top=Math.min(canvasSize.h-60,p.y+14)+"px"}else card.hidden=true}
   });
   function endPointer(event){const p=pointerPos(event),wasOnly=pointers.size===1;pointers.delete(event.pointerId);if(wasOnly&&gesture.dragging&&!gesture.moved)handleMapClick(p);if(pointers.size===0){gesture.dragging=false;canvas.classList.remove("is-dragging")}else if(pointers.size===1){const remain=[...pointers.values()][0];gesture.lastX=remain.x;gesture.lastY=remain.y;gesture.startX=remain.x;gesture.startY=remain.y;gesture.moved=true}}
   canvas.addEventListener("pointerup",endPointer);canvas.addEventListener("pointercancel",endPointer);
@@ -2258,7 +2515,7 @@ svg {
     document.getElementById("seasonLabel").textContent=`${SEASONS[state.time.season]} · Day ${state.time.day}`;const hh=Math.floor(state.time.hour),mm=Math.floor((state.time.hour-hh)*60);document.getElementById("timeLabel").textContent=String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
     const w=WEATHER[state.weather];document.getElementById("weatherIcon").textContent=w.icon;document.getElementById("weatherLabel").textContent=w.name;document.getElementById("weatherPill").setAttribute("aria-label",`Current weather: ${w.name}`);
     document.querySelectorAll("[data-speed]").forEach(b=>b.classList.toggle("is-active",Number(b.dataset.speed)===state.speed));
-    const status=document.getElementById("mapStatus"),harvestHold=state.weather==="rain"&&state.tasks.some(t=>t.status==="active"&&t.operation==="harvest"&&t.phase==="working"),mobile=innerWidth<=780;status.classList.toggle("is-paused",!state.speed||harvestHold);document.getElementById("mapStatusText").textContent=mobile?(!state.speed?"Paused":harvestHold?"Weather hold":activeTasks().length?`${activeTasks().length} job${activeTasks().length===1?"":"s"}`:"Farm live"):(!state.speed?"Simulation paused":harvestHold?"Harvest paused by rain":activeTasks().length?`${activeTasks().length} live job${activeTasks().length===1?"":"s"}`:"Farm running in real time");
+    const status=document.getElementById("mapStatus"),harvestHold=state.weather==="rain"&&state.tasks.some(t=>t.status==="active"&&t.operation==="harvest"&&t.phase==="working"),mobile=innerWidth<=780,designText=buildMode?`Placing ${buildMode.isDecor?"décor":"building"}`:drawMode?({land:"Choose land",road:"Drawing road",field:"Drawing field",paddock:"Drawing paddock",hedge:"Drawing hedge",demolish:"Tap to demolish","road-edit":"Editing road nodes"}[drawMode.type]):null;status.classList.toggle("is-paused",!state.speed||harvestHold);document.getElementById("mapStatusText").textContent=designText||(mobile?(!state.speed?"Paused":harvestHold?"Weather hold":activeTasks().length?`${activeTasks().length} job${activeTasks().length===1?"":"s"}`:"Farm live"):(!state.speed?"Simulation paused":harvestHold?"Harvest paused by rain":activeTasks().length?`${activeTasks().length} live job${activeTasks().length===1?"":"s"}`:"Farm running in real time"));
     document.getElementById("forecastStrip").innerHTML=[state.weather,...state.forecast.slice(0,2)].map((key,i)=>`<div class="forecast-day"><span>${i===0?"Now":`+${i} day${i===1?"":"s"}`}</span><strong>${WEATHER[key].icon} ${WEATHER[key].name}</strong></div>`).join("");
   }
 
