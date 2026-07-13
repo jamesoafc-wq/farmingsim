@@ -733,11 +733,8 @@ svg {
       <button class="nav-button" type="button" data-panel="staff" aria-label="Staff">
         <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M14 15c4-1 7 1 7 5"/></svg><span>Staff</span>
       </button>
-      <button class="nav-button" type="button" data-panel="build" aria-label="Build and customise">
-        <svg viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-5 6 5v11M9 13h6M12 10v6"/></svg><span>Build</span>
-      </button>
-      <button class="nav-button" type="button" data-panel="ventures" aria-label="Animals and rural ventures">
-        <svg viewBox="0 0 24 24"><path d="M5 18c-2-2-2-7 2-8l2-3 3 2h4c4 0 5 3 4 7l-2 3H8Z"/><path d="M7 18v2m10-2v2M18 10l2-2"/></svg><span>Ventures</span>
+      <button class="nav-button" type="button" data-panel="estate" aria-label="Estate design, businesses and livestock">
+        <svg viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-5 6 5v11M9 13h6M12 10v6"/><path d="M3 7h4M17 7h4"/></svg><span>Estate</span>
       </button>
       <button class="nav-button" type="button" data-panel="trade" aria-label="Crop market">
         <svg viewBox="0 0 24 24"><path d="M5 20V9m7 11V4m7 16v-7"/><path d="m3 8 4-3 5 3 6-5 3 2"/></svg><span>Market</span>
@@ -973,6 +970,10 @@ svg {
   .segmented { display: flex; gap: 3px; padding: 3px; background: #ebeae3; border-radius: 9px; }
   .segmented button { flex: 1; padding: 5px 7px; border: 0; border-radius: 7px; background: transparent; color: var(--ink-soft); font-size: 9px; cursor: pointer; }
   .segmented button.is-active { color: #fff; background: var(--green); }
+  .estate-tabs { margin-bottom: 11px; }
+  .estate-tabs button { min-height: 34px; font-size: 10px; font-weight: 700; }
+  .estate-subtabs { margin: -3px 0 13px; background: #f2f1eb; }
+  .estate-subtabs button { min-height: 31px; }
   .notice { padding: 10px 11px; color: #526057; background: #edf1e9; border-left: 3px solid #77916f; border-radius: 8px; font-size: 10px; }
   .notice.gold { color: #755c31; background: #f7edd7; border-color: var(--gold); }
   .notice.red { color: #7f483f; background: #f6e4df; border-color: var(--red); }
@@ -1057,7 +1058,7 @@ svg {
     .game-main { height: calc(100dvh - 62px - var(--safe-top)); display: block; }
     .map-shell { width: 100%; height: 100%; }
     .game-nav { position: fixed; z-index: 18; left: max(10px,var(--safe-left)); right: max(10px,var(--safe-right)); bottom: calc(var(--safe-bottom) + 12px); height: 58px; flex-direction: row; gap: 2px; padding: 4px; overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; touch-action: pan-x; border: 1px solid rgba(255,255,255,.32); border-radius: 14px; background: rgba(246,246,240,.96); box-shadow: 0 8px 24px rgba(27,38,29,.22); backdrop-filter: blur(11px); }
-    .nav-button { min-width: 52px; min-height: 48px; flex: 1 0 52px; padding: 4px 3px; border-radius: 10px; }
+    .nav-button { min-width: 0; min-height: 48px; flex: 1 1 0; padding: 4px 1px; border-radius: 10px; }
     .nav-button svg { width: 19px; height: 19px; }
     .nav-button span { font-size: 8px; }
     .side-panel { position: fixed; z-index: 17; left: max(8px,var(--safe-left)); right: max(8px,var(--safe-right)); bottom: calc(var(--safe-bottom) + 80px); height: min(64%, 560px); border: 1px solid rgba(70,78,69,.15); border-radius: 17px; box-shadow: 0 18px 50px rgba(23,33,25,.29); transform: translateY(calc(100% + 120px)); transition: transform .28s ease; }
@@ -1167,6 +1168,8 @@ svg {
   ];
 
   const BUILDING_CATALOG = [
+    { kind: "equipmentbay", category: "Farmyard modules", name: "Open Equipment Bay", icon: "▱", price: 12500, unlock: 1, w: 58, h: 34, upkeep: 8, wearReduction: .08, detail: "Covered modular bay · trims machinery wear" },
+    { kind: "bulkstore", category: "Farmyard modules", name: "Bulk Store Extension", icon: "▤", price: 14800, unlock: 2, w: 56, h: 36, capacity: 45, upkeep: 10, detail: "+45t storage in a compact yard module" },
     { kind: "silo", category: "Farm", name: "Grain Silo", icon: "◉", price: 28000, unlock: 2, w: 38, h: 38, capacity: 120, upkeep: 22, detail: "+120t crop storage" },
     { kind: "shed", category: "Farm", name: "Machinery Shed", icon: "▰", price: 22000, unlock: 1, w: 76, h: 46, upkeep: 18, detail: "Reduces fleet wear" },
     { kind: "workshop", category: "Farm", name: "Workshop", icon: "⚒", price: 42000, unlock: 3, w: 62, h: 48, upkeep: 28, detail: "Repairs cost 40% less" },
@@ -1255,6 +1258,11 @@ svg {
   terrainAtlasImage.src = EMBEDDED_TERRAIN_ATLAS;
   hedgeAtlasImage.src = EMBEDDED_HEDGE_ATLAS;
   const DECOR_CATALOG = [
+    { kind:"concreteyard", group:"yard", surface:true, name:"Concrete Yard Slab", icon:"▦", price:4200, w:112, h:76, detail:"Overlap slabs to shape a hard-standing yard" },
+    { kind:"gravelyard", group:"yard", surface:true, name:"Gravel Yard Apron", icon:"▧", price:2600, w:112, h:76, detail:"A softer textured surface beneath roads and buildings" },
+    { kind:"loadingbay", group:"yard", roadFriendly:true, name:"Loading Bay", icon:"⇥", price:5800, w:58, h:24, detail:"Nearby retail ventures gain a 6% delivery boost" },
+    { kind:"fuelpoint", group:"yard", name:"Farm Fuel Point", icon:"◍", price:9200, w:34, h:24, detail:"Reduces field-operation costs by 6%" },
+    { kind:"yardgate", group:"yard", roadFriendly:true, name:"Yard Entrance Gate", icon:"╫", price:950, w:38, h:12, detail:"Rotatable gateway for road and yard entrances" },
     { kind:"oak", name:"English Oak", icon:"♣", price:260, w:24, h:24, detail:"A broad native shade tree" },
     { kind:"birch", name:"Silver Birch", icon:"♧", price:190, w:18, h:18, detail:"A light ornamental tree" },
     { kind:"pine", name:"Scots Pine", icon:"▲", price:220, w:20, h:20, detail:"Evergreen shelter and structure" },
@@ -1312,13 +1320,15 @@ svg {
     if(k==="greenhouse")return thumbFrame(`<g transform="translate(11 11)"><rect x="0" y="4" width="74" height="38" rx="4" fill="#a8d1c7" opacity=".72" stroke="#5d8179" stroke-width="2"/><path d="M0 15h74M0 29h74M13 4v38M27 4v38M41 4v38M55 4v38M69 4v38" stroke="#e4f1e8"/><path d="M7 11v25M21 11v25M35 11v25M49 11v25M63 11v25" stroke="#58835a" stroke-width="2"/></g>`,"building");
     if(k==="solar")return thumbFrame(`<g transform="translate(10 10)"><rect width="76" height="42" rx="4" fill="#867a64"/><g fill="#3f6471" stroke="#91adb2">${[0,1,2].map(row=>[0,1,2,3].map(col=>`<rect x="${5+col*17}" y="${4+row*12}" width="14" height="9"/>`).join("")).join("")}</g><rect x="70" y="14" width="6" height="15" fill="#d6cbb3"/></g>`,"building");
     if(k==="apiary")return thumbFrame(`<g transform="translate(10 12)">${[[8,8,"#d7b75d"],[30,4,"#d58b4e"],[53,10,"#c5b865"],[20,27,"#d5c46e"],[48,28,"#c98c4d"]].map(h=>`<g transform="translate(${h[0]} ${h[1]})"><rect width="20" height="13" rx="2" fill="${h[2]}"/><path d="M2 4h16M2 9h16" stroke="#735d3c"/><rect x="8" y="11" width="4" height="3" fill="#3e443b"/></g>`).join("")}</g>`,"building");
-    const palettes={farmhouse:["#d9c8a5","#925544"],shed:["#b5aa91","#58675f"],workshop:["#b98566","#4d5b56"],dryer:["#aaa892","#6b6659"],farmshop:["#e0d2ae","#657b50"],cafe:["#e2cfaa","#b3694e"],pub:["#ceb990","#694239"],coop:["#c9ad80","#a15a3e"],sheepfold:["#b8ad91","#736752"],cowshed:["#b9a47f","#8c4e3e"],piggery:["#c5a985","#95604d"]};
+    const palettes={farmhouse:["#d9c8a5","#925544"],shed:["#b5aa91","#58675f"],equipmentbay:["#aca38d","#55635c"],bulkstore:["#baa987","#725846"],workshop:["#b98566","#4d5b56"],dryer:["#aaa892","#6b6659"],farmshop:["#e0d2ae","#657b50"],cafe:["#e2cfaa","#b3694e"],pub:["#ceb990","#694239"],coop:["#c9ad80","#a15a3e"],sheepfold:["#b8ad91","#736752"],cowshed:["#b9a47f","#8c4e3e"],piggery:["#c5a985","#95604d"]};
     const [wall,roof]=palettes[k]||["#d4c7a7","#765144"];
     let extras=`<rect x="19" y="31" width="8" height="10" fill="#51483c"/><rect x="58" y="27" width="7" height="7" fill="${glass}"/>`;
     if(k==="farmshop")extras=`<path d="M17 37h56v6H17z" fill="#efe0ad"/><path d="M17 37h7v6h-7m14-6h7v6h-7m14-6h7v6h-7m14-6h7v6h-7" fill="#71885c"/><rect x="27" y="45" width="10" height="6" fill="#a46e43"/><circle cx="32" cy="44" r="2" fill="#709050"/>`;
     else if(k==="cafe")extras=`${[22,45,68].map(x=>`<circle cx="${x}" cy="47" r="5" fill="#d7c19d" stroke="#725b42"/><circle cx="${x}" cy="47" r="1.5" fill="#725b42"/>`).join("")}<rect x="33" y="29" width="26" height="8" fill="${glass}"/>`;
     else if(k==="pub")extras=`<rect x="15" y="17" width="7" height="14" fill="#6b5140"/><rect x="14" y="14" width="9" height="4" fill="#a68b6c"/><rect x="28" y="31" width="8" height="10" fill="#473d34"/><rect x="67" y="28" width="9" height="8" fill="${lit}"/><path d="M80 30v14" stroke="#68523d" stroke-width="2"/><rect x="76" y="30" width="9" height="7" rx="2" fill="#dbc26f"/>`;
     else if(k==="shed")extras=`<rect x="17" y="31" width="20" height="13" fill="#464e49"/><path d="M20 34h14M20 38h14M46 17v27M55 17v27M64 17v27" stroke="#8d998f"/>`;
+    else if(k==="equipmentbay")extras=`<rect x="15" y="28" width="62" height="17" fill="#3e4843"/><path d="M17 31h58M28 28v17M48 28v17M67 28v17" stroke="#a9b1a8"/><circle cx="37" cy="41" r="5" fill="#2c322e"/><circle cx="59" cy="41" r="5" fill="#2c322e"/><path d="M34 39h28l-4-8H42z" fill="#b6573f"/>`;
+    else if(k==="bulkstore")extras=`<rect x="18" y="29" width="58" height="16" fill="#55483b"/><path d="M21 32h52M21 37h52M21 42h52M34 29v16M52 29v16M68 29v16" stroke="#b79a64"/><circle cx="73" cy="20" r="7" fill="#9c8e71" stroke="#e0d6bc"/>`;
     else if(k==="workshop")extras=`<rect x="18" y="31" width="18" height="12" fill="#444c48"/><rect x="44" y="31" width="18" height="12" fill="#444c48"/><path d="M20 35h14M20 39h14M46 35h14M46 39h14" stroke="#aeb7ae"/><circle cx="73" cy="42" r="6" fill="#303631"/><circle cx="73" cy="42" r="2" fill="#a2a79d"/>`;
     else if(k==="dryer")extras=`<circle cx="69" cy="39" r="9" fill="#656b64"/><circle cx="69" cy="39" r="5" fill="#aeb0a7"/><path d="M69 34v10M64 39h10" stroke="#666b64"/>`;
     else if(k==="coop")extras=`<path d="M24 39h20v8H24z" fill="#8a6041"/><path d="M44 43l12 7" stroke="#9a7650" stroke-width="3"/><path d="M57 29h22v20H57M64 29v20M71 29v20M57 36h22M57 43h22" stroke="#806b4b" fill="none"/>`;
@@ -1331,6 +1341,10 @@ svg {
     if(["oak","birch","pine"].includes(d.kind)){
       const pine=d.kind==="pine",birch=d.kind==="birch";return thumbFrame(`<g transform="translate(48 30)"><ellipse cx="5" cy="21" rx="22" ry="6" fill="#33452f" opacity=".18"/><rect x="-2" y="10" width="4" height="20" fill="${birch?"#e3ddcf":"#72563e"}"/>${pine?`<path d="M0-23L-18 14h36zM0-13L-22 20h44z" fill="#385941"/>`:`<circle r="20" fill="${birch?"#688461":"#436a43"}"/><circle cx="-7" cy="-7" r="11" fill="${birch?"#86a174":"#638253"}"/><circle cx="8" cy="3" r="9" fill="#52764a"/>`}</g>`,"decor");
     }
+    if(d.kind==="concreteyard"||d.kind==="gravelyard")return thumbFrame(`<g transform="translate(7 9)"><rect width="82" height="44" rx="5" fill="${d.kind==="concreteyard"?"#9b9c93":"#a89d83"}" stroke="#6f746c" stroke-width="2"/>${d.kind==="concreteyard"?`<path d="M41 0v44M0 22h82" stroke="#7f8279"/><g fill="#d4d1c2" opacity=".55"><circle cx="15" cy="12" r="1"/><circle cx="60" cy="31" r="1"/><circle cx="72" cy="9" r="1"/></g>`:`<g fill="#d1c4a4" opacity=".65">${[[11,9],[23,27],[38,12],[53,34],[70,18],[76,37],[8,36],[47,24]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2"/>`).join("")}</g>`}</g>`,"decor");
+    if(d.kind==="loadingbay")return thumbFrame(`<g transform="translate(8 16)"><rect width="80" height="30" rx="4" fill="#666c68"/><path d="M8 27l13-13M23 29l13-15M38 29l13-15M53 29l13-15" stroke="#d9c263" stroke-width="3"/><rect x="7" y="5" width="18" height="12" fill="#9a7147"/><rect x="29" y="6" width="14" height="11" fill="#b28a58"/><path d="M72 4v22" stroke="#e4dfca" stroke-width="2"/></g>`,"decor");
+    if(d.kind==="fuelpoint")return thumbFrame(`<g transform="translate(18 10)"><rect width="60" height="42" rx="5" fill="#92958b"/><ellipse cx="26" cy="21" rx="18" ry="12" fill="#576d59" stroke="#d9dbce" stroke-width="2"/><rect x="43" y="10" width="10" height="23" rx="2" fill="#46544d"/><rect x="45" y="13" width="6" height="6" fill="#e4d67b"/><path d="M48 24q12 3 6 13" fill="none" stroke="#303a35" stroke-width="2"/></g>`,"decor");
+    if(d.kind==="yardgate")return thumbFrame(`<g transform="translate(8 17)" stroke="#806c50" stroke-width="4"><path d="M2 0v31M78 0v31M6 5h68v20H6zM7 6l66 18M24 5v20M44 5v20M63 5v20" fill="none"/></g>`,"decor");
     if(d.kind==="carpark")return thumbFrame(`<g transform="translate(7 9)"><rect width="82" height="44" rx="4" fill="#666b67"/><path d="M12 4v14M27 4v14M42 4v14M57 4v14M72 4v14M12 40V26M27 40V26M42 40V26M57 40V26M72 40V26" stroke="#d7d8ce"/><rect x="4" y="19" width="74" height="6" fill="#858f82"/><g fill="#b75b45"><rect x="14" y="7" width="11" height="7" rx="2"/><rect x="50" y="29" width="11" height="7" rx="2"/></g></g>`,"decor");
     if(d.kind==="picnic")return thumbFrame(`<g transform="translate(10 10)"><rect width="76" height="42" rx="9" fill="#7fa065" opacity=".55"/>${[21,55].map(x=>`<g transform="translate(${x} 21)" fill="#8a6847"><rect x="-12" y="-3" width="24" height="6" rx="2"/><rect x="-10" y="-9" width="20" height="3"/><rect x="-10" y="6" width="20" height="3"/><rect x="-2" y="-10" width="4" height="20"/></g>`).join("")}<circle cx="68" cy="7" r="3" fill="#5b7653"/></g>`,"decor");
     return thumbFrame(`<g transform="translate(31 8)"><rect x="15" y="28" width="4" height="22" fill="#6e553e"/><rect x="3" y="5" width="29" height="27" rx="3" fill="#efe1b9" stroke="#6e553e" stroke-width="2"/><path d="M8 12h19M8 18h14M8 24h18" stroke="#47704a" stroke-width="3"/><path d="M34 4l9 6-9 6z" fill="#b86147"/></g>`,"decor");
@@ -1433,7 +1447,7 @@ svg {
       stats: { hectares: 0, harvests: 0, soldTonnes: 0, contracts: 0, buildings: 0 },
       objectives: { harvest: false, plant: false, build: false },
       selectedField: 9, selectedBuilding: null, selectedPaddock: null, selectedTile: "tile-c", selectedCrop: { 9: "barley" },
-      ui: { panel: "overview", fleetTab: "owned", financeRange: 7 },
+      ui: { panel: "overview", fleetTab: "owned", financeRange: 7, estateTab: "design", estateSection: "layout" },
       tutorialSeen: false, lastSave: Date.now()
     };
   }
@@ -1502,6 +1516,8 @@ svg {
     merged.objectives = Object.assign(fresh.objectives, raw.objectives || {});
     merged.selectedCrop = Object.assign(fresh.selectedCrop, raw.selectedCrop || {});
     merged.ui = Object.assign(fresh.ui, raw.ui || {});
+    if(merged.ui.panel==="build"){merged.ui.panel="estate";merged.ui.estateTab="design"}
+    if(merged.ui.panel==="ventures"){merged.ui.panel="estate";merged.ui.estateTab="businesses"}
     merged.businessSettings = raw.businessSettings || {};
     merged.staffAutomation = { rules:Object.assign({},mapDefaults.staffAutomation.rules,raw.staffAutomation?.rules||{}), log:Array.isArray(raw.staffAutomation?.log)?raw.staffAutomation.log.slice(-30):[] };
     merged.localEconomy = Object.assign({},mapDefaults.localEconomy,raw.localEconomy||{});
@@ -1604,9 +1620,9 @@ svg {
     const rep = .82 + Math.min(50, state.reputation) * .012;
     const price = Number(setting.price || 1);
     const demand = clamp(1.55 - price * .55, .68, 1.1);
-    const parking=building&&state.decorItems.some(item=>item.kind==="carpark"&&Math.hypot(item.x-building.x,item.y-building.y)<155)?1.12:1;
+    const parking=building&&state.decorItems.some(item=>item.kind==="carpark"&&Math.hypot(item.x-building.x,item.y-building.y)<155)?1.12:1,loading=building&&["farmshop","cafe","pub"].includes(kind)&&state.decorItems.some(item=>item.kind==="loadingbay"&&Math.hypot(item.x-building.x,item.y-building.y)<135)?1.06:1;
     const local=state.localEconomy||{},visitor=["farmshop","cafe","pub"].includes(kind)?clamp((local.visitorIndex||100)/100,.72,1.38):1,sector=local.businessDemand?.[kind]||1,competition=1/Math.max(.82,local.competition||1);
-    return retail * rep * price * demand * parking * visitor * sector * competition * eventBusinessBoost(kind);
+    return retail * rep * price * demand * parking * loading * visitor * sector * competition * eventBusinessBoost(kind);
   }
   function hasSpecialist(skill) { return state.workers.some(w => w.skill === skill); }
 
@@ -1706,13 +1722,14 @@ svg {
   }
 
   function jobCost(field, operation, cropKey, contractor) {
+    const yardFuel=state.decorItems.some(item=>item.kind==="fuelpoint") ? .94 : 1;
     if (contractor) {
       const rates = { cultivate: 235, plant: 285, fertilize: 105, harvest: 330 };
-      return Math.round(field.area * rates[operation] + 450);
+      return Math.round((field.area * rates[operation] + 450)*yardFuel);
     }
     let cost = field.area * ({ cultivate: 22, plant: 18, fertilize: 64, harvest: 31 }[operation] || 20);
     if (operation === "plant" && cropKey) cost += field.area * CROPS[cropKey].seedCost;
-    return Math.round(cost);
+    return Math.round(cost*yardFuel);
   }
 
   function requiredKit(operation, cropKey) {
@@ -1798,6 +1815,7 @@ svg {
     return (implement?.rate || 2) * (tractor?.rate || 1) * (worker?.effect || 1);
   }
 
+  function equipmentWearMultiplier(){const shed=state.buildings.some(b=>b.kind==="shed") ? .78 : 1,bays=Math.min(3,state.buildings.filter(b=>b.kind==="equipmentbay").length),mechanic=state.workers.some(w=>w.role==="Mechanic") ? .88 : 1;return Math.max(.58,shed-bays*.08)*mechanic}
   function finishFieldWork(task) {
     if (task.workFinished) return;
     task.workFinished = true;
@@ -1838,7 +1856,7 @@ svg {
       fs.stage = "stubble"; fs.crop = null; fs.growth = 0; fs.fertilized = 0;
     }
     if (!task.contractor) {
-      task.equipmentIds.forEach(id => { const item = state.equipment.find(e => e.uid === id); if (item) { item.hours += field.area / Math.max(.5, taskRate(task)); item.condition = clamp(item.condition - field.area * .12, 0, 100); } });
+      const wear=equipmentWearMultiplier();task.equipmentIds.forEach(id => { const item = state.equipment.find(e => e.uid === id); if (item) { item.hours += field.area / Math.max(.5, taskRate(task)); item.condition = clamp(item.condition - field.area * .12*wear, 0, 100); } });
     }
     toast(OP_PAST[task.operation], `${field.name} is ready for its next step.`);
   }
@@ -2170,7 +2188,7 @@ svg {
       }else{
         const count=drawMode.points.length,estimate=drawEstimate(),linear=["road","hedge"].includes(drawMode.type),styles=drawMode.type==="road"?`<div class="segmented" style="margin:10px 0">${Object.entries(ROAD_STYLES).map(([key,s])=>`<button data-action="road-style" data-style="${key}" class="${drawMode.style===key?"is-active":""}">${s.name}</button>`).join("")}</div>`:"";
         const prompt=drawMode.type==="road"?"Tap along the route":drawMode.type==="hedge"?"Tap along the hedge line":`Tap each corner of the ${drawMode.type}`;
-        const explanation=drawMode.type==="road"?"Crossing the river creates a bridge. New points gently snap only when they are very close to an existing road node.":drawMode.type==="hedge"?"Hedges may follow field edges and automatically clear generated trees.":drawMode.type==="field"?`Large fields cost progressively more to develop. Every part must be within ${FIELD_ROAD_ACCESS}m of a road, so create access first.`:"The completed boundary must stay on owned dry land and clear of roads and other plots.";
+        const explanation=drawMode.type==="road"?"Crossing the river creates a bridge. New points gently snap only when very close to a road node; at mixed junctions the wider road receives the finished surface.":drawMode.type==="hedge"?"Hedges may follow field edges and automatically clear generated trees.":drawMode.type==="field"?`Large fields cost progressively more to develop. Every part must be within ${FIELD_ROAD_ACCESS}m of a road, so create access first.`:"The completed boundary must stay on owned dry land and clear of roads and other plots.";
         detail=`<div class="notice gold"><b>${prompt}</b><br>${explanation}${styles}<div class="meta-row"><span>Points <b>${count}</b></span><span>Estimate <b>${money(estimate)}</b></span></div><div class="card-actions"><button class="button secondary" data-action="draw-undo" ${count?"":"disabled"}>Undo point</button><button class="button primary" data-action="draw-finish" ${count<(linear?2:3)?"disabled":""}>Finish</button><button class="button danger" data-action="draw-cancel">Cancel</button></div></div>`;
       }
       return `${stats}${detail}<div class="card-actions" style="margin-top:10px"><button class="button ghost wide" data-action="fit-estate">View whole estate</button>${drawMode.type==="land"?`<button class="button danger wide" data-action="draw-cancel">Exit land mode</button>`:""}</div>`;
@@ -2179,30 +2197,40 @@ svg {
     const layoutList=`<section class="section"><div class="section-head"><h3>Estate tools</h3><small>Build the map yourself</small></div><div class="card-list">${layoutItems.map(([type,icon,name,detail])=>`<div class="manage-card"><div class="card-top"><div class="card-title">${layoutThumbnail(type)}<div class="card-copy"><strong>${name}</strong><span>${detail}</span></div></div></div><div class="card-actions"><button class="button primary wide" data-action="start-draw" data-type="${type}">Open tool</button></div></div>`).join("")}</div></section>`;
     const hasCreated=state.customFields.length||state.customRoads.length||state.paddocks.length||state.hedges.length||state.decorItems.length;
     const created=hasCreated?`<section class="section"><div class="section-head"><h3>Your created layout</h3><small>Everything can be revised</small></div><div class="card-list">${state.customFields.map(f=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${escapeHtml(f.name)}</strong><span>${number(f.area,1)} ha crop field</span></div><span class="tag">Field</span></div><div class="card-actions"><button class="button ghost" data-action="focus-field" data-field="${f.id}">View</button><button class="button danger" data-action="remove-layout" data-kind="field" data-id="${f.id}">Remove</button></div></div>`).join("")}${state.paddocks.map(p=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${escapeHtml(p.name)}</strong><span>${number(p.area,1)} ha · ${p.animal?ANIMALS[p.animal].name:"unassigned"}</span></div><span class="tag">Paddock</span></div><div class="card-actions"><button class="button ghost" data-action="focus-paddock" data-id="${p.id}">View</button><button class="button danger" data-action="remove-layout" data-kind="paddock" data-id="${p.id}">Remove</button></div></div>`).join("")}${state.customRoads.map((r,i)=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${ROAD_STYLES[r.style]?.name||"Road"} ${i+1}</strong><span>${r.points.length} editable control points</span></div><span class="tag gray">Road</span></div><div class="card-actions"><button class="button secondary" data-action="edit-road" data-id="${r.id}">Edit nodes</button><button class="button danger" data-action="remove-layout" data-kind="road" data-id="${r.id}">Demolish</button></div></div>`).join("")}${state.hedges.map((h,i)=>`<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>Hedge ${i+1}</strong><span>${h.points.length} control points</span></div><span class="tag gray">Décor</span></div><div class="card-actions"><button class="button danger" data-action="remove-layout" data-kind="hedge" data-id="${h.id}">Remove</button></div></div>`).join("")}${state.decorItems.map(item=>{const d=decorDef(item.kind);return `<div class="manage-card"><div class="card-top"><div class="card-copy"><strong>${escapeHtml(d?.name||"Décor")}</strong><span>Placed decoration</span></div><span class="tag gray">Décor</span></div><div class="card-actions"><button class="button danger" data-action="remove-layout" data-kind="decor" data-id="${item.id}">Remove</button></div></div>`}).join("")}</div></section>`:"";
-    const decorSection=`<section class="section"><div class="section-head"><h3>Décor and visitor areas</h3><small>Trees, parking and details</small></div><div class="card-list">${DECOR_CATALOG.map(d=>`<div class="manage-card"><div class="card-top"><div class="card-title">${decorThumbnail(d)}<div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag">${money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-decor" data-kind="${d.kind}">Place · ${money(d.price)}</button></div></div>`).join("")}</div></section>`;
+    const decorCards=items=>items.map(d=>`<div class="manage-card"><div class="card-top"><div class="card-title">${decorThumbnail(d)}<div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag">${money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-decor" data-kind="${d.kind}">Place · ${money(d.price)}</button></div></div>`).join("");
+    const buildingCards=items=>items.map(d=>{const locked=currentLevel()<d.unlock;return `<div class="manage-card ${locked?"is-muted":""}"><div class="card-top"><div class="card-title">${buildingThumbnail(d)}<div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag ${locked?"gray":""}">${locked?`Level ${d.unlock}`:money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-build" data-kind="${d.kind}" ${locked?"disabled":""}>${locked?"Locked":`Place · ${money(d.price)}`}</button></div></div>`}).join("");
+    const yardDecor=DECOR_CATALOG.filter(d=>d.group==="yard"),landscapeDecor=DECOR_CATALOG.filter(d=>d.group!=="yard"),yardBuildings=BUILDING_CATALOG.filter(d=>d.category==="Farmyard modules");
+    const yardSection=`<div class="notice" style="margin-bottom:13px">Lay overlapping yard surfaces first, then add covered bays, bulk storage, gates, fuel and loading details. Roads remain visible above surfaces and buildings can be placed directly on them.</div><section class="section"><div class="section-head"><h3>Yard surfaces and fittings</h3><small>Modular pieces</small></div><div class="card-list">${decorCards(yardDecor)}</div></section><section class="section"><div class="section-head"><h3>Yard extensions</h3><small>Functional structures</small></div><div class="card-list">${buildingCards(yardBuildings)}</div></section>`;
+    const decorSection=`<section class="section"><div class="section-head"><h3>Décor and visitor areas</h3><small>Trees, parking and details</small></div><div class="card-list">${decorCards(landscapeDecor)}</div></section>`;
+    const buildingSections=categories.filter(cat=>cat!=="Farmyard modules").map(cat=>`<section class="section"><div class="section-head"><h3>${cat}</h3></div><div class="card-list">${buildingCards(BUILDING_CATALOG.filter(d=>d.category===cat))}</div></section>`).join("");
     const intro=`<div class="notice" style="margin-bottom:13px">Only the centre plot, starter field, farmhouse and access road are inherited. Purchase the surrounding squares and create every other road, boundary, building and landscape detail yourself.</div>`;
-    return `${stats}${intro}${selectedBuildingCard()}${layoutList}${created}${decorSection}${categories.map(cat=>`<section class="section"><div class="section-head"><h3>${cat}</h3></div><div class="card-list">${BUILDING_CATALOG.filter(d=>d.category===cat).map(d=>{const locked=currentLevel()<d.unlock;return `<div class="manage-card ${locked?"is-muted":""}"><div class="card-top"><div class="card-title">${buildingThumbnail(d)}<div class="card-copy"><strong>${escapeHtml(d.name)}</strong><span>${escapeHtml(d.detail)}</span></div></div><span class="tag ${locked?"gray":""}">${locked?`Level ${d.unlock}`:money(d.price)}</span></div><div class="card-actions"><button class="button primary wide" data-action="select-build" data-kind="${d.kind}" ${locked?"disabled":""}>${locked?"Locked":`Place · ${money(d.price)}`}</button></div></div>`}).join("")}</div></section>`).join("")}`;
+    const section=state.ui.estateSection||"layout",body=section==="yard"?yardSection:section==="buildings"?buildingSections:section==="decor"?decorSection:`${layoutList}${created}`;
+    return `${stats}${intro}${selectedBuildingCard()}${body}`;
   }
 
-  function renderVentures() {
+  function renderVentures(mode="businesses") {
     panelEyebrow.textContent = "Diversified income"; panelTitle.textContent = "Animals and ventures";
     const ventures = state.buildings.filter(b => buildingDef(b.kind)?.business);
     const livestockRevenue = Object.entries(ANIMALS).reduce((s,[k,a])=>s+(state.animals[k]||0)*(a.revenue*eventAnimalBoost()-a.feed),0);
     const ventureEstimate = ventures.reduce((s,b)=>{const d=buildingDef(b.kind);return s+d.business.revenue*d.business.margin*(b.level||1)*businessMultiplier(b.kind,b)},0);
     const ventureHtml = ventures.length ? ventures.map(b=>{
       const d=buildingDef(b.kind), setting=state.businessSettings[b.kind]||{price:1}, upgrade=Math.round(d.price*(.55+b.level*.25));
-      const parked=state.decorItems.some(item=>item.kind==="carpark"&&Math.hypot(item.x-b.x,item.y-b.y)<155);
-      return `<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(b.name)}</strong><span>Level ${b.level} · about ${money(d.business.revenue*d.business.margin*b.level*businessMultiplier(b.kind,b))} net/day${parked?" · car park boost":""}</span></div></div><span class="tag">Open</span></div>${["farmshop","cafe","pub"].includes(b.kind)?`<label class="input-label" style="margin-top:10px">Pricing · ${Math.round(Number(setting.price||1)*100)}%<input type="range" min="80" max="130" value="${Math.round(Number(setting.price||1)*100)}" data-action="business-price" data-kind="${b.kind}"></label>`:""}<div class="card-actions"><button class="button primary" data-action="upgrade-building" data-id="${b.uid}">Upgrade · ${money(upgrade)}</button><button class="button ghost" data-action="select-building" data-id="${b.uid}">Find on map</button></div></div>`;
+      const parked=state.decorItems.some(item=>item.kind==="carpark"&&Math.hypot(item.x-b.x,item.y-b.y)<155),loaded=state.decorItems.some(item=>item.kind==="loadingbay"&&Math.hypot(item.x-b.x,item.y-b.y)<135);
+      return `<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${d.icon}</span><div class="card-copy"><strong>${escapeHtml(b.name)}</strong><span>Level ${b.level} · about ${money(d.business.revenue*d.business.margin*b.level*businessMultiplier(b.kind,b))} net/day${parked?" · car park boost":""}${loaded?" · loading boost":""}</span></div></div><span class="tag">Open</span></div>${["farmshop","cafe","pub"].includes(b.kind)?`<label class="input-label" style="margin-top:10px">Pricing · ${Math.round(Number(setting.price||1)*100)}%<input type="range" min="80" max="130" value="${Math.round(Number(setting.price||1)*100)}" data-action="business-price" data-kind="${b.kind}"></label>`:""}<div class="card-actions"><button class="button primary" data-action="upgrade-building" data-id="${b.uid}">Upgrade · ${money(upgrade)}</button><button class="button ghost" data-action="select-building" data-id="${b.uid}">Find on map</button></div></div>`;
     }).join("") : `<div class="empty-state">Build a farm shop, café, pub, glasshouse or energy project to add reliable daily income.</div>`;
     const animalHtml = Object.entries(ANIMALS).map(([key,a])=>{
       const count=state.animals[key]||0, cap=animalCapacity(key), graze=grazingCapacity(key), health=state.animalHealth[key]??100, canBuy=cap-count>=a.batch, cost=a.cost*a.batch;
       return `<div class="manage-card ${cap===0?"is-muted":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${a.icon}</span><div class="card-copy"><strong>${escapeHtml(a.name)}</strong><span>${count} / ${cap} ${a.unit} · health ${Math.round(health)}%</span></div></div><span class="tag ${cap===0?"gray":health<70?"red":""}">${cap===0?"Needs housing":money(a.cost)+" each"}</span></div><div class="progress" style="--progress:${health}%"><span></span></div><div class="meta-row"><span>Grazing <b>${key==="bees"?"Apiary":`${Math.min(count,graze)} / ${count} covered`}</b></span><span>Est. net <b>${money((a.revenue-a.feed*(1-Math.min(1,graze/Math.max(1,count))*.35))*count)}</b></span></div><div class="card-actions"><button class="button primary" data-action="buy-animal" data-type="${key}" ${!canBuy?"disabled":""}>Buy ${a.batch} · ${money(cost)}</button><button class="button secondary" data-action="sell-animal" data-type="${key}" ${count<a.batch?"disabled":""}>Sell ${a.batch}</button>${cap===0?`<button class="button ghost" data-action="goto-panel" data-panel="build">Build ${escapeHtml(buildingDef(a.building).name)}</button>`:""}</div></div>`;
     }).join("");
     const paddockHtml=state.paddocks.length?state.paddocks.map(p=>{const options=`<option value="">Unassigned</option>${["chickens","sheep","cows","pigs"].map(key=>`<option value="${key}" ${p.animal===key?"selected":""}>${ANIMALS[key].name}</option>`).join("")}`,cap=p.animal?paddockCapacity(p,p.animal):0;return `<div class="manage-card ${state.selectedPaddock===p.id?"is-selected":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">□</span><div class="card-copy"><strong>${escapeHtml(p.name)}</strong><span>${number(p.area,1)} ha · pasture ${Math.round(p.condition??100)}%</span></div></div><span class="tag">${p.animal?`${cap} capacity`:"Empty"}</span></div><div class="progress" style="--progress:${p.condition??100}%"><span></span></div><label class="input-label" style="margin-top:9px">Grazing group<select data-action="paddock-animal" data-id="${p.id}">${options}</select></label><div class="card-actions"><button class="button ghost" data-action="focus-paddock" data-id="${p.id}">View paddock</button></div></div>`}).join(""):`<div class="empty-state">Draw a paddock in Estate Designer to give animals visible grazing space, lower feed costs and improve health.</div>`;
-    return `<div class="summary-grid"><div class="summary-card"><span>Ventures</span><strong>${ventures.length}</strong><small>open businesses</small></div><div class="summary-card"><span>Business net</span><strong>${money(ventureEstimate,true)}</strong><small>estimated/day</small></div><div class="summary-card"><span>Animal net</span><strong>${money(livestockRevenue,true)}</strong><small>estimated/day</small></div></div>${activeEventDef()?`<div class="notice gold" style="margin-bottom:13px"><b>${activeEventDef().icon} ${escapeHtml(activeEventDef().name)} trading</b><br>${escapeHtml(activeEventDef().effect)}</div>`:""}
-      <section class="section"><div class="section-head"><h3>Rural businesses</h3><button class="text-button" data-action="goto-panel" data-panel="build">Add venture</button></div><div class="card-list">${ventureHtml}</div></section>
-      <section class="section"><div class="section-head"><h3>Grazing paddocks</h3><button class="text-button" data-action="start-draw" data-type="paddock">Draw paddock</button></div><div class="card-list">${paddockHtml}</div></section>
-      <section class="section"><div class="section-head"><h3>Livestock</h3><small>Income and feed post daily</small></div><div class="card-list">${animalHtml}</div></section>`;
+    const eventNotice=activeEventDef()?`<div class="notice gold" style="margin-bottom:13px"><b>${activeEventDef().icon} ${escapeHtml(activeEventDef().name)} trading</b><br>${escapeHtml(activeEventDef().effect)}</div>`:"";
+    if(mode==="livestock")return `<div class="summary-grid"><div class="summary-card"><span>Animals</span><strong>${Object.values(state.animals).reduce((s,v)=>s+v,0)}</strong><small>across the estate</small></div><div class="summary-card"><span>Paddocks</span><strong>${state.paddocks.length}</strong><small>grazing areas</small></div><div class="summary-card"><span>Animal net</span><strong>${money(livestockRevenue,true)}</strong><small>estimated/day</small></div></div>${eventNotice}<section class="section"><div class="section-head"><h3>Grazing paddocks</h3><button class="text-button" data-action="start-draw" data-type="paddock">Draw paddock</button></div><div class="card-list">${paddockHtml}</div></section><section class="section"><div class="section-head"><h3>Livestock</h3><small>Income and feed post daily</small></div><div class="card-list">${animalHtml}</div></section>`;
+    return `<div class="summary-grid"><div class="summary-card"><span>Ventures</span><strong>${ventures.length}</strong><small>open businesses</small></div><div class="summary-card"><span>Business net</span><strong>${money(ventureEstimate,true)}</strong><small>estimated/day</small></div><div class="summary-card"><span>Visitors</span><strong>${Math.round(state.localEconomy?.visitorIndex||100)}%</strong><small>county footfall</small></div></div>${eventNotice}<section class="section"><div class="section-head"><h3>Rural businesses</h3><button class="text-button" data-action="estate-jump-design" data-section="buildings">Add venture</button></div><div class="card-list">${ventureHtml}</div></section>`;
+  }
+
+  function renderEstate(){
+    if(buildMode||drawMode)state.ui.estateTab="design";const tab=state.ui.estateTab||"design",tabs=`<div class="segmented estate-tabs" role="tablist" aria-label="Estate workspace"><button data-action="estate-tab" data-tab="design" class="${tab==="design"?"is-active":""}">Design</button><button data-action="estate-tab" data-tab="businesses" class="${tab==="businesses"?"is-active":""}">Businesses</button><button data-action="estate-tab" data-tab="livestock" class="${tab==="livestock"?"is-active":""}">Livestock</button></div>`;
+    let content,subtabs="";if(tab==="design"){const section=state.ui.estateSection||"layout";subtabs=!buildMode&&!drawMode?`<div class="segmented estate-subtabs" role="tablist" aria-label="Estate design category">${[["layout","Land & roads"],["yard","Farmyard"],["buildings","Buildings"],["decor","Décor"]].map(([key,label])=>`<button data-action="estate-section" data-section="${key}" class="${section===key?"is-active":""}">${label}</button>`).join("")}</div>`:"";content=renderBuild();panelEyebrow.textContent="Estate workspace"}else{content=renderVentures(tab);panelEyebrow.textContent="Estate workspace";panelTitle.textContent=tab==="businesses"?"Businesses and visitors":"Livestock and grazing"}return `${tabs}${subtabs}${content}`;
   }
 
   function renderTrade() {
@@ -2267,7 +2295,7 @@ svg {
 
   function renderPanel(preserveScroll = true) {
     const scroll = preserveScroll ? panelBody.scrollTop : 0;
-    const renderers = { overview:renderOverview, fields:renderFields, fleet:renderFleet, staff:renderStaff, build:renderBuild, ventures:renderVentures, trade:renderTrade, finance:renderFinance, contracts:renderContracts, settings:renderSettings };
+    const renderers = { overview:renderOverview, fields:renderFields, fleet:renderFleet, staff:renderStaff, estate:renderEstate, build:renderEstate, ventures:renderEstate, trade:renderTrade, finance:renderFinance, contracts:renderContracts, settings:renderSettings };
     const fn=renderers[state.ui.panel]||renderOverview;
     panelBody.innerHTML=fn();
     if(preserveScroll) panelBody.scrollTop=scroll;
@@ -2277,7 +2305,7 @@ svg {
   function requestPanelRefresh() { panelDirty=true; }
   function openPanel() { panel.classList.add("is-open"); document.getElementById("mobilePanelToggle").textContent="Management open"; }
   function closePanel() { panel.classList.remove("is-open"); document.getElementById("mobilePanelToggle").textContent="Open management"; }
-  function setPanel(name, open = true) { state.ui.panel=name; if(open)openPanel(); renderPanel(false); }
+  function setPanel(name, open = true) {if(name==="build"){name="estate";state.ui.estateTab="design"}else if(name==="ventures"){name="estate";state.ui.estateTab="businesses"}state.ui.panel=name;if(open)openPanel();renderPanel(false)}
 
   function pathLength(points){let total=0;for(let i=1;i<points.length;i++)total+=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);return total}
   function waterLength(points){let total=0;for(let i=1;i<points.length;i++){const samples=sampleLine(points[i-1],points[i],3);for(let j=1;j<samples.length;j++)if(isWater(samples[j][0],samples[j][1]))total+=Math.hypot(samples[j][0]-samples[j-1][0],samples[j][1]-samples[j-1][1])}return total}
@@ -2421,18 +2449,18 @@ svg {
     return roads.some(road=>road.points.some((p,i)=>i>0&&distanceToSegment(x,y,road.points[i-1][0],road.points[i-1][1],p[0],p[1])<road.width/2+8));
   }
   function validBuildPosition(x,y,def,ignoreId=null) {
-    const r=buildRect(def,buildMode?.rotation||0,x,y);if(r.x<20||r.y<20||r.x+r.w>WORLD.width-20||r.y+r.h>WORLD.height-20)return false;
+    const r=buildRect(def,buildMode?.rotation||0,x,y),surface=Boolean(def.surface);if(r.x<20||r.y<20||r.x+r.w>WORLD.width-20||r.y+r.h>WORLD.height-20)return false;
     const corners=[[r.x,r.y],[r.x+r.w,r.y],[r.x+r.w,r.y+r.h],[r.x,r.y+r.h],[r.x+r.w/2,r.y],[r.x+r.w/2,r.y+r.h],[r.x,r.y+r.h/2],[r.x+r.w,r.y+r.h/2],[r.x+r.w/2,r.y+r.h/2]].map(p=>({x:p[0],y:p[1]}));
     if(corners.some(p=>!ownsLandAt(p.x,p.y)))return false;
-    if(corners.some(p=>isWater(p.x,p.y)||onRoad(p.x,p.y)||allFields().some(f=>pointInPoly(p,f.poly))||state.paddocks.some(pd=>pointInPoly(p,pd.poly))))return false;
-    if(state.buildings.some(b=>{if(b.uid===ignoreId)return false;const d=buildingDef(b.kind),br=buildRect(d,b.rotation,b.x,b.y);return !(r.x+r.w+8<br.x||br.x+br.w+8<r.x||r.y+r.h+8<br.y||br.y+br.h+8<r.y)}))return false;
-    if(state.decorItems.some(item=>{const d=decorDef(item.kind),dr=buildRect(d,item.rotation||0,item.x,item.y);return !(r.x+r.w+5<dr.x||dr.x+dr.w+5<r.x||r.y+r.h+5<dr.y||dr.y+dr.h+5<r.y)}))return false;
+    if(corners.some(p=>isWater(p.x,p.y)||(!surface&&!def.roadFriendly&&onRoad(p.x,p.y))||allFields().some(f=>pointInPoly(p,f.poly))||state.paddocks.some(pd=>pointInPoly(p,pd.poly))))return false;
+    if(!surface&&state.buildings.some(b=>{if(b.uid===ignoreId)return false;const d=buildingDef(b.kind),br=buildRect(d,b.rotation,b.x,b.y);return !(r.x+r.w+8<br.x||br.x+br.w+8<r.x||r.y+r.h+8<br.y||br.y+br.h+8<r.y)}))return false;
+    if(!surface&&state.decorItems.some(item=>{const d=decorDef(item.kind);if(d?.surface)return false;const dr=buildRect(d,item.rotation||0,item.x,item.y);return !(r.x+r.w+5<dr.x||dr.x+dr.w+5<r.x||r.y+r.h+5<dr.y||dr.y+dr.h+5<r.y)}))return false;
     if(state.hedges.some(h=>h.points.some((p,i)=>i>0&&sampleLine(h.points[i-1],p,7).some(q=>q[0]>=r.x-4&&q[0]<=r.x+r.w+4&&q[1]>=r.y-4&&q[1]<=r.y+r.h+4))))return false;
     return true;
   }
   function placeBuilding(x,y) {
-    if(!buildMode)return;const d=activeBuildDef();if(!validBuildPosition(x,y,d,buildMode.movingId)){toast("Position blocked","Choose clear land you own, away from water, roads, fields, paddocks and placed items.");return}
-    if(buildMode.isDecor){if(!canAfford(d.price))return;record("cost","Landscaping",d.price,`Placed ${d.name}`);state.decorItems.push({id:uid("decor"),kind:d.kind,x:Math.round(x),y:Math.round(y),rotation:buildMode.rotation||0});toast(`${d.name} placed`,d.kind==="carpark"?"Nearby visitor businesses now receive a trade boost.":"The landscape has been updated.");addXp(8,"Estate landscaped")}
+    if(!buildMode)return;const d=activeBuildDef();if(!validBuildPosition(x,y,d,buildMode.movingId)){toast("Position blocked",d.surface?"Keep the complete yard slab on owned dry land, outside fields and paddocks.":"Choose suitable land you own, away from water, fields, paddocks and conflicting placed items.");return}
+    if(buildMode.isDecor){if(!canAfford(d.price))return;record("cost",d.group==="yard"?"Yard construction":"Landscaping",d.price,`Placed ${d.name}`);state.decorItems.push({id:uid("decor"),kind:d.kind,x:Math.round(x),y:Math.round(y),rotation:buildMode.rotation||0});toast(`${d.name} placed`,d.kind==="carpark"?"Nearby visitor businesses now receive a trade boost.":d.kind==="loadingbay"?"Nearby retail ventures now receive a delivery boost.":d.kind==="fuelpoint"?"Field-operation costs are now reduced.":d.surface?"Buildings and roads can be placed across this surface.":"The estate has been updated.");addXp(8,"Estate landscaped")}
     else if(buildMode.movingId){const b=state.buildings.find(v=>v.uid===buildMode.movingId);if(b){b.x=x;b.y=y;b.rotation=buildMode.rotation}toast("Building moved",`${b?.name||d.name} has a new position.`)}else{
       if(!canAfford(d.price))return;record("cost","Construction",d.price,`Built ${d.name}`);const b={uid:uid("b"),kind:d.kind,name:d.name,x,y,rotation:buildMode.rotation,level:1,starter:false};state.buildings.push(b);state.selectedBuilding=b.uid;state.stats.buildings+=1;state.reputation+=1;addXp(70,"Farmyard expanded");if(d.business||d.animal)completeObjective("build");toast("Construction complete",`${d.name} is now open.`)
     }
@@ -2484,7 +2512,10 @@ svg {
     else if(a==="fire-worker")fireWorker(button.dataset.id);
     else if(a==="automation-toggle")toggleAutomation(button.dataset.id);
     else if(a==="automation-stop-all")stopAllAutomation();
-    else if(a==="start-draw"){buildMode=null;drawMode={type:button.dataset.type,points:[],style:"gravel",hover:null};state.ui.panel="build";canvas.classList.add("is-building");if(drawMode.type==="land")fitEstate();renderPanel(false);if(innerWidth<781)closePanel()}
+    else if(a==="estate-tab"){const tab=button.dataset.tab;if(tab!=="design"&&(drawMode||buildMode)){drawMode=null;buildMode=null;canvas.classList.remove("is-building")}state.ui.estateTab=tab;renderPanel(false);saveGame()}
+    else if(a==="estate-section"){state.ui.estateTab="design";state.ui.estateSection=button.dataset.section;renderPanel(false);saveGame()}
+    else if(a==="estate-jump-design"){state.ui.estateTab="design";state.ui.estateSection=button.dataset.section||"buildings";renderPanel(false)}
+    else if(a==="start-draw"){buildMode=null;drawMode={type:button.dataset.type,points:[],style:"gravel",hover:null};state.ui.panel="estate";state.ui.estateTab="design";state.ui.estateSection="layout";canvas.classList.add("is-building");if(drawMode.type==="land")fitEstate();renderPanel(false);if(innerWidth<781)closePanel()}
     else if(a==="draw-undo"){if(drawMode?.points.length)drawMode.points.pop();renderPanel()}
     else if(a==="draw-finish")finishDrawing();
     else if(a==="draw-cancel"){drawMode=null;canvas.classList.remove("is-building");renderPanel(false)}
@@ -2498,11 +2529,11 @@ svg {
     else if(a==="fit-estate")fitEstate();
     else if(a==="remove-layout")removeLayout(button.dataset.kind,button.dataset.id);
     else if(a==="focus-paddock"){const p=state.paddocks.find(x=>x.id===button.dataset.id);if(p){state.selectedPaddock=p.id;const c=centroid(p.poly);camera.x=c.x;camera.y=c.y;camera.zoom=Math.max(camera.zoom,.95)}renderPanel()}
-    else if(a==="select-build"){const d=buildingDef(button.dataset.kind);if(!canAfford(d.price,true)){canAfford(d.price);return}drawMode=null;buildMode={kind:d.kind,isDecor:false,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast("Placement mode",`Tap clear grass you own to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
-    else if(a==="select-decor"){const d=decorDef(button.dataset.kind);if(!d||!canAfford(d.price,true)){if(d)canAfford(d.price);return}drawMode=null;buildMode={kind:d.kind,isDecor:true,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast("Decoration placement",`Tap clear land you own to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
+    else if(a==="select-build"){const d=buildingDef(button.dataset.kind);if(!canAfford(d.price,true)){canAfford(d.price);return}drawMode=null;buildMode={kind:d.kind,isDecor:false,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast("Placement mode",`Tap suitable owned ground or a yard surface to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
+    else if(a==="select-decor"){const d=decorDef(button.dataset.kind);if(!d||!canAfford(d.price,true)){if(d)canAfford(d.price);return}drawMode=null;buildMode={kind:d.kind,isDecor:true,rotation:0,movingId:null,x:YARD.x+80,y:YARD.y+85,valid:false};canvas.classList.add("is-building");toast(d.group==="yard"?"Yard placement":"Decoration placement",d.surface?`Tap owned dry land to lay ${d.name}; slabs may overlap.`:`Tap suitable owned land to place ${d.name}.`);renderPanel(false);if(innerWidth<781)closePanel()}
     else if(a==="cancel-build"){buildMode=null;canvas.classList.remove("is-building");renderPanel(false)}
     else if(a==="rotate-build"){if(buildMode)buildMode.rotation=(buildMode.rotation+90)%360;renderPanel()}
-    else if(a==="select-building"){state.selectedBuilding=button.dataset.id;const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b){camera.x=b.x;camera.y=b.y;camera.zoom=Math.max(camera.zoom,1.15)}setPanel("build")}
+    else if(a==="select-building"){state.selectedBuilding=button.dataset.id;state.ui.estateTab="design";state.ui.estateSection="buildings";const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b){camera.x=b.x;camera.y=b.y;camera.zoom=Math.max(camera.zoom,1.15)}setPanel("estate")}
     else if(a==="move-building"){const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b){buildMode={kind:b.kind,isDecor:false,rotation:b.rotation,movingId:b.uid,x:b.x,y:b.y,valid:true};canvas.classList.add("is-building");if(innerWidth<781)closePanel();renderPanel(false)}}
     else if(a==="rename-building"){const b=state.buildings.find(x=>x.uid===button.dataset.id);if(b)openDialog({icon:"✎",title:"Rename building",body:"<p>Give this part of the farm its own character.</p>",input:{label:"Building name",value:b.name},primary:"Save name",secondary:"Cancel",onPrimary:value=>{if(!value)return false;b.name=value;renderPanel(false)}})}
     else if(a==="upgrade-building")upgradeBuilding(button.dataset.id);
@@ -2525,7 +2556,7 @@ svg {
     const target=event.target;if(target.dataset.action==="business-price"){const kind=target.dataset.kind;state.businessSettings[kind]=state.businessSettings[kind]||{};state.businessSettings[kind].price=Number(target.value)/100;const label=target.closest("label");if(label)label.childNodes[0].textContent=`Pricing · ${target.value}%`;}
   });
 
-  document.querySelectorAll(".nav-button").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.panel!=="build"&&(drawMode||buildMode)){drawMode=null;buildMode=null;canvas.classList.remove("is-building")}setPanel(button.dataset.panel)}));
+  document.querySelectorAll(".nav-button").forEach(button=>button.addEventListener("click",()=>{if(button.dataset.panel!=="estate"&&(drawMode||buildMode)){drawMode=null;buildMode=null;canvas.classList.remove("is-building")}setPanel(button.dataset.panel)}));
   document.getElementById("panelClose").addEventListener("click",closePanel);
   document.getElementById("mobilePanelToggle").addEventListener("click",()=>panel.classList.contains("is-open")?closePanel():openPanel());
   document.getElementById("brandButton").addEventListener("click",()=>setPanel("settings"));
@@ -2565,20 +2596,24 @@ svg {
     traceLine(points);ctx.strokeStyle=style.colour;ctx.lineWidth=style.width;ctx.stroke();
     const pattern=terrainPatterns[style.texture];if(pattern){ctx.save();ctx.globalAlpha=style.textureAlpha??.86;traceLine(points);ctx.strokeStyle=pattern;ctx.lineWidth=style.width;ctx.stroke();ctx.restore()}
   }
+  function renderedRoads(){return ROAD_NETWORK.concat(state.customRoads.filter(road=>road.id!==drawMode?.roadId)).map(road=>Object.assign({},road,{renderStyle:ROAD_STYLES[road.style]||ROAD_STYLES.gravel})).sort((a,b)=>a.renderStyle.width-b.renderStyle.width)}
+  function roadRenderData(){const key=`${drawMode?.roadId||""}#${state.customRoads.map(road=>`${road.id}:${road.style}:${road.points.map(point=>point.join(",")).join(";")}`).join("|")}`;if(roadRenderData.key===key)return roadRenderData.cache;const roads=renderedRoads(),junctions=roadJunctions(roads);roadRenderData.key=key;roadRenderData.cache={roads,junctions};return roadRenderData.cache}
+  function projectedRoadPoint(point,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],length2=dx*dx+dy*dy,t=length2?clamp(((point[0]-a[0])*dx+(point[1]-a[1])*dy)/length2,0,1):0,x=a[0]+dx*t,y=a[1]+dy*t;return{x,y,t,distance:Math.hypot(point[0]-x,point[1]-y)}}
+  function roadJunctions(roads){
+    const junctions=new Map();roads.forEach((road,index)=>{const endpoints=[road.points[0],road.points.at(-1)];endpoints.forEach(point=>{let best=null;roads.forEach((other,otherIndex)=>{if(otherIndex===index)return;for(let i=1;i<other.points.length;i++){const projected=projectedRoadPoint(point,other.points[i-1],other.points[i]),limit=Math.max(5,Math.min(9,(road.renderStyle.width+other.renderStyle.width)*.2));if(projected.distance<=limit&&(!best||projected.distance<best.distance))best={other,projected,distance:projected.distance}}});if(!best)return;const dominant=road.renderStyle.width>=best.other.renderStyle.width?road.renderStyle:best.other.renderStyle,key=`${Math.round(best.projected.x/3)}:${Math.round(best.projected.y/3)}`,existing=junctions.get(key);if(!existing||dominant.width>existing.style.width)junctions.set(key,{x:best.projected.x,y:best.projected.y,style:dominant})})});return [...junctions.values()].sort((a,b)=>a.style.width-b.style.width)
+  }
+  function fillRoadJunction(junction,edge=false){const style=junction.style,radius=style.width/2+(edge?3:0);ctx.save();ctx.beginPath();ctx.arc(junction.x,junction.y,radius,0,Math.PI*2);ctx.fillStyle=edge?style.edge:style.colour;ctx.fill();if(!edge&&terrainPatterns[style.texture]){ctx.clip();ctx.globalAlpha=style.textureAlpha??.86;ctx.fillStyle=terrainPatterns[style.texture];ctx.fillRect(junction.x-radius,junction.y-radius,radius*2,radius*2)}ctx.restore()}
   function drawRoadNetwork() {
-    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
-    ROAD_NETWORK.forEach(road=>{const style=ROAD_STYLES[road.style]||ROAD_STYLES.gravel;traceLine(road.points);ctx.strokeStyle=style.edge;ctx.lineWidth=style.width+6;ctx.stroke()});
-    ROAD_NETWORK.forEach(road=>{const style=ROAD_STYLES[road.style]||ROAD_STYLES.gravel;strokeRoadSurface(road.points,style);if(state.weather==="rain"){traceLine(road.points);ctx.strokeStyle="rgba(205,229,229,.17)";ctx.lineWidth=Math.max(2,style.width*.38);ctx.stroke()}});
+    const {roads,junctions}=roadRenderData();ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+    roads.forEach(road=>{traceLine(road.points);ctx.strokeStyle=road.renderStyle.edge;ctx.lineWidth=road.renderStyle.width+6;ctx.stroke()});junctions.forEach(junction=>fillRoadJunction(junction,true));
+    roads.forEach(road=>strokeRoadSurface(road.points,road.renderStyle));junctions.forEach(junction=>fillRoadJunction(junction));
+    if(state.weather==="rain")roads.forEach(road=>{traceLine(road.points);ctx.strokeStyle="rgba(205,229,229,.17)";ctx.lineWidth=Math.max(2,road.renderStyle.width*.38);ctx.stroke()});
+    roads.filter(road=>!road.protected).forEach(road=>waterRuns(road.points).forEach(run=>drawBridgeSegment(run[0],run[1],road.renderStyle.width,road.style)));
     ctx.restore();
   }
   function waterRuns(points){const runs=[];for(let i=1;i<points.length;i++){const samples=sampleLine(points[i-1],points[i],3);let start=null,last=null;for(const p of samples){if(isWater(p[0],p[1])){if(!start)start=p;last=p}else if(start){runs.push([start,last]);start=null;last=null}}if(start)runs.push([start,last])}return runs}
   function drawBridgeSegment(a,b,width,styleKey="gravel"){const length=Math.hypot(b[0]-a[0],b[1]-a[1]),angle=Math.atan2(b[1]-a[1],b[0]-a[0]),style=ROAD_STYLES[styleKey]||ROAD_STYLES.gravel;if(length<3)return;ctx.save();ctx.translate((a[0]+b[0])/2,(a[1]+b[1])/2);ctx.rotate(angle);ctx.fillStyle="#666a64";ctx.fillRect(-length/2-5,-width/2-4,length+10,width+8);ctx.fillStyle=style.colour;ctx.fillRect(-length/2-5,-width/2,length+10,width);if(terrainPatterns[style.texture]){ctx.globalAlpha=style.textureAlpha??.86;ctx.fillStyle=terrainPatterns[style.texture];ctx.fillRect(-length/2-5,-width/2,length+10,width);ctx.globalAlpha=1}ctx.strokeStyle="#e2d8bd";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-length/2-5,-width/2-2);ctx.lineTo(length/2+5,-width/2-2);ctx.moveTo(-length/2-5,width/2+2);ctx.lineTo(length/2+5,width/2+2);ctx.stroke();ctx.restore()}
-  function drawCustomRoads(){
-    ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
-    state.customRoads.filter(road=>road.id!==drawMode?.roadId).forEach(road=>{const s=ROAD_STYLES[road.style]||ROAD_STYLES.gravel;traceLine(road.points);ctx.strokeStyle=s.edge;ctx.lineWidth=s.width+6;ctx.stroke()});
-    state.customRoads.filter(road=>road.id!==drawMode?.roadId).forEach(road=>{const s=ROAD_STYLES[road.style]||ROAD_STYLES.gravel;strokeRoadSurface(road.points,s);if(state.weather==="rain"){traceLine(road.points);ctx.strokeStyle="rgba(205,229,229,.17)";ctx.lineWidth=Math.max(2,s.width*.38);ctx.stroke()}waterRuns(road.points).forEach(run=>drawBridgeSegment(run[0],run[1],s.width,road.style))});
-    ctx.restore();
-  }
+  function drawCustomRoads(){}
   function drawTrack(points,width=11){ctx.save();ctx.lineCap="round";ctx.lineJoin="round";traceLine(points);ctx.strokeStyle="#8c826d";ctx.lineWidth=width+3;ctx.stroke();const style=Object.assign({},ROAD_STYLES.track,{width});strokeRoadSurface(points,style);ctx.restore()}
   function drawRiver(){
     const path=extra=>{ctx.beginPath();for(let y=-25;y<=WORLD.height+25;y+=20){const x=riverCenterX(y)-riverHalfWidth(y)-extra;if(y===-25)ctx.moveTo(x,y);else ctx.lineTo(x,y)}for(let y=WORLD.height+25;y>=-25;y-=20)ctx.lineTo(riverCenterX(y)+riverHalfWidth(y)+extra,y);ctx.closePath()};
@@ -2648,7 +2683,7 @@ svg {
     })
   }
   function drawLandTiles(){
-    const design=state.ui.panel==="build"||Boolean(drawMode);ctx.save();ctx.font="600 12px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
+    const design=state.ui.panel==="estate"&&state.ui.estateTab==="design"||Boolean(drawMode);ctx.save();ctx.font="600 12px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
     LAND_TILES.forEach(t=>{const owned=state.landTiles.includes(t.id),selected=state.selectedTile===t.id&&drawMode?.type==="land";ctx.fillStyle=design?(owned?"rgba(104,148,78,.10)":"rgba(102,82,59,.13)"):owned?"rgba(224,239,199,.025)":"rgba(76,68,55,.035)";ctx.fillRect(t.x+2,t.y+2,t.w-4,t.h-4);ctx.strokeStyle=selected?"#f4d66b":design?(owned?"rgba(225,239,194,.78)":"rgba(69,64,52,.55)"):owned?"rgba(231,239,210,.28)":"rgba(65,68,58,.23)";ctx.lineWidth=selected?5:design?2:1;ctx.setLineDash(owned?[]:[11,8]);ctx.strokeRect(t.x+3,t.y+3,t.w-6,t.h-6);ctx.setLineDash([]);if(design){const label=owned?`${t.name} · owned`:`${t.name} · ${money(t.price,true)}`,w=ctx.measureText(label).width+18;ctx.fillStyle=owned?"rgba(49,78,47,.88)":"rgba(58,54,45,.82)";ctx.beginPath();ctx.roundRect(t.x+t.w/2-w/2,t.y+t.h/2-12,w,24,7);ctx.fill();ctx.fillStyle="#fff";ctx.fillText(label,t.x+t.w/2,t.y+t.h/2)}});ctx.restore();
   }
   function drawLayoutPreview(){
@@ -2706,12 +2741,20 @@ svg {
   }
   function drawFallbackHedges(){ctx.save();ctx.lineCap="round";ctx.lineJoin="round";allFields().forEach(field=>{polyPath(field.poly);ctx.strokeStyle="#3f5e3d";ctx.lineWidth=7;ctx.stroke();polyPath(field.poly);ctx.strokeStyle="#6e8055";ctx.lineWidth=3.5;ctx.stroke()});state.hedges.forEach(hedge=>{traceLine(hedge.points);ctx.strokeStyle="#36583a";ctx.lineWidth=10;ctx.stroke();traceLine(hedge.points);ctx.strokeStyle="#718b58";ctx.lineWidth=5;ctx.stroke()});ctx.restore()}
   function drawHedges(){const layers=rebuildHedgeCache();if(!layers){drawFallbackHedges();return}const halfWidth=canvasSize.w/(2*camera.zoom)+50,halfHeight=canvasSize.h/(2*camera.zoom)+50,minX=camera.x-halfWidth,maxX=camera.x+halfWidth,minY=camera.y-halfHeight,maxY=camera.y+halfHeight;layers.forEach(layer=>{if(layer.x+layer.width<minX||layer.x>maxX||layer.y+layer.height<minY||layer.y>maxY)return;ctx.drawImage(layer.canvas,layer.x,layer.y)})}
+  function drawYardSurface(item){const d=decorDef(item.kind),rand=seeded(textSeed(item.id));ctx.save();ctx.translate(item.x,item.y);ctx.rotate((item.rotation||0)*Math.PI/180);ctx.beginPath();ctx.roundRect(-d.w/2,-d.h/2,d.w,d.h,5);ctx.clip();ctx.fillStyle=item.kind==="concreteyard"?"#9b9b91":"#9e9580";ctx.fillRect(-d.w/2,-d.h/2,d.w,d.h);if(item.kind==="gravelyard"&&terrainPatterns.gravel){ctx.globalAlpha=.78;ctx.fillStyle=terrainPatterns.gravel;ctx.fillRect(-d.w/2,-d.h/2,d.w,d.h);ctx.globalAlpha=1}else{ctx.strokeStyle="rgba(72,75,69,.25)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,-d.h/2);ctx.lineTo(0,d.h/2);ctx.moveTo(-d.w/2,0);ctx.lineTo(d.w/2,0);ctx.stroke();ctx.fillStyle="rgba(231,228,211,.18)";for(let i=0;i<44;i++)ctx.fillRect(-d.w/2+rand()*d.w,-d.h/2+rand()*d.h,1.2,1.2)}ctx.restore();ctx.save();ctx.translate(item.x,item.y);ctx.rotate((item.rotation||0)*Math.PI/180);ctx.strokeStyle=item.kind==="concreteyard"?"rgba(73,78,72,.42)":"rgba(92,83,67,.38)";ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-d.w/2,-d.h/2,d.w,d.h,5);ctx.stroke();ctx.restore()}
+  function drawYardSurfaces(){state.decorItems.filter(item=>decorDef(item.kind)?.surface).forEach(drawYardSurface)}
   function drawDecorItem(item){
-    const d=decorDef(item.kind);if(!d)return;if(["oak","birch","pine"].includes(item.kind)){drawTree({x:item.x,y:item.y,r:item.kind==="oak"?13:item.kind==="birch"?10:12,t:.7,kind:item.kind});return}
+    const d=decorDef(item.kind);if(!d||d.surface)return;if(["oak","birch","pine"].includes(item.kind)){drawTree({x:item.x,y:item.y,r:item.kind==="oak"?13:item.kind==="birch"?10:12,t:.7,kind:item.kind});return}
     ctx.save();ctx.translate(item.x,item.y);ctx.rotate((item.rotation||0)*Math.PI/180);const w=d.w,h=d.h;ctx.fillStyle="rgba(31,40,31,.16)";ctx.beginPath();ctx.ellipse(3,h*.38,w*.45,h*.15,0,0,Math.PI*2);ctx.fill();
     if(item.kind==="carpark"){
       ctx.fillStyle="#676b67";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,4);ctx.fill();ctx.strokeStyle="#8e968b";ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle="#d5d6cd";ctx.lineWidth=1.2;for(let x=-w/2+12;x<w/2-3;x+=15){ctx.beginPath();ctx.moveTo(x,-h/2+5);ctx.lineTo(x,-4);ctx.moveTo(x,4);ctx.lineTo(x,h/2-5);ctx.stroke()}ctx.fillStyle="#899184";ctx.fillRect(-w/2+4,-3,w-8,6);ctx.fillStyle="#647c6a";ctx.fillRect(-w/2,-h/2,w,3);ctx.fillRect(-w/2,h/2-3,w,3);ctx.fillStyle="#9ec0c4";ctx.fillRect(w/2-17,-h/2+5,12,10);ctx.fillStyle="#e7eadf";ctx.font="bold 5px system-ui";ctx.textAlign="center";ctx.fillText("P",w/2-11,-h/2+12);
       if(state.time.hour>8&&state.time.hour<20){[[-22,-15,"#b65b45"],[20,15,"#4d7480"]].forEach(car=>{ctx.fillStyle="rgba(28,35,31,.18)";ctx.beginPath();ctx.roundRect(car[0]-6,car[1]-1,12,6,1.5);ctx.fill();ctx.fillStyle=car[2];ctx.beginPath();ctx.roundRect(car[0]-6,car[1]-3,12,6,1.5);ctx.fill();ctx.fillStyle="#b7cecf";ctx.fillRect(car[0]-1.5,car[1]-2,4,4);ctx.fillStyle="#eedba9";ctx.fillRect(car[0]+5,car[1]-2,1,1.5);ctx.fillRect(car[0]+5,car[1]+.5,1,1.5)})}
+    }else if(item.kind==="loadingbay"){
+      ctx.fillStyle="#686d68";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,3);ctx.fill();ctx.strokeStyle="#d9c363";ctx.lineWidth=1.4;for(let x=-w/2+6;x<w/2-3;x+=8){ctx.beginPath();ctx.moveTo(x,h/2-2);ctx.lineTo(x+6,h/2-8);ctx.stroke()}ctx.fillStyle="#9a7147";ctx.fillRect(-w/2+5,-h/2+4,11,9);ctx.fillRect(-w/2+18,-h/2+5,9,8);ctx.strokeStyle="#d9d4be";ctx.beginPath();ctx.moveTo(w/2-4,-h/2+3);ctx.lineTo(w/2-4,h/2-4);ctx.stroke();
+    }else if(item.kind==="fuelpoint"){
+      ctx.fillStyle="#8e9188";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,3);ctx.fill();ctx.fillStyle="#586d59";ctx.beginPath();ctx.ellipse(-3,-1,11,7,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#d7d8ca";ctx.lineWidth=1.2;ctx.stroke();ctx.fillStyle="#48534e";ctx.fillRect(9,-7,6,13);ctx.fillStyle="#e4d67c";ctx.fillRect(10,-5,4,3);ctx.strokeStyle="#353e3a";ctx.beginPath();ctx.moveTo(12,-1);ctx.quadraticCurveTo(18,2,15,8);ctx.stroke();ctx.fillStyle="#d9c04f";for(const x of [-14,15])ctx.fillRect(x,-h/2+2,2,h-4);
+    }else if(item.kind==="yardgate"){
+      ctx.fillStyle="#665640";ctx.fillRect(-w/2,-h/2,4,h+5);ctx.fillRect(w/2-4,-h/2,4,h+5);ctx.strokeStyle="#8a7759";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-w/2+4,-h/2+2);ctx.lineTo(w/2-4,-h/2+2);ctx.lineTo(-w/2+4,h/2);ctx.lineTo(w/2-4,h/2);ctx.moveTo(-w/2+12,-h/2+2);ctx.lineTo(-w/2+12,h/2);ctx.moveTo(0,-h/2+2);ctx.lineTo(0,h/2);ctx.moveTo(w/2-12,-h/2+2);ctx.lineTo(w/2-12,h/2);ctx.stroke();
     }else if(item.kind==="picnic"){
       ctx.fillStyle="rgba(104,143,76,.42)";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,8);ctx.fill();ctx.fillStyle="#8c7554";for(const x of [-12,12]){ctx.fillRect(x-8,-2,16,4);ctx.fillRect(x-7,-9,14,2.5);ctx.fillRect(x-7,6.5,14,2.5);ctx.fillRect(x-1,-9,2,18)}ctx.fillStyle="#4f674c";ctx.beginPath();ctx.arc(w/2-5,-h/2+5,3,0,Math.PI*2);ctx.fill();ctx.fillStyle="#c9ba75";for(const p of [[-18,-12],[3,12],[18,-11]]){ctx.beginPath();ctx.arc(p[0],p[1],1,0,Math.PI*2);ctx.fill()}
     }else{
@@ -2719,7 +2762,7 @@ svg {
     }
     ctx.restore();
   }
-  function drawDecorItems(){state.decorItems.forEach(drawDecorItem)}
+  function drawDecorItems(){state.decorItems.filter(item=>!decorDef(item.kind)?.surface).forEach(drawDecorItem)}
   function drawWeatherGround(){if(state.weather!=="rain")return;ctx.save();decor.puddles.forEach(puddle=>{if(treeBlocked(puddle))return;ctx.fillStyle="rgba(105,153,165,.18)";ctx.beginPath();ctx.ellipse(puddle.x,puddle.y,puddle.w,puddle.h,-.15,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(210,232,232,.20)";ctx.lineWidth=.8;ctx.stroke()});ctx.restore()}
   function drawCloudShadows(){const strength=state.weather==="rain"?.10:state.weather==="cloudy"?.075:state.weather==="clear"?.022:.045,time=performance.now()/1000;ctx.save();for(let i=0;i<5;i++){const x=((time*(9+i*1.4)+i*370)%(WORLD.width+520))-260,y=150+((i*313)%Math.max(1,WORLD.height-300));ctx.save();ctx.translate(x,y);ctx.scale(1.8,1);const gradient=ctx.createRadialGradient(0,0,18,0,0,155);gradient.addColorStop(0,`rgba(39,54,47,${strength})`);gradient.addColorStop(.65,`rgba(39,54,47,${strength*.55})`);gradient.addColorStop(1,"rgba(39,54,47,0)");ctx.fillStyle=gradient;ctx.beginPath();ctx.arc(0,0,155,0,Math.PI*2);ctx.fill();ctx.restore()}ctx.restore()}
   function drawRoadCar(position,colour){ctx.save();ctx.translate(position.x,position.y);ctx.rotate(position.angle);ctx.fillStyle="rgba(25,31,27,.18)";ctx.beginPath();ctx.roundRect(-8,-4+2,17,8,2);ctx.fill();ctx.fillStyle=colour;ctx.beginPath();ctx.roundRect(-8,-4,17,8,2);ctx.fill();ctx.fillStyle="#b9d0d0";ctx.fillRect(-2,-3,6,6);ctx.fillStyle="#f0ddb1";ctx.fillRect(7,-2.5,1.5,2);ctx.fillRect(7,.5,1.5,2);ctx.restore()}
@@ -2733,7 +2776,7 @@ svg {
     const seasonColours=["#92a876","#8ca36a","#9c9a6a","#89937d"],base=seasonColours[state.time.season];ctx.fillStyle=base;ctx.fillRect(-80,-80,WORLD.width+160,WORLD.height+160);if(terrainPatterns.grass){ctx.save();ctx.globalAlpha=.47;ctx.globalCompositeOperation="soft-light";ctx.fillStyle=terrainPatterns.grass;ctx.fillRect(-80,-80,WORLD.width+160,WORLD.height+160);ctx.restore()}
     decor.grass.forEach(g=>{ctx.fillStyle=`rgba(42,73,40,${g.a*.55})`;ctx.fillRect(g.x,g.y,g.r,g.r)});
     decor.flowers.forEach(f=>{ctx.fillStyle=f.c;ctx.globalAlpha=.5;ctx.fillRect(f.x,f.y,1.5,1.5)});ctx.globalAlpha=1;
-    drawWeatherGround();drawRiver();decor.trees.filter(tree=>!treeBlocked(tree)).forEach(drawTree);drawRoadNetwork();drawCustomRoads();drawPaddocks();drawFields();drawDecorItems();drawFarmBuildings();drawAnimals();drawVehicles();drawAmbientLife();drawCloudShadows();drawLandTiles();drawLayoutPreview();drawRoadSnapNodes();
+    drawWeatherGround();drawRiver();drawYardSurfaces();decor.trees.filter(tree=>!treeBlocked(tree)).forEach(drawTree);drawRoadNetwork();drawCustomRoads();drawPaddocks();drawFields();drawDecorItems();drawFarmBuildings();drawAnimals();drawVehicles();drawAmbientLife();drawCloudShadows();drawLandTiles();drawLayoutPreview();drawRoadSnapNodes();
     if(buildMode)drawBuildGhost();
   }
   function drawVillage() {
@@ -2768,6 +2811,12 @@ svg {
     }
     if(kind==="dryer"){
       ctx.fillStyle="#a8aa9f";modelRect(w,h,4);ctx.fillStyle="#7b7d73";ctx.beginPath();ctx.arc(-8,-1,h*.34,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#d9d8cd";ctx.lineWidth=1.2;for(let r=5;r<h*.34;r+=5){ctx.beginPath();ctx.arc(-8,-1,r,0,Math.PI*2);ctx.stroke()}ctx.fillStyle="#656b65";ctx.beginPath();ctx.arc(w*.28,5,8,0,Math.PI*2);ctx.fill();ctx.fillStyle="#aeb2a9";ctx.beginPath();ctx.arc(w*.28,5,4.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#616760";ctx.beginPath();ctx.moveTo(w*.28,1);ctx.lineTo(w*.28,9);ctx.moveTo(w*.28-4,5);ctx.lineTo(w*.28+4,5);ctx.stroke();ctx.fillStyle="#6f7168";ctx.fillRect(w*.18,-h/2-7,7,14);return;
+    }
+    if(kind==="equipmentbay"){
+      ctx.fillStyle="#8d8c80";ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,3);ctx.fill();ctx.fillStyle="#506059";ctx.beginPath();ctx.roundRect(-w/2-2,-h/2,w+4,h*.58,3);ctx.fill();ctx.strokeStyle="rgba(221,228,218,.4)";ctx.lineWidth=1;for(let x=-w/2+8;x<w/2;x+=10){ctx.beginPath();ctx.moveTo(x,-h/2+2);ctx.lineTo(x,1);ctx.stroke()}ctx.fillStyle="#444c47";for(const x of [-w/2+4,0,w/2-4])ctx.fillRect(x-1,-h/2+2,2,h-4);ctx.fillStyle="#2b302c";ctx.beginPath();ctx.arc(-10,9,4,0,Math.PI*2);ctx.arc(11,9,4,0,Math.PI*2);ctx.fill();ctx.fillStyle="#b4543e";ctx.beginPath();ctx.roundRect(-14,2,29,8,2);ctx.fill();ctx.fillStyle="#9db7b5";ctx.fillRect(2,3,7,5);return;
+    }
+    if(kind==="bulkstore"){
+      ctx.fillStyle="#b8a887";modelRect(w,h,4);ctx.fillStyle="#725846";ctx.beginPath();ctx.roundRect(-w/2-2,-h/2+1,w+4,h-6,3);ctx.fill();ctx.strokeStyle="rgba(225,212,184,.38)";for(let x=-w/2+8;x<w/2;x+=10){ctx.beginPath();ctx.moveTo(x,-h/2+2);ctx.lineTo(x,h/2-6);ctx.stroke()}ctx.fillStyle="#4f4438";ctx.fillRect(-w/2+6,h/2-15,w-12,13);ctx.strokeStyle="#c2a36d";ctx.lineWidth=1.2;for(let y=h/2-12;y<h/2-2;y+=4){ctx.beginPath();ctx.moveTo(-w/2+8,y);ctx.lineTo(w/2-8,y);ctx.stroke()}for(let x=-w/2+18;x<w/2-4;x+=14){ctx.beginPath();ctx.moveTo(x,h/2-14);ctx.lineTo(x,h/2-2);ctx.stroke()}ctx.fillStyle="#9d9277";ctx.beginPath();ctx.arc(w/2-7,-4,6,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#e0d8c5";ctx.stroke();return;
     }
     if(kind==="shed"){
       ctx.fillStyle="#b7ad95";modelRect(w,h,4);ctx.fillStyle="#53645d";ctx.beginPath();ctx.roundRect(-w/2-2,-h/2+1,w+4,h-5,3);ctx.fill();ctx.strokeStyle="rgba(224,232,221,.32)";ctx.lineWidth=1;for(let x=-w/2+7;x<w/2;x+=9){ctx.beginPath();ctx.moveTo(x,-h/2+2);ctx.lineTo(x,h/2-5);ctx.stroke()}ctx.fillStyle="rgba(176,208,202,.65)";for(let x=-w/4;x<=w/4;x+=w/4){ctx.fillRect(x-3,-h/2+5,6,h-14)}ctx.fillStyle="#3f4843";ctx.fillRect(-w/2+8,h/2-14,22,12);ctx.strokeStyle="#aeb6ad";for(let y=h/2-11;y<h/2-3;y+=3){ctx.beginPath();ctx.moveTo(-w/2+10,y);ctx.lineTo(-w/2+28,y);ctx.stroke()}ctx.fillStyle="#8c6b44";ctx.fillRect(w/2-18,h/2-9,7,6);ctx.fillRect(w/2-10,h/2-9,6,6);return;
