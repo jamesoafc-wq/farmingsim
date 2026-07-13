@@ -981,6 +981,19 @@ svg {
   .form-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px; margin-top: 10px; }
   .input-label { display: grid; gap: 4px; color: var(--ink-soft); font-size: 9px; }
   .planner-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .machinery-check { margin:0 0 12px; overflow:hidden; border:1px solid #d9ded3; border-radius:10px; background:#f6f6f0; }
+  .machinery-check-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px; border-bottom:1px solid #e0e2da; }
+  .machinery-check-head span { min-width:0; }
+  .machinery-check-head strong,.machinery-check-head small { display:block; }
+  .machinery-check-head strong { font-size:11px; }
+  .machinery-check-head small { margin-top:1px; color:var(--ink-soft); font-size:8px; }
+  .machinery-check-list { display:grid; }
+  .machinery-check-row { display:grid; grid-template-columns:82px minmax(0,1fr) auto; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid #e8e8e1; font-size:9px; }
+  .machinery-check-row:last-child { border-bottom:0; }
+  .machinery-check-row > span:first-child { color:var(--ink-soft); }
+  .machinery-check-row b { min-width:0; color:var(--ink); font-weight:600; line-height:1.25; }
+  .machinery-check-row.is-missing b,.machinery-check-row.is-repair b { color:var(--red); }
+  .machinery-check-row.is-busy b { color:#8a672c; }
   .economy-pulse { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:9px; }
   .economy-pulse span { min-width:0; padding:7px; border-radius:8px; color:var(--ink-soft); background:rgba(255,255,255,.58); font-size:8px; }
   .economy-pulse b { display:block; margin-top:2px; color:var(--ink); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1094,6 +1107,7 @@ svg {
     .event-copy small { max-width:245px; }
     .event-time { display:none; }
     .planner-grid { grid-template-columns:1fr; }
+    .machinery-check-row { grid-template-columns:68px minmax(0,1fr) auto; padding-inline:8px; }
   }
 </style>
 
@@ -1128,6 +1142,18 @@ svg {
     soybeans:  { name: "Soybeans",   icon: "S", color: "#6e9a50", ready: "#8d9a54", basePrice: 425, yield: 2.9, days: 4.4, seedCost: 78, unlock: 7, seasons: [0,1] },
     lavender:  { name: "Lavender",   icon: "L", color: "#8171a4", ready: "#8066a1", basePrice: 910, yield: 1.4, days: 6.0, seedCost: 170, unlock: 8, seasons: [0], shopBonus: true }
   };
+
+  function normaliseCropKey(value) {
+    if (value === null || value === undefined || value === "") return null;
+    if (CROPS[value]) return value;
+    const token=String(value).trim().toLowerCase().replace(/[^a-z0-9]/g,"");
+    const aliases={
+      wheat:"wheat",barley:"barley",canola:"canola",rapeseed:"canola",oilseedrape:"canola",oat:"oats",oats:"oats",
+      corn:"maize",maize:"maize",sunflower:"sunflower",sunflowers:"sunflower",potato:"potatoes",potatoes:"potatoes",
+      sugarbeet:"sugarbeet",beet:"sugarbeet",soybean:"soybeans",soybeans:"soybeans",lavender:"lavender"
+    };
+    return aliases[token]||Object.keys(CROPS).find(key=>key.toLowerCase().replace(/[^a-z0-9]/g,"")===token)||null;
+  }
 
   const FIELD_DEFS = [
     { id: 9, name: "Starter Field", area: 12.8, price: 0, poly: [[580,585],[835,577],[850,725],[590,735]], gate: [720,731], accessRoadId: "starter-field-access", visual: ["wheat","ready"] }
@@ -1518,7 +1544,10 @@ svg {
     merged.market = Object.assign(fresh.market, raw.market || {});
     merged.market.prices = Object.assign(fresh.market.prices, raw.market?.prices || {});
     merged.market.trends = Object.assign(fresh.market.trends, raw.market?.trends || {});
-    merged.equipment = (Array.isArray(raw.equipment)?raw.equipment:fresh.equipment).map(item=>Object.assign({},item,equipmentDef(item)?.type==="tractor"?{fuel:Number.isFinite(Number(item.fuel))?Number(item.fuel):100}:{}));
+    merged.equipment = (Array.isArray(raw.equipment)?raw.equipment:fresh.equipment).map(item=>{
+      const def=equipmentDef(item),condition=Number(item?.condition),hours=Number(item?.hours),normalised=Object.assign({},item,{condition:Number.isFinite(condition)?clamp(condition,0,100):100,hours:Number.isFinite(hours)?Math.max(0,hours):0});
+      if(def)normalised.key=def.key;if(def?.type==="tractor")normalised.fuel=Number.isFinite(Number(item.fuel))?clamp(Number(item.fuel),0,100):100;return normalised;
+    });
     merged.fieldStates = Object.assign(fresh.fieldStates, raw.fieldStates || {});
     merged.animals = Object.assign(fresh.animals, raw.animals || {});
     merged.animalHealth = Object.assign(fresh.animalHealth, raw.animalHealth || {});
@@ -1533,6 +1562,11 @@ svg {
     merged.stats = Object.assign(fresh.stats, raw.stats || {});
     merged.objectives = Object.assign(fresh.objectives, raw.objectives || {});
     merged.selectedCrop = Object.assign(fresh.selectedCrop, raw.selectedCrop || {});
+    Object.keys(merged.selectedCrop).forEach(id=>{merged.selectedCrop[id]=normaliseCropKey(merged.selectedCrop[id])||"wheat"});
+    Object.entries(merged.fieldStates).forEach(([id,fs])=>{
+      if(!fs||typeof fs!=="object")return;const known=normaliseCropKey(fs.crop),field=FIELD_DEFS.concat(merged.customFields||[]).find(item=>String(item.id)===String(id));
+      if(known)fs.crop=known;else if(["ready","seeded","growing"].includes(fs.stage))fs.crop=normaliseCropKey(field?.visual?.[0])||normaliseCropKey(merged.selectedCrop[id])||"wheat";else fs.crop=null;
+    });
     merged.ui = Object.assign(fresh.ui, raw.ui || {});
     if(merged.ui.panel==="build"){merged.ui.panel="estate";merged.ui.estateTab="design"}
     if(merged.ui.panel==="ventures"){merged.ui.panel="estate";merged.ui.estateTab="businesses"}
@@ -1544,13 +1578,15 @@ svg {
     merged.logistics.suppliedUntil = Object.assign({},mapDefaults.logistics.suppliedUntil,raw.logistics?.suppliedUntil||{});
     merged.logistics.deliveries = Array.isArray(raw.logistics?.deliveries)?raw.logistics.deliveries.filter(job=>job.status!=="complete"):[];
     merged.staffAutomation = { rules:Object.assign({},mapDefaults.staffAutomation.rules,raw.staffAutomation?.rules||{}), log:Array.isArray(raw.staffAutomation?.log)?raw.staffAutomation.log.slice(-30):[] };
+    Object.values(merged.staffAutomation.rules).forEach(rule=>{if(rule&&typeof rule==="object")rule.crop=normaliseCropKey(rule.crop)||"wheat"});
     merged.localEconomy = Object.assign({},mapDefaults.localEconomy,raw.localEconomy||{});
     merged.localEconomy.cropDemand = Object.assign({},mapDefaults.localEconomy.cropDemand,raw.localEconomy?.cropDemand||{});
     merged.localEconomy.businessDemand = Object.assign({},mapDefaults.localEconomy.businessDemand,raw.localEconomy?.businessDemand||{});
     merged.localEconomy.history = Array.isArray(raw.localEconomy?.history)?raw.localEconomy.history.slice(-12):[];
-    merged.tasks = (raw.tasks || []).filter(t => t.status === "queued");
-    if(previousMapVersion===3)return merged;
-    return previousMapVersion===2?migrateV2Map(raw,merged,mapDefaults):migrateLegacyMap(raw,merged,mapDefaults);
+    merged.tasks = (raw.tasks || []).filter(t => t.status === "queued").map(task=>Object.assign({},task,{crop:normaliseCropKey(task.crop)}));
+    const result=previousMapVersion===3?merged:previousMapVersion===2?migrateV2Map(raw,merged,mapDefaults):migrateLegacyMap(raw,merged,mapDefaults);
+    Object.entries(result.fieldStates||{}).forEach(([id,fs])=>{if(!fs||typeof fs!=="object")return;const known=normaliseCropKey(fs.crop),field=FIELD_DEFS.concat(result.customFields||[]).find(item=>String(item.id)===String(id));if(known)fs.crop=known;else if(["ready","seeded","growing"].includes(fs.stage))fs.crop=normaliseCropKey(field?.visual?.[0])||normaliseCropKey(result.selectedCrop?.[id])||"wheat";else fs.crop=null});
+    return result;
   }
 
   let saved = null;
@@ -1576,7 +1612,14 @@ svg {
   function allFields(){return FIELD_DEFS.filter(field=>!state.removedFieldIds.includes(field.id)).concat(state.customFields||[])}
   function getField(id) { return allFields().concat(CONTRACT_FIELDS).find(f => f.id === Number(id)); }
   function getFieldState(id) { return state.fieldStates[Number(id)]; }
-  function equipmentDef(item) { return EQUIPMENT_CATALOG.find(e => e.key === item.key); }
+  function equipmentDef(item) {
+    if(!item)return null;const rawKey=typeof item==="string"?item:item.key;
+    const exact=EQUIPMENT_CATALOG.find(e=>e.key===rawKey);if(exact)return exact;
+    const token=String(rawKey||"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");
+    const byKey=token&&EQUIPMENT_CATALOG.find(e=>e.key.toLowerCase().replace(/[^a-z0-9]/g,"")===token);if(byKey)return byKey;
+    const modelToken=String(typeof item==="object"?(item.model||item.name||""):"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");
+    return modelToken?EQUIPMENT_CATALOG.find(e=>e.model.toLowerCase().replace(/[^a-z0-9]/g,"")===modelToken)||null:null;
+  }
   function buildingDef(kind) {
     if (kind === "farmhouse") return { kind, name: "Farmhouse", icon: "⌂", price: 0, w: 58, h: 44, upkeep: 18, detail: "The heart of the farm" };
     if (kind === "starterSilo") return { kind, name: "Old Grain Bin", icon: "◉", price: 0, w: 32, h: 32, capacity: 55, upkeep: 8, detail: "+55t crop storage" };
@@ -1617,9 +1660,19 @@ svg {
   }
   function runStaffAutomation(){
     if(!state.speed)return;const operators=state.workers.filter(worker=>worker.skill==="operator");
-    for(const worker of operators){const rule=automationRule(worker.uid),gameNow=state.time.absoluteDay+state.time.hour/24;if(!rule.enabled)continue;if(rule.cooldownUntil&&gameNow<rule.cooldownUntil){rule.status="Cooling down after cancellation";continue}else if(rule.cooldownUntil)delete rule.cooldownUntil;if(!shiftActive(rule.shift,state.time.hour)){rule.status="Off shift";continue}if(workerCommitted(worker.uid)){rule.status="Job already assigned";continue}
+    for(const worker of operators){
+      const rule=automationRule(worker.uid),gameNow=state.time.absoluteDay+state.time.hour/24;if(!rule.enabled)continue;
+      if(rule.cooldownUntil&&gameNow<rule.cooldownUntil){rule.status="Cooling down after cancellation";continue}else if(rule.cooldownUntil)delete rule.cooldownUntil;
+      if(!shiftActive(rule.shift,state.time.hour)){rule.status="Off shift";continue}if(workerCommitted(worker.uid)){rule.status="Job already assigned";continue}
       const fields=rule.fieldId==="any"?ownedFields():ownedFields().filter(field=>String(field.id)===String(rule.fieldId));if(!fields.length){rule.status="No matching field";continue}
-      let scheduled=false,waiting="No field step is ready";for(const field of fields){if(taskForField(field.id))continue;const operation=plannedOperation(field,rule);if(!operation)continue;const crop=operation==="plant"?automationCrop(rule):getFieldState(field.id).crop,kit=availableKit(operation,crop);if(!kit){waiting=requiredKit(operation,crop)?"Waiting for machinery":"Needs suitable machinery";continue}scheduled=queueAutomatedJob(worker,field,operation,crop,rule);if(scheduled)break}if(!scheduled)rule.status=waiting;
+      let scheduled=false,waiting="No field step is ready";const blockers=[];
+      for(const field of fields){
+        if(taskForField(field.id))continue;const operation=plannedOperation(field,rule);if(!operation)continue;
+        const crop=operation==="plant"?automationCrop(rule):getFieldState(field.id).crop,assessment=kitAssessment(operation,crop);
+        if(!assessment.kit){blockers.push(`${field.name} · ${assessment.message}`);continue}
+        scheduled=queueAutomatedJob(worker,field,operation,crop,rule);if(scheduled)break;waiting=rule.status||waiting;
+      }
+      if(!scheduled)rule.status=blockers[0]||waiting;
     }
   }
   function totalStorageCapacity() {
@@ -1759,30 +1812,31 @@ svg {
     return Math.round(cost*yardFuel);
   }
 
-  function requiredKit(operation, cropKey) {
-    if (operation === "harvest") {
-      const combine = state.equipment.find(e => {
-        const d = equipmentDef(e);
-        return d?.type === "combine" && (!d.crops || d.crops.includes(cropKey));
-      });
-      return combine ? [combine] : null;
+  function equipmentModels(items){return [...new Set((items||[]).map(item=>equipmentDef(item)?.model).filter(Boolean))].join(" + ")}
+  function kitAssessment(operation,cropValue){
+    const cropKey=normaliseCropKey(cropValue),crop=CROPS[cropKey];
+    if(operation==="harvest"){
+      if(!crop)return{kit:null,ownedKit:null,state:"missing",message:"Field crop record was repaired — reopen this plan"};
+      const compatible=state.equipment.filter(item=>{const def=equipmentDef(item);return def?.type==="combine"&&(!def.crops||def.crops.includes(cropKey))}),ownedKit=compatible.length?[compatible[0]]:null;
+      if(!compatible.length){
+        const roots=["potatoes","sugarbeet"].includes(cropKey),requirement=roots?"Grimley Rootmaster":"Vale grain combine";
+        return{kit:null,ownedKit:null,state:"missing",message:`Needs ${requirement} for ${crop.name}`};
+      }
+      const serviceable=compatible.filter(item=>Number(item.condition)>5),available=serviceable.find(item=>!equipmentBusy(item.uid));
+      if(available)return{kit:[available],ownedKit,state:"ready",message:`Ready · ${equipmentDef(available).model}`};
+      if(serviceable.length)return{kit:null,ownedKit,state:"busy",message:`Waiting for ${equipmentModels(serviceable)} to finish`};
+      return{kit:null,ownedKit,state:"repair",message:`Repair ${equipmentModels(compatible)} above 5% condition`};
     }
-    const tractor = state.equipment.find(e => equipmentDef(e)?.type === "tractor");
-    const implement = state.equipment.find(e => equipmentDef(e)?.operation === operation);
-    return tractor && implement ? [tractor, implement] : null;
+    const implementNames={cultivate:"cultivator",plant:"seed drill",fertilize:"spreader or sprayer"},implementName=implementNames[operation]||"matching implement";
+    const tractors=state.equipment.filter(item=>equipmentDef(item)?.type==="tractor"),implementsOwned=state.equipment.filter(item=>equipmentDef(item)?.operation===operation),ownedKit=tractors.length&&implementsOwned.length?[tractors[0],implementsOwned[0]]:null;
+    if(!tractors.length||!implementsOwned.length){const needs=[];if(!tractors.length)needs.push("a tractor");if(!implementsOwned.length)needs.push(`a ${implementName}`);return{kit:null,ownedKit:null,state:"missing",message:`Needs ${needs.join(" and ")}`}}
+    const goodTractors=tractors.filter(item=>Number(item.condition)>5),goodImplements=implementsOwned.filter(item=>Number(item.condition)>5),tractor=goodTractors.find(item=>!equipmentBusy(item.uid)),implement=goodImplements.find(item=>!equipmentBusy(item.uid));
+    if(tractor&&implement)return{kit:[tractor,implement],ownedKit,state:"ready",message:`Ready · ${equipmentDef(tractor).model} + ${equipmentDef(implement).model}`};
+    const broken=[];if(!goodTractors.length)broken.push(...tractors);if(!goodImplements.length)broken.push(...implementsOwned);if(broken.length)return{kit:null,ownedKit,state:"repair",message:`Repair ${equipmentModels(broken)} above 5% condition`};
+    const waiting=[];if(!tractor)waiting.push(...goodTractors);if(!implement)waiting.push(...goodImplements);return{kit:null,ownedKit,state:"busy",message:`Waiting for ${equipmentModels(waiting)} to finish`};
   }
-  function availableKit(operation, cropKey) {
-    if (operation === "harvest") {
-      const combine = state.equipment.find(e => {
-        const d = equipmentDef(e);
-        return d?.type === "combine" && (!d.crops || d.crops.includes(cropKey)) && !equipmentBusy(e.uid) && e.condition > 5;
-      });
-      return combine ? [combine] : null;
-    }
-    const tractor = state.equipment.find(e => equipmentDef(e)?.type === "tractor" && !equipmentBusy(e.uid) && e.condition > 5);
-    const implement = state.equipment.find(e => equipmentDef(e)?.operation === operation && !equipmentBusy(e.uid) && e.condition > 5);
-    return tractor && implement ? [tractor, implement] : null;
-  }
+  function requiredKit(operation,cropKey){return kitAssessment(operation,cropKey).ownedKit}
+  function availableKit(operation,cropKey){return kitAssessment(operation,cropKey).kit}
   function availableWorker(preferredUid=null) {if(preferredUid){const preferred=state.workers.find(w=>w.uid===preferredUid&&w.skill==="operator"&&!workerBusy(w.uid));if(preferred)return preferred;return null}return state.workers.find(w => w.skill === "operator" && !workerBusy(w.uid) && !state.tasks.some(t=>t.status==="queued"&&t.preferredWorkerId===w.uid)); }
 
   function validateJob(field, fs, operation, cropKey, isContract) {
@@ -2050,14 +2104,20 @@ svg {
     if (fs.stage === "stubble") return `<span class="tag gray">After harvest</span>`;
     return `<span class="tag blue">For sale</span>`;
   }
+  function queuedTaskReason(task){
+    if(task.contractor)return"Contractor travelling shortly";const fs=getFieldState(task.fieldId),assessment=kitAssessment(task.operation,task.crop||fs?.crop);if(!assessment.kit)return assessment.message;
+    if(task.preferredWorkerId){const worker=state.workers.find(item=>item.uid===task.preferredWorkerId);if(!worker)return"Assigned operator is no longer employed";if(workerBusy(worker.uid))return`Waiting for ${worker.name} to finish`;return`Ready for ${worker.name}`}
+    return state.workers.some(worker=>worker.skill==="operator"&&!workerBusy(worker.uid))?"Ready to start":"Waiting for an available operator";
+  }
   function taskCard(task) {
     const field = getField(task.fieldId);
     const worker = state.workers.find(w => w.uid === task.workerId);
     const waiting = task.status === "queued";
+    const waitingReason=waiting?queuedTaskReason(task):"";
     const weatherHold = task.status === "active" && task.phase === "working" && task.operation === "harvest" && state.weather === "rain";
     const progress = task.phase === "toField" ? 3 : task.phase === "returning" ? 100 : Math.round(task.progress * 100);
     return `<div class="manage-card">
-      <div class="card-top"><div class="card-title"><span class="asset-icon">${task.operation === "harvest" ? "H" : "T"}</span><div class="card-copy"><strong>${escapeHtml(OP_LABEL[task.operation])} · ${escapeHtml(field.name)}</strong><span>${waiting ? `${task.automated?"Staff planner · ":""}Waiting for staff or machinery` : weatherHold ? "Rain has paused harvesting" : task.phase === "toField" ? "Travelling to the field" : task.phase === "returning" ? "Returning to the yard" : task.contractor ? "Contractor at work" : `${escapeHtml(worker?.name || "Operator")} at work${task.automated?" · recurring plan":""}`}</span></div></div><span class="tag ${weatherHold ? "red" : waiting ? "gray" : ""}">${weatherHold ? "Weather hold" : waiting ? "Queued" : `${progress}%`}</span></div>
+      <div class="card-top"><div class="card-title"><span class="asset-icon">${task.operation === "harvest" ? "H" : "T"}</span><div class="card-copy"><strong>${escapeHtml(OP_LABEL[task.operation])} · ${escapeHtml(field.name)}</strong><span>${waiting ? `${task.automated?"Staff planner · ":""}${escapeHtml(waitingReason)}` : weatherHold ? "Rain has paused harvesting" : task.phase === "toField" ? "Travelling to the field" : task.phase === "returning" ? "Returning to the yard" : task.contractor ? "Contractor at work" : `${escapeHtml(worker?.name || "Operator")} at work${task.automated?" · recurring plan":""}`}</span></div></div><span class="tag ${weatherHold ? "red" : waiting ? "gray" : ""}">${weatherHold ? "Weather hold" : waiting ? "Queued" : `${progress}%`}</span></div>
       <div class="progress ${task.operation === "harvest" ? "gold" : ""}" style="--progress:${progress}%"><span></span></div>
       <div class="card-actions"><button class="button danger" data-action="cancel-task" data-id="${task.id}">${waiting ? "Remove" : "Cancel job"}</button><button class="button ghost" data-action="focus-field" data-field="${field.id}">View field</button></div>
     </div>`;
@@ -2185,14 +2245,25 @@ svg {
     return `<div class="segmented" style="margin-bottom:13px"><button data-action="fleet-tab" data-tab="owned" class="${owned?"is-active":""}">Owned · ${state.equipment.length}</button><button data-action="fleet-tab" data-tab="shop" class="${tab==="shop"?"is-active":""}">Dealer</button><button data-action="fleet-tab" data-tab="dispatch" class="${dispatch?"is-active":""}">Dispatch${activeDeliveries().length?` · ${activeDeliveries().length}`:""}</button></div>${owned ? `<div class="card-list">${content}</div>` : content}`;
   }
 
+  function fleetReadinessHtml(){
+    const fieldCrops=ownedFields().map(field=>{const fs=getFieldState(field.id);return ["seeded","growing","ready"].includes(fs?.stage)?normaliseCropKey(fs.crop):null}).filter(Boolean),plannedCrops=Object.values(state.staffAutomation.rules).filter(rule=>rule?.enabled&&rule.plan==="rotation").map(rule=>normaliseCropKey(rule.crop)).filter(Boolean),relevantCrops=[...new Set(fieldCrops.concat(plannedCrops))],rootNeeded=relevantCrops.some(key=>["potatoes","sugarbeet"].includes(key)),grainNeeded=relevantCrops.some(key=>!["potatoes","sugarbeet"].includes(key));
+    const checks=[
+      {label:"Cultivation",assessment:kitAssessment("cultivate")},{label:"Drilling",assessment:kitAssessment("plant")},{label:"Crop care",assessment:kitAssessment("fertilize")},
+      {label:"Grain harvest",assessment:kitAssessment("harvest","wheat"),optional:!grainNeeded,optionalMessage:"Only needed for cereals, oilseeds and maize"},{label:"Root harvest",assessment:kitAssessment("harvest","potatoes"),optional:!rootNeeded,optionalMessage:"Only needed for potatoes or sugar beet"}
+    ];
+    const tag={ready:"Ready",busy:"Busy",repair:"Repair",missing:"Missing",optional:"Optional"};
+    const rows=checks.map(check=>{const assessment=check.assessment,stateKey=check.optional&&assessment.state==="missing"?"optional":assessment.state,message=stateKey==="optional"?check.optionalMessage:assessment.message;return `<div class="machinery-check-row is-${stateKey}"><span>${check.label}</span><b title="${escapeHtml(message)}">${escapeHtml(message)}</b><span class="tag ${stateKey==="busy"?"gold":stateKey==="repair"||stateKey==="missing"?"red":stateKey==="optional"?"gray":""}">${tag[stateKey]}</span></div>`}).join("");
+    return `<div class="machinery-check"><div class="machinery-check-head"><span><strong>Fleet readiness</strong><small>Only the row for the next field step is required</small></span><button class="text-button" data-action="goto-dealer">Open dealer</button></div><div class="machinery-check-list">${rows}</div></div>`;
+  }
+
   function renderStaff() {
     panelEyebrow.textContent = "People and payroll"; panelTitle.textContent = "Farm team";
     const daily=state.workers.reduce((s,w)=>s+w.wage,0),operators=state.workers.filter(w=>w.skill==="operator"),automated=operators.filter(w=>automationRule(w.uid).enabled).length;
     const fieldOptions=worker=>`<option value="any" ${automationRule(worker.uid).fieldId==="any"?"selected":""}>Any owned field</option>${ownedFields().map(field=>`<option value="${field.id}" ${String(automationRule(worker.uid).fieldId)===String(field.id)?"selected":""}>${escapeHtml(field.name)} · ${field.area} ha</option>`).join("")}`;
     const cropOptions=worker=>Object.entries(CROPS).filter(([,crop])=>crop.unlock<=currentLevel()).map(([key,crop])=>`<option value="${key}" ${automationRule(worker.uid).crop===key?"selected":""}>${escapeHtml(crop.name)}</option>`).join("");
-    const planner=operators.map(worker=>{const rule=automationRule(worker.uid),committed=workerCommitted(worker.uid);return `<div class="manage-card ${rule.enabled?"is-selected":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${worker.owner?"You":"P"}</span><div class="card-copy"><strong>${escapeHtml(worker.name)}</strong><span>${escapeHtml(rule.status||"Ready to configure")}</span></div></div><span class="tag ${committed?"gold":rule.enabled?"":"gray"}">${committed?"Assigned":rule.enabled?"Automatic":"Off"}</span></div><div class="planner-grid"><label class="input-label">Responsibility<select data-action="automation-field" data-worker="${worker.uid}">${fieldOptions(worker)}</select></label><label class="input-label">Recurring plan<select data-action="automation-plan" data-worker="${worker.uid}"><option value="rotation" ${rule.plan==="rotation"?"selected":""}>Full crop cycle</option><option value="harvest" ${rule.plan==="harvest"?"selected":""}>Harvest only</option><option value="prep" ${rule.plan==="prep"?"selected":""}>Ground preparation</option><option value="care" ${rule.plan==="care"?"selected":""}>Crop care only</option></select></label><label class="input-label">Preferred crop<select data-action="automation-crop" data-worker="${worker.uid}" ${!["rotation"].includes(rule.plan)?"disabled":""}>${cropOptions(worker)}</select></label><label class="input-label">Shift<select data-action="automation-shift" data-worker="${worker.uid}"><option value="day" ${rule.shift==="day"?"selected":""}>Day · 06:00–18:00</option><option value="early" ${rule.shift==="early"?"selected":""}>Early · 04:00–12:00</option><option value="late" ${rule.shift==="late"?"selected":""}>Late · 12:00–22:00</option><option value="any" ${rule.shift==="any"?"selected":""}>Any time</option></select></label></div><div class="card-actions"><button class="button ${rule.enabled?"danger":"primary"} wide" data-action="automation-toggle" data-id="${worker.uid}">${rule.enabled?"Pause recurring plan":"Start recurring plan"}</button></div></div>`}).join("");
+    const planner=operators.map(worker=>{const rule=automationRule(worker.uid),committed=workerCommitted(worker.uid),status=rule.status||"Ready to configure";return `<div class="manage-card ${rule.enabled?"is-selected":""}"><div class="card-top"><div class="card-title"><span class="asset-icon">${worker.owner?"You":"P"}</span><div class="card-copy"><strong>${escapeHtml(worker.name)}</strong><span title="${escapeHtml(status)}">${escapeHtml(status)}</span></div></div><span class="tag ${committed?"gold":rule.enabled?"":"gray"}">${committed?"Assigned":rule.enabled?"Automatic":"Off"}</span></div><div class="planner-grid"><label class="input-label">Responsibility<select data-action="automation-field" data-worker="${worker.uid}">${fieldOptions(worker)}</select></label><label class="input-label">Recurring plan<select data-action="automation-plan" data-worker="${worker.uid}"><option value="rotation" ${rule.plan==="rotation"?"selected":""}>Full crop cycle</option><option value="harvest" ${rule.plan==="harvest"?"selected":""}>Harvest only</option><option value="prep" ${rule.plan==="prep"?"selected":""}>Ground preparation</option><option value="care" ${rule.plan==="care"?"selected":""}>Crop care only</option></select></label><label class="input-label">Preferred crop<select data-action="automation-crop" data-worker="${worker.uid}" ${!["rotation"].includes(rule.plan)?"disabled":""}>${cropOptions(worker)}</select></label><label class="input-label">Shift<select data-action="automation-shift" data-worker="${worker.uid}"><option value="day" ${rule.shift==="day"?"selected":""}>Day · 06:00–18:00</option><option value="early" ${rule.shift==="early"?"selected":""}>Early · 04:00–12:00</option><option value="late" ${rule.shift==="late"?"selected":""}>Late · 12:00–22:00</option><option value="any" ${rule.shift==="any"?"selected":""}>Any time</option></select></label></div><div class="card-actions"><button class="button ${rule.enabled?"danger":"primary"} wide" data-action="automation-toggle" data-id="${worker.uid}">${rule.enabled?"Pause recurring plan":"Start recurring plan"}</button></div></div>`}).join("");
     return `<div class="summary-grid"><div class="summary-card"><span>Team</span><strong>${state.workers.length}</strong><small>including you</small></div><div class="summary-card"><span>Daily wages</span><strong>${money(daily)}</strong><small>${money(daily*7)}/week</small></div><div class="summary-card"><span>Automated</span><strong>${automated}</strong><small>of ${operators.length} operators</small></div></div>
-    <section class="section"><div class="section-head"><h3>Recurring work planner</h3>${automated?`<button class="text-button" data-action="automation-stop-all">Pause all</button>`:`<small>Uses your own machinery</small>`}</div><div class="notice" style="margin-bottom:8px">Assign a responsibility area, crop cycle and shift. Operators will schedule the next valid step whenever both they and the required machinery are available.</div><div class="card-list">${planner||`<div class="empty-state">Hire a farmhand or skilled operator to create recurring field plans.</div>`}</div></section>
+    <section class="section"><div class="section-head"><h3>Recurring work planner</h3>${automated?`<button class="text-button" data-action="automation-stop-all">Pause all</button>`:`<small>Uses your own machinery</small>`}</div><div class="notice" style="margin-bottom:8px">Assign a responsibility area, crop cycle and shift. Operators will schedule the next valid step whenever both they and the required machinery are available.</div>${fleetReadinessHtml()}<div class="card-list">${planner||`<div class="empty-state">Hire a farmhand or skilled operator to create recurring field plans.</div>`}</div></section>
     <section class="section"><div class="section-head"><h3>Your team</h3></div><div class="card-list">${state.workers.map(w=>`<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">${w.owner?"You":"P"}</span><div class="card-copy"><strong>${escapeHtml(w.name)}</strong><span>${escapeHtml(w.role)}${w.wage ? ` · ${money(w.wage)}/day` : ""}</span></div></div><span class="tag ${workerCommitted(w.uid)?"gold":""}">${workerCommitted(w.uid)?"Assigned":w.skill}</span></div>${!w.owner?`<div class="card-actions"><button class="button danger" data-action="fire-worker" data-id="${w.uid}" ${workerCommitted(w.uid)?"disabled":""}>End contract</button></div>`:""}</div>`).join("")}</div></section>
     <section class="section"><div class="section-head"><h3>Recruit</h3><small>Paid daily at midnight</small></div><div class="card-list">${STAFF_CATALOG.map((w,i)=>`<div class="manage-card"><div class="card-top"><div class="card-title"><span class="asset-icon">+</span><div class="card-copy"><strong>${escapeHtml(w.role)}</strong><span>${escapeHtml(w.detail)} · ${money(w.wage)}/day</span></div></div><span class="tag">${money(w.hire)}</span></div><div class="card-actions"><button class="button primary wide" data-action="hire-worker" data-index="${i}">Hire · ${money(w.hire)}</button></div></div>`).join("")}</div></section>`;
   }
@@ -2607,6 +2678,7 @@ svg {
     else if(a==="accept-contract")acceptContract(button.dataset.id);
     else if(a==="finance-range"){state.ui.financeRange=button.dataset.range==="all"?"all":Number(button.dataset.range);renderPanel(false)}
     else if(a==="goto-dispatch"){state.ui.fleetTab="dispatch";setPanel("fleet")}
+    else if(a==="goto-dealer"){state.ui.fleetTab="shop";setPanel("fleet")}
     else if(a==="goto-panel")setPanel(button.dataset.panel);
     else if(a==="rename-farm")openDialog({icon:"🌿",title:"Rename your farm",body:"<p>The new name appears across your management dashboard.</p>",input:{label:"Farm name",value:state.farmName},primary:"Save name",secondary:"Cancel",onPrimary:value=>{if(!value)return false;state.farmName=value;updateHud();renderPanel(false);saveGame()}})
     else if(a==="save-game")saveGame(true);
